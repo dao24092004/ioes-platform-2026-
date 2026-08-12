@@ -1,0 +1,36 @@
+---
+description: IOES Project Overview - Mandatory context for AI assistants
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# IOES - Intelligent Online Examination System
+
+## Project Overview
+- **Name:** IOES (Intelligent Online Examination System)
+- **Type:** Microservices-based online examination platform
+- **Architecture:** Monorepo with Nx, 10 Backend Microservices + Frontend
+- **Stack:** React 18 + TypeScript, Java 17 Spring Boot 3, Node.js 20 NestJS, Python 3.11 FastAPI
+
+## MANDATORY References (ĐỌC TRƯỚC KHI CODE)
+- `@/docs/01-business/PROJECT_RULES.md` - Master rules (BẮT BUỘC tuân thủ)
+- `@/docs/01-business/PROJECT_STRUCTURE.md` - Cấu trúc thư mục
+- `@/docs/01-business/BA_DOCUMENT.md` - Business logic
+
+## Coding Standards (theo ngôn ngữ)
+- **Frontend (React/TypeScript):** `@/docs/03-development/coding-standards/frontend-styleguide.md`
+- **Java/Spring Boot:** `@/docs/03-development/coding-standards/java-styleguide.md`
+- **Node.js/NestJS:** `@/docs/03-development/coding-standards/node-styleguide.md`
+- **Python/FastAPI:** `@/docs/03-development/coding-standards/python-styleguide.md`
+
+## Workflow & Process
+- `@/docs/03-development/git-workflow.md` - GitFlow + Conventional Commits
+- `@/docs/03-development/code-review-checklist.md` - PR Review
+- `@/docs/03-development/testing-strategy.md` - Testing
+- `@/docs/02-architecture/service-boundaries.md` - Service Boundaries
+
+## 🚨 GOLDEN RULES (TUYỆT ĐỐI)
+1. **KHÔNG ĐƯỢC LÀM LAN MAN** - Mọi thứ phải theo đúng tài liệu đã được phê duyệt
+2. **KHÔNG tự ý thay đổi kiến trúc** - Mọi thay đổi kiến trúc cần ADR
+3. **LUÔN CÓ TEST** - Coverage tối thiểu 80%
+4. **ĐẶT FILE ĐÚNG VỊ TRÍ** - Theo PROJECT_STRUCTURE.md

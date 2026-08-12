@@ -1,0 +1,60 @@
+---
+description: Node.js/NestJS rules for backend services
+globs: ["services/exam-suite/**/*.ts", "services/blockchain-suite/**/*.ts", "services/ai-suite/api-gateway/**/*.ts", "libs/common-node/**/*.ts"]
+alwaysApply: false
+---
+
+# Node.js Rules (NestJS 10 + TypeScript)
+
+## 🏗️ Structure (NestJS Module)
+```
+modules/{feature}/
+├── {feature}.module.ts
+├── {feature}.controller.ts
+├── {feature}.service.ts
+├── {feature}.repository.ts
+├── entities/
+├── dto/
+├── guards/
+├── interceptors/
+└── *.spec.ts
+```
+
+## 📐 Naming
+- Class: PascalCase + suffix (Module/Controller/Service/Repository)
+- Method/Variable: camelCase
+- Constant: UPPER_SNAKE_CASE
+- File: kebab-case hoặc dot.notation
+- DTO: PascalCase + Dto
+- Interface: PascalCase, NO `I` prefix
+
+## ✅ MUST
+- Use class-validator cho DTO validation
+- Use Swagger decorators (@ApiTags, @ApiOperation, @ApiResponse)
+- Use @CurrentUser() decorator thay vì đọc từ request
+- Use class-based exception filters
+- Use WebSocket gateway namespaced (/exam, /proctoring)
+- Async/await (NO callback hell)
+- Use KafkaJS hoặc kafkajs cho Kafka
+- Use TypeORM hoặc Prisma cho DB
+- Use Jest + Supertest cho test
+
+## ❌ NEVER
+- `any` type (dùng `unknown` + type guards)
+- `console.log` (dùng Logger từ @nestjs/common)
+- Magic numbers
+- Hardcoded secrets, URLs
+- File `.js` (chỉ `.ts`)
+- var (chỉ const/let)
+- Empty catch block
+- Comment lặp lại code
+- Business logic trong Controller
+
+## 🧪 Test
+- Jest + Supertest
+- Test files: `*.spec.ts` (unit), `*.e2e-spec.ts` (e2e)
+- Mock với `jest.Mocked<T>`
+- Use Test.createTestingModule
+- Coverage ≥ 80%
+
+Xem chi tiết: `@/docs/03-development/coding-standards/node-styleguide.md`

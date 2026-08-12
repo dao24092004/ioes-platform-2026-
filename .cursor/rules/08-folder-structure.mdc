@@ -1,0 +1,97 @@
+---
+description: Folder structure rules - where to put files
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Folder Structure Rules (BẮT BUỘC)
+
+## 📂 Root Folders
+- `apps/` - Applications (frontend)
+- `services/` - Backend microservices
+- `libs/` - Shared libraries
+- `packages/` - Frontend shared packages
+- `infrastructure/` - IaC (Terraform, Helm, ArgoCD)
+- `docs/` - Documentation
+- `database/` - Migrations, seeds
+- `tests/` - E2E, performance tests
+- `scripts/` - DevOps scripts
+
+## 🎨 Frontend (`apps/web/`)
+- `src/components/{domain}/` - Component theo domain (auth, course, exam, ai, blockchain)
+- `src/pages/{role}/` - Pages theo role (auth, public, student, instructor, admin, error)
+- `src/hooks/` - Custom hooks
+- `src/services/api/` - API clients
+- `src/services/websocket/` - WebSocket clients
+- `src/utils/` - Helpers
+- `src/types/` - TypeScript types
+- `src/app/providers/` - Context providers
+- `src/app/router/` - Routing config
+- `src/app/store/` - Global state (Zustand)
+- `src/styles/` - Global CSS
+- `src/config/` - Env config
+- `src/assets/` - Images, icons, fonts
+
+## 🔧 Backend Java Service (`services/{service}/`)
+- `src/main/java/com/ioes/{service}/domain/` - Pure business logic
+- `src/main/java/com/ioes/{service}/application/usecase/` - Use cases
+- `src/main/java/com/ioes/{service}/application/port/` - Port interfaces
+- `src/main/java/com/ioes/{service}/infrastructure/persistence/` - DB
+- `src/main/java/com/ioes/{service}/infrastructure/kafka/` - Kafka
+- `src/main/java/com/ioes/{service}/infrastructure/security/` - JWT, OAuth
+- `src/main/java/com/ioes/{service}/interfaces/rest/` - REST controllers
+- `src/main/java/com/ioes/{service}/interfaces/event/` - Event consumers
+- `src/main/java/com/ioes/{service}/config/` - Spring config
+- `src/main/resources/db/migration/` - Flyway migrations
+- `src/test/java/` - Tests
+- `k8s/` - K8s manifests riêng
+- `Dockerfile`, `pom.xml`
+
+## 🟢 Backend Node.js Service (`services/{service}/`)
+- `src/main.ts` - Entry point
+- `src/app.module.ts` - Root module
+- `src/modules/{feature}/` - Feature modules
+  - `{feature}.module.ts`
+  - `{feature}.controller.ts`
+  - `{feature}.service.ts`
+  - `{feature}.repository.ts`
+  - `entities/`
+  - `dto/`
+  - `guards/`, `interceptors/`
+  - `*.spec.ts`
+- `src/common/` - Filters, guards, decorators
+- `src/database/` - Migrations
+- `src/config/` - Configuration
+- `test/` - Tests
+- `k8s/`, `Dockerfile`, `package.json`
+
+## 🐍 Backend Python Service (`services/ai-suite/{service}/`)
+- `src/{service_name}/main.py` - FastAPI entry
+- `src/{service_name}/api/` - Routes
+- `src/{service_name}/models/` - ML models
+- `src/{service_name}/services/` - Business logic
+- `src/{service_name}/schemas/` - Pydantic models
+- `src/{service_name}/core/` - config, logging, security
+- `tests/`, `notebooks/`, `k8s/`, `Dockerfile`, `pyproject.toml`
+
+## 📚 Shared Libraries (`libs/`)
+- `common-library/` - Java (DTOs, exceptions, JWT, Kafka)
+- `common-node/` - Node.js (filters, guards, decorators)
+- `common-python/` - Python (schemas, OpenTelemetry)
+
+## 📦 Frontend Packages (`packages/`)
+- `ui-kit/` - Shared UI components
+- `api-client/` - Generated API client
+- `shared-types/` - Shared TypeScript types
+- `eslint-config/` - Shared ESLint
+- `tsconfig/` - Shared TypeScript
+- `utils/` - Shared utilities
+
+## 🚫 CẤM
+- Tạo file `.js` (chỉ `.ts`/`.tsx`)
+- Tạo thư mục ngoài cấu trúc
+- Tạo file Java ở root của service
+- Tạo file Python ở root của service
+- File rác (draft, debug) trong code
+
+Xem chi tiết: `@/docs/01-business/PROJECT_STRUCTURE.md`

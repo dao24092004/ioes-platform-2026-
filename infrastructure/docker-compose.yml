@@ -1,0 +1,309 @@
+version: '3.9'
+
+# ============================================
+# IOES - Docker Compose for Development
+# ============================================
+
+services:
+  # =============================
+  # Database - PostgreSQL
+  # =============================
+  postgres:
+    image: postgres:15-alpine
+    container_name: ioes-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ioes
+      POSTGRES_PASSWORD: ioes_dev_password
+      POSTGRES_DB: ioes_dev
+      POSTGRES_MULTIPLE_DATABASES: ioes_auth,ioes_content,ioes_exam,ioes_analytics,ioes_blockchain
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ioes"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ioes-network
+
+  # =============================
+  # Cache - Redis Cluster
+  # =============================
+  redis:
+    image: redis:7-alpine
+    container_name: ioes-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ioes-network
+
+  # =============================
+  # Document DB - MongoDB
+  # =============================
+  mongodb:
+    image: mongo:7
+    container_name: ioes-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ioes
+      MONGO_INITDB_ROOT_PASSWORD: ioes_dev_password
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - ioes-network
+
+  # =============================
+  # Message Queue - Kafka
+  # =============================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: ioes-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - ioes-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: ioes-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG_RETENTION_HOURS: 24
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - ioes-network
+
+  # Kafka UI
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: ioes-kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - ioes-network
+
+  # =============================
+  # Object Storage - MinIO
+  # =============================
+  minio:
+    image: minio/minio:latest
+    container_name: ioes-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ioes-network
+
+  # =============================
+  # Vector Database - Milvus
+  # =============================
+  milvus-standalone:
+    image: milvusdb/milvus:v2.4.0
+    container_name: ioes-milvus
+    command: ["milvus", "run", "standalone"]
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    depends_on:
+      - etcd
+      - minio
+    volumes:
+      - milvus_data:/var/lib/milvus
+    networks:
+      - ioes-network
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: ioes-etcd
+    environment:
+      ETCD_AUTO_COMPACTION_MODE: revision
+      ETCD_AUTO_COMPACTION_RETENTION: "1000"
+      ETCD_QUOTA_BACKEND_BYTES: "4294967296"
+      ETCD_SNAPSHOT_COUNT: "50000"
+    volumes:
+      - etcd_data:/etcd
+    command: etcd -advertise-client-urls=http://etcd:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    networks:
+      - ioes-network
+
+  # =============================
+  # Observability Stack
+  # =============================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ioes-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    networks:
+      - ioes-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ioes-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./infrastructure/monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - ioes-network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: ioes-jaeger
+    restart: unless-stopped
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+      - "9411:9411"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    networks:
+      - ioes-network
+
+  # =============================
+  # Development Tools
+  # =============================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ioes-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ioes.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - ioes-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ioes-redis-commander
+    restart: unless-stopped
+    ports:
+      - "8082:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - ioes-network
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: ioes-mongo-express
+    restart: unless-stopped
+    ports:
+      - "8083:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ioes
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ioes_dev_password
+      ME_CONFIG_MONGODB_URL: mongodb://ioes:ioes_dev_password@mongodb:27017/
+    depends_on:
+      - mongodb
+    networks:
+      - ioes-network
+
+  # =============================
+  # MailHog (Email testing)
+  # =============================
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: ioes-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - ioes-network
+
+# =============================
+# Volumes
+# =============================
+volumes:
+  postgres_data:
+  redis_data:
+  mongodb_data:
+  kafka_data:
+  minio_data:
+  milvus_data:
+  etcd_data:
+  prometheus_data:
+  grafana_data:
+
+# =============================
+# Networks
+# =============================
+networks:
+  ioes-network:
+    driver: bridge
+    name: ioes-network

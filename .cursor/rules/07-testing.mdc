@@ -1,0 +1,65 @@
+---
+description: Testing rules and best practices
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Testing Rules
+
+## 📊 Coverage Requirements
+| Layer | Min Coverage |
+|-------|--------------|
+| Critical (auth, payment, grading) | **95%** |
+| Business logic | **85%** |
+| Controllers | **80%** |
+| UI components | **70%** |
+| **Overall** | **80%** |
+
+## 🧪 Test Types
+1. **Unit (60-75%)** - Pure logic, mock dependencies, < 100ms
+2. **Integration (20-30%)** - Real DB/Kafka via Testcontainers
+3. **E2E (5-10%)** - Playwright, critical flows only
+4. **Performance** - k6, load testing
+5. **Contract** - Pact, API contracts
+
+## ✅ MUST
+- Mỗi PR phải có test
+- Coverage không giảm
+- Test behavior, not implementation
+- Mock external dependencies, NOT internal
+- Test names mô tả behavior: `should_X_When_Y`
+- Fast unit tests (< 100ms)
+- Independent tests (no order dependency)
+- Clean up test data sau mỗi test
+
+## 📝 Test Naming
+```java
+// Java
+void should_ReturnToken_When_LoginWithValidCredentials()
+void should_ThrowException_When_EmailAlreadyExists()
+
+// TypeScript
+it('should return token when credentials are valid', () => {})
+it('should throw error when email already exists', () => {})
+
+// Python
+def test_should_return_token_when_credentials_valid()
+def test_should_raise_error_when_email_exists()
+```
+
+## ❌ NEVER
+- Test private methods
+- Test implementation details
+- Skip test không có lý do
+- Sleep() trong test
+- Test phụ thuộc thứ tự
+- Test trên production data
+- Snapshot test cho logic
+- Fake coverage (only happy path)
+
+## 🎯 TDD Cycle
+1. 🔴 RED: Viết test trước (fail)
+2. 🟢 GREEN: Code đơn giản nhất để pass
+3. 🔵 REFACTOR: Cải thiện code (giữ test pass)
+
+Xem chi tiết: `@/docs/03-development/testing-strategy.md`

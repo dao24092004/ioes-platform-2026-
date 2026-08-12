@@ -1,0 +1,70 @@
+---
+description: Python/FastAPI rules for AI/ML services
+globs: ["services/ai-suite/**/*.py", "libs/common-python/**/*.py"]
+alwaysApply: false
+---
+
+# Python Rules (FastAPI + Pydantic + PyTorch)
+
+## 🏗️ Structure
+```
+service/
+├── src/service_name/
+│   ├── main.py              # FastAPI app
+│   ├── api/                 # Routes
+│   ├── models/              # ML models
+│   ├── services/            # Business logic
+│   ├── schemas/             # Pydantic models
+│   ├── core/                # config, logging, security
+│   └── db/                  # Database
+├── tests/
+└── notebooks/               # Research
+```
+
+## 📐 Naming (PEP 8)
+- Module/file: snake_case
+- Class: PascalCase
+- Function/variable: snake_case
+- Constant: UPPER_SNAKE_CASE
+- Private: _prefix
+- Exception: PascalCase + Error suffix
+
+## ✅ MUST
+- Type hints EVERYWHERE (NO untyped functions)
+- Use Pydantic models cho request/response
+- Use Pydantic Settings cho config
+- Use structlog cho structured logging
+- Use `async def` cho I/O operations
+- Use `from typing import` cho complex types
+- Custom exception hierarchy (BusinessError)
+- Global exception handlers trong FastAPI
+- Use `Optional[T]` không dùng default `None` cho non-Optional
+- Use pytest + pytest-asyncio cho test
+
+## ❌ NEVER
+- `print()` trong production
+- Missing type hints
+- Mutable default arguments (`def f(items=[])`)
+- Bare except
+- Wildcard imports (`from module import *`)
+- `Any` type (dùng specific types)
+- Magic numbers
+- Hardcoded secrets, paths
+- Comment lặp lại code
+
+## 🧪 Test
+- pytest + pytest-asyncio
+- pytest-cov cho coverage
+- Use AsyncMock cho async functions
+- Use Factory Boy cho test data
+- Coverage ≥ 80%
+
+## 🧠 ML Specific
+- PyTorch models phải có docstring mô tả kiến trúc
+- Inference: dùng `@torch.no_grad()` decorator
+- Batch processing cho efficiency
+- Save/load model state_dict (KHÔNG pickle toàn bộ)
+- Use ONNX hoặc TensorRT cho production inference
+- Track experiments với MLflow hoặc W&B
+
+Xem chi tiết: `@/docs/03-development/coding-standards/python-styleguide.md`

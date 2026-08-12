@@ -1,0 +1,57 @@
+---
+description: Frontend rules for React + TypeScript (apps/web/, packages/)
+globs: ["apps/web/**/*.{ts,tsx,css}", "packages/**/*.{ts,tsx}"]
+alwaysApply: false
+---
+
+# Frontend Rules (React 18 + TypeScript + Vite + Tailwind)
+
+## 🏗️ Structure
+- Components → `apps/web/src/components/{domain}/`
+- Pages → `apps/web/src/pages/{role}/` (auth, public, student, instructor, admin, error)
+- API client → `apps/web/src/services/api/{resource}.api.ts`
+- Hooks → `apps/web/src/hooks/`
+- Types → `apps/web/src/types/`
+
+## 📐 Naming
+- Component: PascalCase (`LoginForm.tsx`)
+- Hook: camelCase + `use` prefix (`useAuth.ts`)
+- Constant: UPPER_SNAKE_CASE (`MAX_FILE_SIZE`)
+- Boolean: `is/has/should/can` prefix (`isLoading`)
+- File: PascalCase.tsx (component), camelCase.ts (utility)
+
+## ✅ MUST
+- Use functional components + hooks (NO class components)
+- TypeScript strict mode (NO `any`, dùng `unknown` + type guards)
+- Use i18n cho mọi text (`t('key')`)
+- Use Tailwind (NO inline styles cho complex UI)
+- Use React Query cho server state
+- Use Zustand cho global state
+- Lazy load routes + heavy components
+- Add aria-label, role cho a11y
+- Props interface rõ ràng
+
+## ❌ NEVER
+- Class components
+- `any` type
+- `console.log` (dùng logger)
+- Direct DOM manipulation
+- Hardcoded URLs, secrets, text (i18n)
+- Magic numbers
+- File `.js` (chỉ `.ts` / `.tsx`)
+- Comment lặp lại code
+
+## 🧪 Test
+- Vitest + React Testing Library
+- Coverage ≥ 70% cho UI
+- Test behavior, không test implementation
+- Use `data-testid` cho test selectors
+
+## 📦 Import Order
+1. External (react, libs)
+2. Internal (@ioes/*)
+3. Absolute (@/...)
+4. Relative
+5. Styles
+
+Xem chi tiết: `@/docs/03-development/coding-standards/frontend-styleguide.md`

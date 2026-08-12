@@ -1,0 +1,66 @@
+---
+description: Microservices architecture rules
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Microservices Architecture Rules
+
+## 🔐 Service Boundaries (BẮT BUỘC)
+- Mỗi service là 1 bounded context độc lập
+- Database per service (KHÔNG share DB)
+- KHÔNG foreign key giữa 2 services
+- KHÔNG gọi trực tiếp DB của service khác
+- Service gọi nhau qua API Gateway hoặc Kafka
+
+## 📡 Communication Rules
+| Loại | Khi nào |
+|------|---------|
+| REST qua Gateway | Query data cần ngay |
+| Kafka event | Async, multiple consumers |
+| WebSocket | Real-time push |
+| ❌ Sync chain | KHÔNG BAO GIỜ (A → B → C → D) |
+
+## 📋 Service Map
+- **api-gateway** (Java) - port 8080
+- **auth-service** (Java) - port 9000
+- **content-service** (Java) - port 9001
+- **exam-suite** (Node.js) - port 9005
+- **analytics-service** (Java) - port 9004
+- **notification-service** (Java) - port 9009
+- **ai-suite** (Polyglot) - port 9100-9103
+- **blockchain-suite** (Node.js) - port 9200
+
+## 📦 Event Schema (BẮT BUỘC)
+```json
+{
+  "eventId": "uuid-v7",
+  "eventType": "UserRegistered",
+  "eventVersion": "1.0",
+  "occurredAt": "2026-08-12T10:00:00Z",
+  "aggregateId": "user-123",
+  "aggregateType": "User",
+  "correlationId": "trace-id-xxx",
+  "source": "auth-service",
+  "payload": { ... }
+}
+```
+
+## 📐 Event Naming (Past tense)
+- `UserRegistered`, `UserLoggedIn`
+- `CoursePublished`, `CourseEnrolled`
+- `ExamStarted`, `ExamSubmitted`, `ExamGraded`
+- `CertificateIssued`
+
+## 🚫 ARCHITECTURAL VIOLATIONS (CẤM)
+- ❌ Service gọi trực tiếp DB service khác
+- ❌ Shared database
+- ❌ Foreign key constraints giữa 2 databases
+- ❌ Tight coupling giữa services
+- ❌ Service gọi REST trực tiếp service khác (phải qua Gateway)
+- ❌ Business logic trong Controller
+- ❌ Framework dependencies trong Domain layer
+- ❌ Shared entities giữa services
+- ❌ Circular dependencies
+
+Xem chi tiết: `@/docs/02-architecture/service-boundaries.md`

@@ -1,0 +1,62 @@
+---
+description: Java/Spring Boot rules for backend services
+globs: ["services/**/src/main/java/**/*.java", "libs/common-library/**/*.java"]
+alwaysApply: false
+---
+
+# Java Rules (Spring Boot 3 + Hexagonal Architecture)
+
+## 🏗️ Structure (Hexagonal)
+- Domain: `services/{svc}/src/main/java/com/ioes/{svc}/domain/`
+- Application: `services/{svc}/src/main/java/com/ioes/{svc}/application/`
+- Infrastructure: `services/{svc}/src/main/java/com/ioes/{svc}/infrastructure/`
+- Interfaces: `services/{svc}/src/main/java/com/ioes/{svc}/interfaces/`
+- Config: `services/{svc}/src/main/java/com/ioes/{svc}/config/`
+
+## 📐 Layer Rules (BẮT BUỘC)
+- ✅ Domain: POJO thuần, KHÔNG có framework dependencies
+- ✅ Application: depend on Domain + Port interfaces
+- ✅ Infrastructure: implement Port interfaces
+- ✅ Interfaces: REST controllers, event listeners
+- ❌ Domain KHÔNG được import Spring/Hibernate/JPA
+- ❌ Application KHÔNG gọi trực tiếp infrastructure (qua port)
+
+## 📐 Naming
+- Class: PascalCase
+- Method/Variable: camelCase
+- Constant: UPPER_SNAKE_CASE
+- Package: `com.ioes.{service}.{layer}`
+- DTO: PascalCase + DTO
+- UseCase: PascalCase + UseCase
+- Controller: PascalCase + Controller
+- Repository interface: PascalCase + Repository
+
+## ✅ MUST
+- Constructor injection (NO field injection @Autowired)
+- Use SLF4J logger (NO System.out.println)
+- Use Optional<T> thay vì return null
+- Use record cho DTOs (Java 17)
+- Bean Validation cho input (@NotNull, @Email, @Size)
+- Global exception handler (@RestControllerAdvice)
+- Structured logging với MDC
+- Constructor final fields
+- JUnit 5 + Mockito cho test
+
+## ❌ NEVER
+- Field injection (`@Autowired` trên field)
+- `System.out.println` / `printStackTrace`
+- `Optional.get()` không check isPresent
+- Magic numbers
+- Hardcoded secrets, URLs
+- Cyclomatic complexity > 10
+- File > 500 dòng
+- Comment lặp lại code
+
+## 🧪 Test
+- JUnit 5 + Mockito
+- Testcontainers cho integration test
+- @SpringBootTest cho controller
+- @ExtendWith(MockitoExtension.class) cho unit test
+- Coverage ≥ 85% business logic, ≥ 95% critical
+
+Xem chi tiết: `@/docs/03-development/coding-standards/java-styleguide.md`

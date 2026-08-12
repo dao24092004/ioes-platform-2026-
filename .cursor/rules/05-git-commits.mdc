@@ -1,0 +1,81 @@
+---
+description: Git workflow, commits, PRs
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Git Workflow Rules
+
+## 🌿 Branch Naming (BẮT BUỘC)
+```
+<type>/PROJ-<id>-<short-desc>
+
+feature/PROJ-123-add-oauth-google
+bugfix/PROJ-456-fix-timer
+hotfix/PROJ-789-critical-fix
+refactor/PROJ-234-extract-service
+docs/PROJ-345-update-readme
+test/PROJ-456-add-e2e
+chore/PROJ-567-update-deps
+```
+
+## 📝 Commit Format (Conventional Commits - BẮT BUỘC)
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+### Types
+- `feat` - Tính năng mới
+- `fix` - Bug fix
+- `docs` - Tài liệu
+- `style` - Format code
+- `refactor` - Refactor
+- `perf` - Performance
+- `test` - Thêm/sửa test
+- `chore` - Build, deps
+- `ci` - CI/CD
+- `revert` - Revert
+
+### Scope (service name)
+`(auth)`, `(content)`, `(exam)`, `(ai)`, `(blockchain)`, `(analytics)`, `(notification)`, `(web)`, `(deps)`, `(ci)`
+
+### Rules
+- Subject ≤ 72 ký tự
+- Imperative mood ("add" not "added")
+- NO viết hoa chữ cái đầu
+- NO dấu chấm cuối
+- Reference Jira ticket ở footer: `Refs: PROJ-123`
+
+## ✅ EXAMPLES
+```bash
+git commit -m "feat(auth): add Google OAuth2 login
+
+Add Google as OAuth2 provider. User can now sign in with Google
+account. Existing users can link their Google account from settings.
+
+- Add GoogleOAuthProvider
+- Update LoginUseCase to handle OAuth
+- Add tests for OAuth flow
+
+Refs: PROJ-123"
+
+git commit -m "fix(exam): correct timer countdown when tab inactive
+
+Fix timer that pauses when user switches tab. Now uses
+performance.now() for accurate time tracking.
+
+Fixes: PROJ-456"
+```
+
+## ❌ NEVER
+- `git commit -m "update"`
+- `git commit -m "fix bug"`
+- `git commit -m "WIP"`
+- Commit trực tiếp vào main/develop
+- Force push sau khi review started
+
+Xem chi tiết: `@/docs/03-development/git-workflow.md`
