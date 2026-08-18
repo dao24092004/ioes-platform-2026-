@@ -1,0 +1,107 @@
+enabled: true
+
+nameOverride: notification-service
+fullnameOverride: ioes-notification-service
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/ioes-platform/notification-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 9009
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9009"
+    prometheus.io/path: "/actuator/prometheus"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: notification.ioes.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: notification-service-tls
+      hosts:
+        - notification.ioes.local
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+env:
+  SPRING_PROFILES_ACTIVE: "prod"
+  SERVER_PORT: "9009"
+  DB_HOST: "ioes-postgres"
+  DB_PORT: "5432"
+  DB_NAME: "ioes_notification"
+  DB_USERNAME: "ioes"
+  DB_PASSWORD: ""
+  REDIS_HOST: "ioes-redis"
+  REDIS_PORT: "6379"
+  KAFKA_BOOTSTRAP_SERVERS: "ioes-kafka:9092"
+  MAIL_HOST: "ioes-mailhog"
+  MAIL_PORT: "1025"
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-service:9999/eureka/"
+  JAVA_OPTS: "-Xms256m -Xmx768m -XX:+UseG1GC"
+
+secrets:
+  create: false
+  existingSecret: notification-service-secrets
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 9009
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 9009
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  path: /actuator/prometheus
+  scrapeTimeout: 10s
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app: notification-service
+
+namespace: ioes

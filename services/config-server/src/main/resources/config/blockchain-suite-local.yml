@@ -1,0 +1,17 @@
+# Local overrides for blockchain-suite
+app:
+  port: 9200
+
+database:
+  host: localhost
+
+redis:
+  host: localhost
+
+blockchain:
+  network: localhost
+  rpc-url: http://localhost:8545
+
+ipfs:
+  host: localhost
+  port: 5001

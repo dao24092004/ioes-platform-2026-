@@ -1,0 +1,15 @@
+apiVersion: v2
+name: ioes-common
+description: Shared Helm library chart for all IOES microservices (Deployment, Service, Ingress, ServiceAccount, ConfigMap, HPA, ServiceMonitor, PDB, NetworkPolicy).
+type: library
+version: 0.2.0
+appVersion: "1.0.0"
+keywords:
+  - ioes
+  - microservices
+  - library
+maintainers:
+  - name: IOES Team
+    email: tech@ioes.com
+# This chart exposes templates only — it cannot be installed standalone.
+# Consume from a service chart via `dependencies: - name: ioes-common`.

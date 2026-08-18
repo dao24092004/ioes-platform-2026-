@@ -1,0 +1,19 @@
+# Local overrides for exam-suite
+app:
+  port: 9005
+  log-level: debug
+
+database:
+  host: localhost
+  port: 5432
+
+redis:
+  host: localhost
+
+kafka:
+  brokers: localhost:9092
+
+services:
+  auth-service: http://localhost:9000
+  content-service: http://localhost:9001
+  notification-service: http://localhost:9009

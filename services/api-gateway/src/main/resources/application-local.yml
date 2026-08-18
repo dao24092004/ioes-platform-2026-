@@ -1,0 +1,10 @@
+# api-gateway - local profile
+spring:
+  cloud:
+    config:
+      enabled: false
+logging:
+  level:
+    com.ioes: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: DEBUG

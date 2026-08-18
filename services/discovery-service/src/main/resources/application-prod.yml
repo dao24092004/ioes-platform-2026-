@@ -1,0 +1,13 @@
+# discovery-service - prod profile (when it registers with itself in HA cluster)
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+logging:
+  level:
+    com.ioes: INFO
+    root: WARN
+management:
+  endpoint:
+    health:
+      show-details: never

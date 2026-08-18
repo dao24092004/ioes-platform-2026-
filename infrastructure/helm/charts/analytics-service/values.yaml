@@ -1,0 +1,112 @@
+enabled: true
+
+nameOverride: analytics-service
+fullnameOverride: ioes-analytics-service
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/ioes-platform/analytics-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 9004
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9004"
+    prometheus.io/path: "/actuator/prometheus"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: analytics.ioes.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: analytics-service-tls
+      hosts:
+        - analytics.ioes.local
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+env:
+  SPRING_PROFILES_ACTIVE: "prod"
+  SERVER_PORT: "9004"
+  DB_HOST: "ioes-postgres"
+  DB_PORT: "5432"
+  DB_NAME: "ioes_analytics"
+  DB_USERNAME: "ioes"
+  DB_PASSWORD: ""
+  REDIS_HOST: "ioes-redis"
+  REDIS_PORT: "6379"
+  KAFKA_BOOTSTRAP_SERVERS: "ioes-kafka:9092"
+  MONGO_HOST: "ioes-mongodb"
+  MONGO_PORT: "27017"
+  MONGO_REPLICA_SET: "rs0"
+  MONGO_DB_NAME: "ioes_analytics"
+  MONGO_USERNAME: "ioes_analytics_user"
+  MONGO_PASSWORD: ""
+  MONGO_AUTH_SOURCE: "admin"
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-service:9999/eureka/"
+  JAVA_OPTS: "-Xms512m -Xmx1536m -XX:+UseG1GC"
+
+secrets:
+  create: false
+  existingSecret: analytics-service-secrets
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 9004
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 9004
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  path: /actuator/prometheus
+  scrapeTimeout: 10s
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app: analytics-service
+
+namespace: ioes

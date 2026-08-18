@@ -1,0 +1,22 @@
+# Production overrides for exam-suite
+app:
+  port: 9005
+  log-level: info
+
+database:
+  host: postgres.exam
+  port: 5432
+
+redis:
+  host: redis.exam
+
+kafka:
+  brokers: kafka:9092
+
+services:
+  auth-service: http://auth-service:9000
+  content-service: http://content-service:9001
+  notification-service: http://notification-service:9009
+
+logging:
+  format: json

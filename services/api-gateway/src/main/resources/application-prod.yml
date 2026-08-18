@@ -1,0 +1,9 @@
+# api-gateway - prod profile
+logging:
+  level:
+    com.ioes: INFO
+    root: WARN
+management:
+  endpoint:
+    health:
+      show-details: never

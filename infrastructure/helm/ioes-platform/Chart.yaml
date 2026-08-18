@@ -1,0 +1,139 @@
+# IOES Platform Helm Chart
+# Parent umbrella chart that aggregates all microservice sub-charts.
+# Run `helm dependency update` from this directory before installing.
+
+apiVersion: v2
+name: ioes-platform
+description: A Helm chart for IOES - Intelligent Online Examination System
+type: application
+version: 1.1.0
+appVersion: "1.0.0"
+keywords:
+  - ioes
+  - examination
+  - elearning
+  - microservices
+  - kubernetes
+maintainers:
+  - name: IOES Team
+    email: tech@ioes.com
+
+# ============================================
+# Dependencies
+# All sub-charts live in ../charts/ (sibling of this directory).
+# ioes-common lives in ../templates/ (library chart, version 0.2.0).
+# ============================================
+dependencies:
+  - name: ioes-common
+    version: 0.2.0
+    repository: "file://../templates"
+    condition: ioes-common.enabled
+
+  - name: api-gateway
+    version: 1.0.0
+    repository: "file://../charts/api-gateway"
+    condition: api-gateway.enabled
+
+  - name: auth-service
+    version: 1.0.0
+    repository: "file://../charts/auth-service"
+    condition: auth-service.enabled
+
+  - name: content-service
+    version: 1.0.0
+    repository: "file://../charts/content-service"
+    condition: content-service.enabled
+
+  - name: exam-suite
+    version: 1.0.0
+    repository: "file://../charts/exam-suite"
+    condition: exam-suite.enabled
+
+  - name: ai-suite
+    version: 1.0.0
+    repository: "file://../charts/ai-suite"
+    condition: ai-suite.enabled
+
+  - name: blockchain-suite
+    version: 1.0.0
+    repository: "file://../charts/blockchain-suite"
+    condition: blockchain-suite.enabled
+
+  - name: analytics-service
+    version: 1.0.0
+    repository: "file://../charts/analytics-service"
+    condition: analytics-service.enabled
+
+  - name: notification-service
+    version: 1.0.0
+    repository: "file://../charts/notification-service"
+    condition: notification-service.enabled
+
+# ============================================
+# Defaults applied to ALL sub-charts via the `common` value.
+# Each sub-chart merges these under `common:` in its own values.yaml.
+# ============================================
+common:
+  image:
+    repository: ghcr.io/ioes-platform
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  env:
+    SPRING_PROFILES_ACTIVE: {{ .Values.profile | default "prod" }}
+    JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
+
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    path: /actuator/prometheus
+
+# ============================================
+# Global values exposed to sub-charts via .Values.global
+# ============================================
+global:
+  imageRegistry: ghcr.io
+  imagePullSecrets:
+    - name: ghcr-secret
+  storageClass: standard-ssd
+  namespace: ioes
+
+# ============================================
+# Top-level ingress (in addition to per-service ingress).
+# Routes all *.ioes.local traffic to api-gateway on port 8080.
+# ============================================
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+  hosts:
+    - host: api.ioes.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: api-gateway
+          port: 8080
+  tls:
+    - secretName: ioes-tls
+      hosts:
+        - api.ioes.local

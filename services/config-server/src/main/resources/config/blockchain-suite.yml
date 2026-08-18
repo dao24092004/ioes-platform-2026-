@@ -1,0 +1,65 @@
+# ============================================
+# IOES - Blockchain Suite Configuration
+# ============================================
+
+app:
+  name: blockchain-suite
+  host: 0.0.0.0
+  port: 9200
+
+database:
+  host: ${DB_HOST:localhost}
+  port: 5432
+  name: ${BLOCKCHAIN_DB_NAME:ioes_blockchain}
+  username: ${DB_USERNAME:ioes}
+  password: ${DB_PASSWORD:ioes_dev_password}
+  pool:
+    min: 2
+    max: 10
+
+redis:
+  host: ${REDIS_HOST:localhost}
+  port: 6379
+  password: ${REDIS_PASSWORD:}
+  db: 0
+  key-prefix: "ioes:blockchain:"
+
+kafka:
+  brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  client-id: blockchain-suite
+  group-id: blockchain-suite
+  topics:
+    exam:
+      graded: exam.submission.graded
+
+# JWT
+jwt:
+  secret: ${JWT_SECRET}
+  algorithm: HS256
+  expire-minutes: 60
+
+# Blockchain
+blockchain:
+  network: ${BLOCKCHAIN_NETWORK:localhost}
+  rpc-url: ${BLOCKCHAIN_RPC_URL:http://localhost:8545}
+  chain-id: ${BLOCKCHAIN_CHAIN_ID:31337}
+  contract-address: ${BLOCKCHAIN_CONTRACT_ADDRESS:}
+  # private-key loaded from secret manager; never commit
+
+# IPFS
+ipfs:
+  host: ${IPFS_HOST:localhost}
+  port: ${IPFS_PORT:5001}
+  gateway: ${IPFS_GATEWAY:https://ipfs.io/ipfs/}
+
+# Service URLs
+services:
+  api-gateway: ${API_GATEWAY_URL:http://localhost:8080}
+  auth-service: http://auth-service:9000
+  content-service: http://content-service:9001
+  exam-service: http://exam-suite:9005
+
+# Logging
+logging:
+  level: INFO
+  format: json

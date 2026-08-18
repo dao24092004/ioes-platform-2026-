@@ -1,0 +1,22 @@
+# config-server - prod profile (loads from git repo)
+spring:
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${CONFIG_GIT_URI}
+          default-label: ${CONFIG_GIT_BRANCH:main}
+          username: ${CONFIG_GIT_USERNAME}
+          password: ${CONFIG_GIT_TOKEN}
+  security:
+    user:
+      name: ${CONFIG_SERVER_USER}
+      password: ${CONFIG_SERVER_PASSWORD}
+logging:
+  level:
+    com.ioes: INFO
+    root: WARN
+management:
+  endpoint:
+    health:
+      show-details: never

@@ -1,0 +1,21 @@
+# IOES Platform - Notification Service Helm Chart
+# Spring Boot 3 — email/SMS/push notifications, Thymeleaf templates, Kafka listeners.
+apiVersion: v2
+name: notification-service
+description: Notification Service for IOES Platform (email, SMS, push, Kafka events).
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ioes
+  - notification
+  - email
+  - kafka
+maintainers:
+  - name: IOES Team
+    email: tech@ioes.com
+dependencies:
+  - name: ioes-common
+    version: 0.2.0
+    repository: file://../../templates
+    condition: ioes-common.enabled

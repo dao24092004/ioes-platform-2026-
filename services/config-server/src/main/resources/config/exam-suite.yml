@@ -1,0 +1,79 @@
+# ============================================
+# IOES - Exam Service Configuration (Node.js)
+# ============================================
+
+app:
+  name: exam-suite
+  host: 0.0.0.0
+  port: 9005
+
+database:
+  host: ${DB_HOST:localhost}
+  port: 5432
+  name: ${EXAM_DB_NAME:ioes_exam}
+  username: ${DB_USERNAME:ioes}
+  password: ${DB_PASSWORD:ioes_dev_password}
+  pool:
+    min: 5
+    max: 20
+
+redis:
+  host: ${REDIS_HOST:localhost}
+  port: 6379
+  password: ${REDIS_PASSWORD:}
+  db: 0
+  key-prefix: "ioes:exam:"
+
+kafka:
+  brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  client-id: exam-suite
+  group-id: exam-suite-consumers
+  topics:
+    exam:
+      submitted: exam.submission.submitted
+      graded: exam.submission.graded
+    proctoring:
+      alert: proctoring.alert
+    notification:
+      events: notification.events
+
+# WebSocket Configuration
+websocket:
+  ping-interval: 30000
+  pong-timeout: 10000
+  max-frame-size: 65536
+  concurrency-limit: 1000
+
+# Exam Configuration
+exam:
+  time:
+    warning-threshold: 300  # seconds
+    auto-submit: true
+  submission:
+    auto-save-interval: 30000  # milliseconds
+    max-attempts: 3
+  grading:
+    mcq-auto: true
+    coding-timeout: 300  # seconds
+    code-execution:
+      memory-limit: 256  # MB
+      time-limit: 10  # seconds
+
+# Proctoring Configuration
+proctoring:
+  enabled: true
+  webcam:
+    fps: 5
+    quality: 0.7
+  detection:
+    attention-threshold: 60
+    face-threshold: 40
+    alert-interval: 30  # seconds
+  storage:
+    type: s3
+    bucket: ioes-proctoring
+    retention-days: 30
+
+logging:
+  level: debug
+  format: json

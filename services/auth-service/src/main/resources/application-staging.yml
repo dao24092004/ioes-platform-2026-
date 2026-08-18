@@ -1,0 +1,22 @@
+# ============================================
+# auth-service - Staging Profile
+# ============================================
+spring:
+  jpa:
+    show-sql: false
+  flyway:
+    clean-disabled: true
+
+logging:
+  level:
+    com.ioes: INFO
+    org.springframework.security: INFO
+
+jwt:
+  secret: ${JWT_SECRET}
+  issuer: ioes-platform-staging
+
+management:
+  endpoint:
+    health:
+      show-details: when-authorized

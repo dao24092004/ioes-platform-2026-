@@ -1,0 +1,14 @@
+# discovery-service - local profile
+spring:
+  cloud:
+    config:
+      enabled: false
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+logging:
+  level:
+    com.ioes: DEBUG
+    com.netflix.eureka: INFO
+    com.netflix.discovery: WARN

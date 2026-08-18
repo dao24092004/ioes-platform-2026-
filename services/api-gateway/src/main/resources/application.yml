@@ -1,0 +1,138 @@
+server:
+  port: 8080
+  shutdown: graceful
+
+spring:
+  application:
+    name: api-gateway
+  profiles:
+    active: local
+  cloud:
+    config:
+      uri: http://localhost:8888
+      name: api-gateway
+      profile: local
+      fail-fast: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9999/eureka/
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 15
+
+# ============================================
+# ROUTES
+# ============================================
+spring.cloud.gateway:
+  discovery:
+    locator:
+      enabled: true
+      lower-case-service-id: true
+  routes:
+    # Auth Service
+    - id: auth-service
+      uri: lb://auth-service
+      predicates:
+        - Path=/api/auth/**
+      filters:
+        - StripPrefix=2
+
+    # Content Service
+    - id: content-service
+      uri: lb://content-service
+      predicates:
+        - Path=/api/content/**,/api/courses/**,/api/lessons/**
+      filters:
+        - StripPrefix=2
+
+    # Exam Service
+    - id: exam-suite
+      uri: lb://exam-suite
+      predicates:
+        - Path=/api/exam/**,/api/exams/**,/api/questions/**
+      filters:
+        - StripPrefix=2
+
+    # Analytics Service
+    - id: analytics-service
+      uri: lb://analytics-service
+      predicates:
+        - Path=/api/analytics/**
+      filters:
+        - StripPrefix=2
+
+    # Notification Service
+    - id: notification-service
+      uri: lb://notification-service
+      predicates:
+        - Path=/api/notifications/**
+      filters:
+        - StripPrefix=2
+
+    # Blockchain Service
+    - id: blockchain-suite
+      uri: lb://blockchain-suite
+      predicates:
+        - Path=/api/blockchain/**,/api/certificates/**
+      filters:
+        - StripPrefix=2
+
+    # AI Service
+    - id: ai-suite
+      uri: lb://ai-suite
+      predicates:
+        - Path=/api/ai/**,/api/learning-path/**,/api/recommendations/**
+      filters:
+        - StripPrefix=2
+
+# ============================================
+# GLOBAL FILTERS
+# ============================================
+spring.cloud.gateway.default-filters:
+  - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+  - name: CircuitBreaker
+    args:
+      name: default
+      fallbackUri: forward:/fallback
+  - name: Retry
+    args:
+      retries: 3
+      statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE,GATEWAY_TIMEOUT
+      backoff:
+        firstBackoff: 100ms
+        maxBackoff: 500ms
+        factor: 2
+
+# ============================================
+# MANAGEMENT
+# ============================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: api-gateway
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    com.ioes: DEBUG
+    org.springframework.cloud.gateway: INFO
+    reactor.netty: INFO
+    redisratelimiter: INFO

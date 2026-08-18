@@ -1,0 +1,21 @@
+# IOES Platform - Exam Suite Helm Chart (Node.js NestJS)
+# Real-time exam runtime (WebSocket via uWebSockets.js).
+apiVersion: v2
+name: exam-suite
+description: Exam Suite Service for IOES Platform (NestJS + WebSocket realtime).
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ioes
+  - exam
+  - proctoring
+  - realtime
+maintainers:
+  - name: IOES Team
+    email: tech@ioes.com
+dependencies:
+  - name: ioes-common
+    version: 0.2.0
+    repository: file://../../templates
+    condition: ioes-common.enabled

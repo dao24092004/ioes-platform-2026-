@@ -1,0 +1,9 @@
+{{/*
+This service chart is a thin wrapper around the `ioes-common` library chart.
+All resources (Deployment, Service, Ingress, HPA, ServiceMonitor, PDB,
+NetworkPolicy, ServiceAccount, ConfigMap, Secret) are rendered by including
+the corresponding named template from `ioes-common`. Service-specific values
+come from `values.yaml` which override the defaults in
+`../../templates/values.yaml`.
+*/}}
+{{- include "ioes-common.all" . }}

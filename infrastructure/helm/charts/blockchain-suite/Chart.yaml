@@ -1,0 +1,21 @@
+# IOES Platform - Blockchain Suite Helm Chart (Node.js NestJS)
+# Certificate issuance, anchoring, IPFS.
+apiVersion: v2
+name: blockchain-suite
+description: Blockchain Suite for IOES Platform (certificates, anchoring, IPFS).
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ioes
+  - blockchain
+  - certificate
+  - ipfs
+maintainers:
+  - name: IOES Team
+    email: tech@ioes.com
+dependencies:
+  - name: ioes-common
+    version: 0.2.0
+    repository: file://../../templates
+    condition: ioes-common.enabled
