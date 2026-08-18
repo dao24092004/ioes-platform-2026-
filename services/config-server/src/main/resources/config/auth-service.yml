@@ -1,0 +1,76 @@
+# ============================================
+# IOES - Auth Service Configuration
+# ============================================
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${AUTH_DB_NAME:ioes_auth}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+server:
+  port: 9000
+
+# OAuth2 Configuration
+oauth2:
+  providers:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:}
+      client-secret: ${GOOGLE_CLIENT_SECRET:}
+      redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:3000/auth/oauth2/callback}
+      scope:
+        - email
+        - profile
+    github:
+      client-id: ${GITHUB_CLIENT_ID:}
+      client-secret: ${GITHUB_CLIENT_SECRET:}
+    microsoft:
+      client-id: ${MICROSOFT_CLIENT_ID:}
+      client-secret: ${MICROSOFT_CLIENT_SECRET:}
+      scope:
+        - openid
+        - profile
+        - email
+
+# Email Configuration
+spring.mail:
+  host: ${MAIL_HOST:localhost}
+  port: ${MAIL_PORT:1025}
+  username: ${MAIL_USERNAME:}
+  password: ${MAIL_PASSWORD:}
+  properties:
+    mail:
+      smtp:
+        auth: false
+        starttls:
+          enable: false
+
+# Password Configuration
+password:
+  min-length: 8
+  require-uppercase: true
+  require-lowercase: true
+  require-digit: true
+  require-special: true
+  hash-iterations: 12
+
+# Session Configuration
+session:
+  max-sessions-per-user: 5
+  max-inactive-interval: 86400
+
+logging:
+  level:
+    com.ioes.auth: DEBUG
+    org.springframework.security: DEBUG

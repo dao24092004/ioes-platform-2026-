@@ -1,0 +1,14 @@
+# Production overrides for ai-suite / ml-worker
+app:
+  port: 9101
+  log-level: info
+
+milvus:
+  host: milvus.ai
+
+services:
+  content-service: http://content-service:9001
+  exam-service: http://exam-suite:9005
+
+logging:
+  format: json

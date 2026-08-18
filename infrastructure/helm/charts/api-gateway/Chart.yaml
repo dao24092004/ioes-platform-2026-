@@ -1,0 +1,20 @@
+# IOES Platform - API Gateway Helm Chart
+# Spring Cloud Gateway (WebFlux) — single entrypoint for all client traffic.
+apiVersion: v2
+name: api-gateway
+description: API Gateway for IOES Platform (Spring Cloud Gateway WebFlux).
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ioes
+  - gateway
+  - spring-cloud
+maintainers:
+  - name: IOES Team
+    email: tech@ioes.com
+dependencies:
+  - name: ioes-common
+    version: 0.2.0
+    repository: file://../../templates
+    condition: ioes-common.enabled

@@ -1,0 +1,157 @@
+enabled: true
+
+nameOverride: ai-suite
+fullnameOverride: ioes-ai-suite
+
+# Multi-container setup for AI Suite
+apiGateway:
+  enabled: true
+  replicaCount: 2
+  image: ghcr.io/ioes-platform/ai-suite-api
+  port: 9100
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+
+mlWorker:
+  enabled: true
+  replicaCount: 2
+  image: ghcr.io/ioes-platform/ai-suite-ml
+  port: 9101
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+      nvidia.com/gpu: 1
+    requests:
+      cpu: 1000m
+      memory: 4Gi
+      nvidia.com/gpu: 1
+  gpu:
+    enabled: true
+    type: nvidia.com/gpu
+    count: 1
+    # GPU node selector
+    nodeSelector:
+      cloud.google.com/gke-accelerator: nvidia-t4
+
+ocrService:
+  enabled: true
+  replicaCount: 1
+  image: ghcr.io/ioes-platform/ai-suite-ocr
+  port: 9102
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+speechService:
+  enabled: true
+  replicaCount: 1
+  image: ghcr.io/ioes-platform/ai-suite-speech
+  port: 9103
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+service:
+  type: ClusterIP
+  ports:
+    apiGateway: 9100
+    mlWorker: 9101
+    ocrService: 9102
+    speechService: 9103
+  annotations:
+    prometheus.io/scrape: "true"
+
+env:
+  # Milvus
+  MILVUS_HOST: "ioes-milvus"
+  MILVUS_PORT: "19530"
+  
+  # Redis
+  REDIS_HOST: "ioes-redis"
+  REDIS_PORT: "6379"
+  
+  # Kafka
+  KAFKA_BROKERS: "ioes-kafka:9092"
+  
+  # LLM Provider
+  LLM_PROVIDER: "openai"
+  OPENAI_API_KEY: ""  # From secret
+  
+  # GPU
+  CUDA_VISIBLE_DEVICES: "0"
+  GPU_ENABLED: "true"
+
+secrets:
+  enabled: true
+  existingSecret: ai-suite-secrets
+
+persistence:
+  enabled: true
+  models:
+    enabled: true
+    size: 10Gi
+    storageClass: standard-ssd
+    mountPath: /models
+
+# Model caching
+modelCache:
+  enabled: true
+  size: 5Gi
+  storageClass: standard-ssd
+
+# Resource quotas
+resourceQuota:
+  enabled: true
+  limits:
+    cpu: "16"
+    memory: "32Gi"
+    nvidia.com/gpu: "4"
+  requests:
+    cpu: "4"
+    memory: "8Gi"
+
+# Autoscaling for ML worker (GPU-based)
+autoscaling:
+  mlWorker:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+    # Custom metric for GPU utilization
+    metrics:
+      - type: External
+        external:
+          metric:
+            name: gpu_utilization
+          target:
+            type: Utilization
+            averageUtilization: 70
+
+nodeSelector:
+  # AI services need GPU
+  cloud.google.com/gke-accelerator: nvidia-t4
+
+tolerations:
+  - key: "nvidia.com/gpu"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+pdb:
+  apiGateway:
+    minAvailable: 1
+  mlWorker:
+    minAvailable: 1

@@ -1,0 +1,11 @@
+# notification-service - local profile
+spring:
+  cloud:
+    config:
+      enabled: false
+  jpa:
+    show-sql: true
+logging:
+  level:
+    com.ioes: DEBUG
+    org.springframework.kafka: DEBUG

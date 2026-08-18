@@ -1,0 +1,60 @@
+# ============================================
+# IOES - Content Service Configuration
+# ============================================
+
+spring:
+  application:
+    name: content-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${CONTENT_DB_NAME:ioes_content}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_USERNAME:ioes_content_user}:${MONGO_PASSWORD}@${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${MONGO_DB_NAME:ioes_content}?replicaSet=${MONGO_REPLICA_SET:rs0}&authSource=${MONGO_AUTH_SOURCE:admin}
+
+server:
+  port: 9001
+
+# File Upload Configuration
+spring.servlet:
+  multipart:
+    enabled: true
+    max-file-size: 500MB
+    max-request-size: 500MB
+    file-size-threshold: 10MB
+
+# Media Processing
+media:
+  allowed-types:
+    - image/jpeg
+    - image/png
+    - image/webp
+    - application/pdf
+    - video/mp4
+    - video/webm
+  thumbnail:
+    width: 300
+    height: 200
+  video:
+    max-duration: 3600  # seconds
+    transcode: true
+
+# Course Configuration
+course:
+  max-chapters-per-course: 50
+  max-lessons-per-chapter: 100
+  enrollment:
+    max-per-course: 1000
+  review:
+    min-purchase-days: 7
+    max-review-length: 2000
+
+logging:
+  level:
+    com.ioes.content: DEBUG

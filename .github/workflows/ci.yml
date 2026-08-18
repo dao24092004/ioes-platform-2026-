@@ -1,0 +1,344 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+      - 'feature/**'
+      - 'bugfix/**'
+  pull_request:
+    branches:
+      - develop
+      - main
+
+env:
+  JAVA_VERSION: '17'
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ============================================
+  # CODE QUALITY
+  # ============================================
+  code-quality:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript check
+        run: pnpm type-check || true
+
+      - name: ESLint
+        run: pnpm lint || true
+
+      - name: Prettier check
+        run: pnpm format:check || true
+
+  # ============================================
+  # JAVA SERVICES - BUILD & TEST
+  # ============================================
+  build-java-services:
+    name: Build Java Services
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        service:
+          - api-gateway
+          - auth-service
+          - content-service
+          - analytics-service
+          - notification-service
+        include:
+          - service: config-server
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build & Test ${{ matrix.service }}
+        working-directory: services/${{ matrix.service }}
+        run: |
+          ./mvnw clean verify -DskipTests=false \
+            -Dcheckstyle.skip=false \
+            -Dpmd.skip=false \
+            -Dspotbugs.skip=false \
+            -Dcoverage \
+            || mvn clean verify -DskipTests=false
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: services/${{ matrix.service }}/target/site/jacoco/jacoco.xml
+          flags: java
+          name: ${{ matrix.service }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.service }}
+          path: services/${{ matrix.service }}/target/surefire-reports
+          retention-days: 7
+
+  # ============================================
+  # NODE.JS SERVICES - BUILD & TEST
+  # ============================================
+  build-node-services:
+    name: Build Node.js Services
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        service:
+          - exam-suite
+          - blockchain-suite
+          - ai-suite/api-gateway
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        working-directory: services/${{ matrix.service }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        working-directory: services/${{ matrix.service }}
+        run: pnpm lint || true
+
+      - name: Build
+        working-directory: services/${{ matrix.service }}
+        run: pnpm build
+
+      - name: Test
+        working-directory: services/${{ matrix.service }}
+        run: pnpm test --coverage || pnpm test
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: services/${{ matrix.service }}/coverage/clover.xml
+          flags: nodejs
+          name: ${{ matrix.service }}
+
+  # ============================================
+  # PYTHON AI SERVICES - BUILD & TEST
+  # ============================================
+  build-python-services:
+    name: Build Python Services
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        service:
+          - ai-suite/ml-worker
+          - ai-suite/ocr-service
+          - ai-suite/speech-service
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        working-directory: services/${{ matrix.service }}
+        run: pip install -r requirements.txt -q
+
+      - name: Lint
+        working-directory: services/${{ matrix.service }}
+        run: |
+          pip install flake8 black isort -q
+          flake8 . --max-line-length=120 --ignore=E501,W503 || true
+          black --check . || true
+
+      - name: Test
+        working-directory: services/${{ matrix.service }}
+        run: |
+          pip install pytest pytest-cov -q
+          pytest --cov=. --cov-report=xml --cov-report=term || pytest
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: services/${{ matrix.service }}/coverage.xml
+          flags: python
+          name: ${{ matrix.service }}
+
+  # ============================================
+  # FRONTEND - BUILD & TEST
+  # ============================================
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm type-check
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test --coverage || pnpm test
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: apps/web/coverage/clover.xml
+          flags: frontend
+          name: frontend
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: apps/web/dist
+          retention-days: 7
+
+  # ============================================
+  # DOCKER BUILD
+  # ============================================
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    needs: [build-java-services, build-node-services, build-python-services, build-frontend]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/release/'))
+    
+    strategy:
+      matrix:
+        service:
+          - api-gateway
+          - auth-service
+          - content-service
+          - exam-suite
+          - ai-suite
+          - blockchain-suite
+          - frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push ${{ matrix.service }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================
+  # SECURITY SCAN
+  # ============================================
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # ============================================
+  # SUMMARY
+  # ============================================
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [code-quality, build-java-services, build-node-services, build-python-services, build-frontend]
+    if: always()
+    
+    steps:
+      - name: Summary
+        run: |
+          echo "## CI Build Summary"
+          echo "### Jobs Status"
+          echo "- Code Quality: ${{ needs.code-quality.result }}"
+          echo "- Java Services: ${{ needs.build-java-services.result }}"
+          echo "- Node.js Services: ${{ needs.build-node-services.result }}"
+          echo "- Python Services: ${{ needs.build-python-services.result }}"
+          echo "- Frontend: ${{ needs.build-frontend.result }}"

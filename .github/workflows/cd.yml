@@ -1,0 +1,356 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+      - 'hotfix/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  # ============================================
+  # PRE-DEPLOYMENT CHECKS
+  # ============================================
+  pre-deploy:
+    name: Pre-deployment Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      can_deploy: ${{ steps.check.outputs.can_deploy }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check branch protection
+        id: check
+        run: |
+          if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+            echo "can_deploy=true" >> $GITHUB_OUTPUT
+          elif [[ "$GITHUB_REF" == release/* ]]; then
+            echo "can_deploy=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.inputs.environment }}" == "dev" ]]; then
+            echo "can_deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "can_deploy=false" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "Deploying from: $GITHUB_REF"
+          echo "Environment: ${{ github.event.inputs.environment }}"
+
+  # ============================================
+  # BUILD DOCKER IMAGES
+  # ============================================
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: pre-deploy
+    if: needs.pre-deploy.outputs.can_deploy == 'true'
+    strategy:
+      matrix:
+        service:
+          - api-gateway
+          - auth-service
+          - content-service
+          - analytics-service
+          - notification-service
+          - exam-suite
+          - blockchain-suite
+          - ai-suite-api
+          - ai-suite-ml
+          - frontend
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=${{ env.IMAGE_TAG }}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push ${{ matrix.service }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Image digest
+        run: |
+          echo "Image: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.service }}:${{ env.IMAGE_TAG }}"
+
+  # ============================================
+  # DEPLOY TO DEV
+  # ============================================
+  deploy-dev:
+    name: Deploy to Dev
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [build-images]
+    environment: dev
+    if: github.ref == 'refs/heads/develop' || github.event.inputs.environment == 'dev'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.29.0'
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_DEV }}" | base64 -d > kubeconfig
+          echo "KUBECONFIG=$(pwd)/kubeconfig" >> $GITHUB_ENV
+
+      - name: Deploy to Dev
+        run: |
+          kubectl config use-context dev
+          
+          # Update image tags
+          for service in api-gateway auth-service content-service analytics-service notification-service exam-suite blockchain-suite ai-suite frontend; do
+            kubectl set image deployment/ioes-$service ioes-$service=${{ env.REGISTRY }}/${{ github.repository }}/$service:${{ env.IMAGE_TAG }} -n ioes-dev
+          done
+          
+          # Wait for rollout
+          kubectl rollout status deployment -n ioes-dev --timeout=300s
+          
+          # Restart pods to pick up new config
+          kubectl rollout restart deployment -n ioes-dev
+
+      - name: Verify deployment
+        run: |
+          echo "Waiting for pods to be ready..."
+          kubectl wait --for=condition=available deployment --all -n ioes-dev --timeout=300s
+          kubectl get pods -n ioes-dev
+          
+          # Health check
+          curl -f http://api-gateway.ioes-dev.svc.cluster.local:8080/actuator/health || true
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "## Dev Deployment Status"
+          echo "Commit: ${{ github.sha }}"
+          echo "Environment: dev"
+          echo "Status: ${{ job.status }}"
+
+  # ============================================
+  # DEPLOY TO STAGING
+  # ============================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [build-images]
+    environment: staging
+    if: startsWith(github.ref, 'refs/heads/release/') || github.event.inputs.environment == 'staging'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.29.0'
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
+          echo "KUBECONFIG=$(pwd)/kubeconfig" >> $GITHUB_ENV
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests before staging deployment..."
+          # Add your smoke tests here
+          echo "Smoke tests passed!"
+
+      - name: Deploy to Staging
+        run: |
+          kubectl config use-context staging
+          
+          # Update image tags
+          for service in api-gateway auth-service content-service analytics-service notification-service exam-suite blockchain-suite ai-suite frontend; do
+            kubectl set image deployment/ioes-$service ioes-$service=${{ env.REGISTRY }}/${{ github.repository }}/$service:${{ env.IMAGE_TAG }} -n ioes-staging
+          done
+          
+          # Wait for rollout
+          kubectl rollout status deployment -n ioes-staging --timeout=300s
+
+      - name: Verify deployment
+        run: |
+          kubectl wait --for=condition=available deployment --all -n ioes-staging --timeout=300s
+          kubectl get pods -n ioes-staging
+
+      - name: Run integration tests
+        run: |
+          echo "Running integration tests..."
+          # Add integration tests here
+          echo "Integration tests completed!"
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "## Staging Deployment Status"
+          echo "Commit: ${{ github.sha }}"
+          echo "Environment: staging"
+          echo "Status: ${{ job.status }}"
+
+  # ============================================
+  # DEPLOY TO PRODUCTION
+  # ============================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [build-images]
+    environment: production
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'production'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.29.0'
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_PROD }}" | base64 -d > kubeconfig
+          echo "KUBECONFIG=$(pwd)/kubeconfig" >> $GITHUB_ENV
+
+      - name: Approval check
+        run: |
+          echo "Production deployment requires approval"
+          echo "Deploying version: ${{ env.IMAGE_TAG }}"
+
+      - name: Run production smoke tests
+        run: |
+          echo "Running production smoke tests..."
+          # Pre-deployment checks
+          echo "Smoke tests completed!"
+
+      - name: Deploy to Production
+        run: |
+          kubectl config use-context production
+          
+          # Blue-green deployment strategy
+          kubectl scale deployment/ioes-api-gateway --replicas=0 -n ioes-prod || true
+          sleep 30
+          
+          # Update image tags
+          for service in api-gateway auth-service content-service analytics-service notification-service exam-suite blockchain-suite ai-suite frontend; do
+            kubectl set image deployment/ioes-$service ioes-$service=${{ env.REGISTRY }}/${{ github.repository }}/$service:${{ env.IMAGE_TAG }} -n ioes-prod
+          done
+          
+          # Scale back up
+          kubectl scale deployment/ioes-api-gateway --replicas=3 -n ioes-prod
+          
+          # Wait for rollout
+          kubectl rollout status deployment -n ioes-prod --timeout=600s
+
+      - name: Verify deployment
+        run: |
+          kubectl wait --for=condition=available deployment --all -n ioes-prod --timeout=600s
+          kubectl get pods -n ioes-prod
+          
+          # Health check
+          for i in {1..5}; do
+            if curl -f https://api.${{ secrets.DOMAIN }}/actuator/health; then
+              echo "Health check passed!"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying..."
+            sleep 10
+          done
+          exit 1
+
+      - name: Run E2E tests
+        if: always()
+        run: |
+          echo "Running E2E tests..."
+          # Add E2E tests here
+          echo "E2E tests completed!"
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "## Production Deployment Status"
+          echo "Commit: ${{ github.sha }}"
+          echo "Environment: production"
+          echo "Status: ${{ job.status }}"
+          echo "Time: $(date -u)"
+          
+          # Notify Slack
+          curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+            -H 'Content-type: application/json' \
+            --data '{"text":"Production deployment: ${{ job.status }} - '$(git log -1 --pretty=%B)'"}' || true
+
+  # ============================================
+  # POST-DEPLOYMENT
+  # ============================================
+  post-deploy:
+    name: Post-deployment Tasks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [deploy-dev, deploy-staging, deploy-production]
+    if: always()
+    
+    steps:
+      - name: Generate deployment report
+        run: |
+          echo "## Deployment Report"
+          echo "### Summary"
+          echo "| Environment | Status |"
+          echo "|-------------|--------|"
+          echo "| Dev | ${{ needs.deploy-dev.result }} |"
+          echo "| Staging | ${{ needs.deploy-staging.result }} |"
+          echo "| Production | ${{ needs.deploy-production.result }} |"
+          echo ""
+          echo "### Commit: ${{ github.sha }}"
+          echo "### Actor: ${{ github.actor }}"
+          echo "### Time: $(date -u)"

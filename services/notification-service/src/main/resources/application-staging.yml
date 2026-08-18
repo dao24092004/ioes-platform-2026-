@@ -1,0 +1,4 @@
+# notification-service - staging profile
+logging:
+  level:
+    com.ioes: INFO

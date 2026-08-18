@@ -1,0 +1,99 @@
+# ============================================
+# IOES - AI Suite Configuration
+# ============================================
+
+app:
+  name: ai-suite
+  host: 0.0.0.0
+
+# API Gateway (Node.js)
+api-gateway:
+  port: 9100
+  rate-limit:
+    enabled: true
+    window-ms: 60000
+    max-requests: 100
+
+# ML Worker (Python)
+ml-worker:
+  port: 9101
+  gpu:
+    enabled: ${GPU_ENABLED:false}
+    device: cuda
+  models:
+    embedding:
+      name: sentence-transformers/all-MiniLM-L6-v2
+      max-length: 512
+      batch-size: 32
+    vision:
+      model-path: /models/proctoring
+      input-size: [224, 224]
+      confidence-threshold: 0.7
+  inference:
+    timeout: 30000  # ms
+    max-queue-size: 100
+
+# Vector Database
+milvus:
+  host: ${MILVUS_HOST:localhost}
+  port: 19530
+  collection:
+    courses: course_embeddings
+    users: user_embeddings
+    learning-paths: learning_path_embeddings
+
+# LLM Configuration
+llm:
+  provider: ${LLM_PROVIDER:openai}
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    model: gpt-4o
+    temperature: 0.7
+    max-tokens: 2000
+  azure:
+    endpoint: ${AZURE_OPENAI_ENDPOINT:}
+    api-key: ${AZURE_OPENAI_KEY:}
+    deployment-name: gpt-4o
+  local:
+    endpoint: ${LOCAL_LLM_ENDPOINT:http://localhost:8080/v1}
+    model: llama-3.1-8b
+
+# Agentic RAG Configuration
+agentic-rag:
+  agents:
+    - name: router
+      model: gpt-4o
+      system-prompt: Route user queries to appropriate agents
+    - name: planner
+      model: gpt-4o
+      system-prompt: Create learning plans based on user goals
+    - name: tutor
+      model: gpt-4o
+      system-prompt: Explain concepts and answer questions
+    - name: assessor
+      model: gpt-4o
+      system-prompt: Evaluate user understanding and progress
+    - name: recommender
+      model: gpt-4o
+      system-prompt: Recommend courses and content
+
+# Redis Cache
+redis:
+  host: ${REDIS_HOST:localhost}
+  port: 6379
+  ttl:
+    embedding: 3600  # seconds
+    learning-path: 1800
+    recommendation: 900
+
+# Kafka
+kafka:
+  brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  topics:
+    user: user.events
+    course: course.events
+    exam: exam.submission.graded
+
+logging:
+  level: info
+  format: json

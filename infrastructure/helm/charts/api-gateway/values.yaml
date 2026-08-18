@@ -1,0 +1,101 @@
+enabled: true
+
+nameOverride: api-gateway
+fullnameOverride: ioes-api-gateway
+
+replicaCount: 3
+
+image:
+  repository: ghcr.io/ioes-platform/api-gateway
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8080
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/actuator/prometheus"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  hosts:
+    - host: api.ioes.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: ioes-tls
+      hosts:
+        - api.ioes.local
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+env:
+  SPRING_PROFILES_ACTIVE: "prod"
+  SERVER_PORT: "8080"
+  REDIS_HOST: "ioes-redis"
+  REDIS_PORT: "6379"
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-service:9999/eureka/"
+  JAVA_OPTS: "-Xms512m -Xmx1536m -XX:+UseG1GC"
+
+secrets:
+  create: false
+  existingSecret: api-gateway-secrets
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8080
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  path: /actuator/prometheus
+  scrapeTimeout: 10s
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app: api-gateway
+
+commonLabels: {}
+namespace: ioes

@@ -1,0 +1,137 @@
+enabled: true
+
+nameOverride: exam-suite
+fullnameOverride: ioes-exam-suite
+
+replicaCount: 3
+
+image:
+  repository: ghcr.io/ioes-platform/exam-suite
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  httpPort: 9005
+  wsPort: 9005
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9100"
+    prometheus.io/path: "/metrics"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$remote_addr"
+  hosts:
+    - host: exam.ioes.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: exam-suite-tls
+      hosts:
+        - exam.ioes.local
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+    ephemeral-storage: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 30
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 70
+  # Scale based on WebSocket connections
+  metrics:
+    - type: External
+      external:
+        metric:
+          name: exam_websocket_connections
+          selector:
+            matchLabels:
+              service: exam-suite
+        target:
+          type: AverageValue
+          averageValue: "500"
+
+env:
+  NODE_ENV: "production"
+  PORT: "9005"
+  DB_HOST: "ioes-postgres"
+  DB_PORT: "5432"
+  DB_NAME: "ioes_exam"
+  DB_USERNAME: "ioes"
+  DB_PASSWORD: ""  # From secret
+  REDIS_HOST: "ioes-redis"
+  REDIS_PORT: "6379"
+  KAFKA_BROKERS: "ioes-kafka:9092"
+  WS_PING_INTERVAL: "30000"
+  WS_MAX_FRAME_SIZE: "65536"
+
+secrets:
+  enabled: true
+  existingSecret: exam-suite-secrets
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 9005
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 9005
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  path: /metrics
+
+# WebSocket specific settings
+websocket:
+  enabled: true
+  pingInterval: 30000
+  pongTimeout: 10000
+  maxConnections: 10000
+  perMessageDeflate: true
+
+# Redis for session and pub/sub
+redis:
+  enabled: true
+  sessionPrefix: "ioes:exam:session:"
+  pubSubPrefix: "ioes:exam:pubsub:"
+
+# Kafka topics
+kafka:
+  topics:
+    examSubmitted: "exam.submission.submitted"
+    examGraded: "exam.submission.graded"
+    proctoringAlert: "proctoring.alert"
+
+persistence:
+  enabled: false
+
+# Protobuf for high performance
+useProtobuf: true
+
+pdb:
+  minAvailable: 2

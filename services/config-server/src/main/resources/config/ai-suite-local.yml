@@ -1,0 +1,14 @@
+# Local overrides for ai-suite / ml-worker
+app:
+  port: 9101
+  log-level: debug
+
+milvus:
+  host: localhost
+
+llm:
+  provider: openai
+
+services:
+  content-service: http://localhost:9001
+  exam-service: http://localhost:9005

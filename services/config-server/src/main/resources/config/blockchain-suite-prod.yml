@@ -1,0 +1,20 @@
+# Production overrides for blockchain-suite
+app:
+  port: 9200
+
+database:
+  host: postgres.blockchain
+
+redis:
+  host: redis.blockchain
+
+blockchain:
+  network: ${BLOCKCHAIN_NETWORK:polygon}
+  rpc-url: ${BLOCKCHAIN_RPC_URL}
+
+ipfs:
+  host: ipfs
+  port: 5001
+
+logging:
+  format: json

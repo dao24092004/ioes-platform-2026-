@@ -1,0 +1,174 @@
+enabled: true
+
+nameOverride: auth-service
+fullnameOverride: ioes-auth-service
+
+replicaCount: 3
+
+image:
+  repository: ghcr.io/ioes-platform/auth-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 9000
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9000"
+    prometheus.io/path: "/actuator/prometheus"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+  hosts:
+    - host: auth.ioes.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: auth-service-tls
+      hosts:
+        - auth.ioes.local
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  # Scale based on Kafka consumer lag
+  metrics:
+    - type: External
+      external:
+        metric:
+          name: kafka_consumer_lag
+          selector:
+            matchLabels:
+              topic: auth-user-events
+        target:
+          type: AverageValue
+          averageValue: "1000"
+
+env:
+  SPRING_PROFILES_ACTIVE: "prod"
+  SERVER_PORT: "9000"
+  DB_HOST: "ioes-postgres"
+  DB_PORT: "5432"
+  DB_NAME: "ioes_auth"
+  DB_USERNAME: "ioes"
+  DB_PASSWORD: ""  # From secret
+  REDIS_HOST: "ioes-redis"
+  REDIS_PORT: "6379"
+  KAFKA_BOOTSTRAP_SERVERS: "ioes-kafka:9092"
+  JWT_SECRET: ""  # From secret
+  JAVA_OPTS: "-Xms512m -Xmx1536m -XX:+UseG1GC"
+
+secrets:
+  enabled: true
+  existingSecret: auth-service-secrets
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 9000
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 9000
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  path: /actuator/prometheus
+  scrapeTimeout: 10s
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+podAntiAffinity:
+  preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+            - key: app
+              operator: In
+              values:
+                - auth-service
+        topologyKey: kubernetes.io/hostname
+
+tolerations: []
+
+nodeSelector: {}
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app: auth-service
+
+initContainers: []
+
+sidecarContainers: []
+
+volumes: []
+
+volumeMounts: []
+
+# Additional configmaps
+configMaps:
+  application: |
+    spring:
+      application:
+        name: auth-service
+      datasource:
+        url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+        username: ${DB_USERNAME}
+        password: ${DB_PASSWORD}
+        hikari:
+          maximum-pool-size: 30
+          minimum-idle: 10
+      data:
+        redis:
+          host: ${REDIS_HOST}
+          port: ${REDIS_PORT}
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,info,metrics,prometheus
+      metrics:
+        tags:
+          application: auth-service
+
+persistence:
+  enabled: false
+
+# PodDisruptionBudget
+pdb:
+  minAvailable: 1
+  maxUnavailable: ""

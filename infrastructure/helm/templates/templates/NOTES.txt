@@ -1,0 +1,21 @@
+{{/*
+NOTES.txt — printed after `helm install`.
+*/}}
+{{- if .Values.serviceAccount.create -}}
+Service account `{{ include "ioes-common.serviceAccountName" . }}` created in namespace `{{ .Values.namespace | default .Release.Namespace }}`.
+{{- end }}
+{{- if .Values.ingress.enabled -}}
+Ingress enabled at hosts:
+{{- range .Values.ingress.hosts }}
+  - https://{{ .host }}{{ (index .paths 0).path }}
+{{- end }}
+{{- end }}
+{{- if .Values.autoscaling.enabled -}}
+HPA: min={{ .Values.autoscaling.minReplicas }}, max={{ .Values.autoscaling.maxReplicas }}
+{{- end }}
+
+Verify with:
+  kubectl get deploy,svc,hpa,pdb -n {{ .Values.namespace | default .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+Service URL (in-cluster):
+  http://{{ include "ioes-common.fullname" . }}.{{ .Values.namespace | default .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port | default 80 }}

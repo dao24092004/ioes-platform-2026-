@@ -1,0 +1,242 @@
+groups:
+  # ============================================
+  # Service Health Alerts
+  # ============================================
+  - name: service_health
+    rules:
+      - alert: ServiceDown
+        expr: up{job=~".+-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.instance }} is down"
+          description: "{{ $labels.job }} has been down for more than 1 minute."
+
+      - alert: HighMemoryUsage
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.container_label_com_docker_compose_service }}"
+          description: "Memory usage is above 85% for more than 5 minutes."
+
+      - alert: HighCpuUsage
+        expr: rate(container_cpu_usage_seconds_total[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.container_label_com_docker_compose_service }}"
+          description: "CPU usage is above 80% for more than 5 minutes."
+
+  # ============================================
+  # API Performance Alerts
+  # ============================================
+  - name: api_performance
+    rules:
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket{job=~".+-service"}[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API latency on {{ $labels.job }}"
+          description: "P95 latency is above 1 second for more than 5 minutes."
+
+      - alert: VeryHighAPILatency
+        expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket{job=~".+-service"}[5m])) > 3
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical API latency on {{ $labels.job }}"
+          description: "P95 latency is above 3 seconds for more than 2 minutes."
+
+      - alert: HighAPIErrorRate
+        expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m]) / rate(http_server_requests_seconds_count[5m]) > 0.01
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API error rate on {{ $labels.job }}"
+          description: "Error rate is above 1% for more than 2 minutes."
+
+  # ============================================
+  # Database Alerts
+  # ============================================
+  - name: database_health
+    rules:
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL instance {{ $labels.instance }} is not responding."
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High PostgreSQL connection usage"
+          description: "PostgreSQL is using over 80% of max connections on {{ $labels.datname }}."
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_statements_mean_exec_time[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow PostgreSQL queries"
+          description: "Average query execution time is above 100ms."
+
+  # ============================================
+  # Redis Alerts
+  # ============================================
+  - name: redis_health
+    rules:
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance is not responding."
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis is using over 85% of max memory."
+
+      - alert: RedisHighEvictionRate
+        expr: rate(redis_evicted_keys_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Redis eviction rate"
+          description: "Redis is evicting more than 10 keys per second."
+
+  # ============================================
+  # Kafka Alerts
+  # ============================================
+  - name: kafka_health
+    rules:
+      - alert: KafkaConsumerLag
+        expr: kafka_consumer_lag_seconds > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Kafka consumer lag"
+          description: "Consumer {{ $labels.consumer }} is lagging by {{ $value }} seconds."
+
+      - alert: KafkaUnderReplicatedPartitions
+        expr: kafka_server_replicamanager_underreplicatedpartitions > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kafka under-replicated partitions"
+          description: "There are under-replicated partitions in Kafka cluster."
+
+  # ============================================
+  # Business Metrics Alerts
+  # ============================================
+  - name: business_metrics
+    rules:
+      - alert: NoExamSubmissions
+        expr: rate(exam_submissions_total[30m]) == 0
+        for: 1h
+        labels:
+          severity: info
+        annotations:
+          summary: "No exam submissions in the last hour"
+          description: "There have been no exam submissions in the last hour. This might indicate an issue."
+
+      - alert: HighExamFailureRate
+        expr: rate(exam_submissions_total{status="failed"}[15m]) / rate(exam_submissions_total[15m]) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High exam failure rate"
+          description: "More than 10% of exam submissions are failing."
+
+      - alert: AIServiceLatencyHigh
+        expr: histogram_quantile(0.95, rate(ai_inference_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High AI inference latency"
+          description: "AI service P95 latency is above 5 seconds."
+
+  # ============================================
+  # MongoDB Alerts
+  # ============================================
+  - name: mongodb_health
+    rules:
+      - alert: MongoDBDown
+        expr: mongodb_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB replica set primary is down"
+          description: "MongoDB primary on {{ $labels.instance }} is not responding."
+
+      - alert: MongoDBReplicationLag
+        expr: mongodb_rs_members_optimeDate{state="PRIMARY"} - mongodb_rs_members_optimeDate{state="SECONDARY"} > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High MongoDB replication lag"
+          description: "Secondary {{ $labels.address }} is lagging primary by more than 30 seconds."
+
+      - alert: MongoDBConnectionsHigh
+        expr: mongodb_ss_connections{conn_type="current"} > 5000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High MongoDB connection count"
+          description: "MongoDB has {{ $value }} active connections on {{ $labels.instance }}."
+
+      - alert: MongoDBNoPrimary
+        expr: mongodb_rs_members_state == 1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB has no PRIMARY"
+          description: "Replica set {{ $labels.set }} has no PRIMARY — writes are blocked."
+
+      - alert: MongoDBOplogWindowShort
+        expr: mongodb_ss_oplog_stats_time > 0 and mongodb_ss_oplog_stats_size / mongodb_ss_oplog_stats_rate < 3600
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MongoDB oplog window < 1h"
+          description: "Oplog retention on {{ $labels.instance }} is less than 1 hour — risk of data loss on replica recovery."
+
+      - alert: MongoDBDiskSpaceLow
+        expr: (1 - (mongodb_ss_wt_cache_used_bytes / mongodb_ss_wt_cache_max_bytes)) * 100 < 15
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MongoDB WiredTiger cache near full"
+          description: "WiredTiger cache utilisation > 85% on {{ $labels.instance }}."

@@ -1,0 +1,22 @@
+# IOES Platform - AI Suite Helm Chart (Python FastAPI, polyglot)
+# Aggregates ai-suite-api, ml-worker, ocr-service, speech-service.
+apiVersion: v2
+name: ai-suite
+description: AI Suite for IOES Platform (api-gateway + ml-worker + ocr + speech).
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ioes
+  - ai
+  - ml
+  - learning-path
+  - proctoring
+maintainers:
+  - name: IOES Team
+    email: tech@ioes.com
+dependencies:
+  - name: ioes-common
+    version: 0.2.0
+    repository: file://../../templates
+    condition: ioes-common.enabled

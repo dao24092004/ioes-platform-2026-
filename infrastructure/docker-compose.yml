@@ -1,43 +1,89 @@
+# ============================================
+# IOES - Local Development Environment
+# Intelligent Online Examination System
+# ============================================
+#
+# Usage:
+#   docker-compose up -d                    # Start all services
+#   docker-compose -f docker-compose.yml up  # Same as above
+#   docker-compose down                     # Stop all
+#   docker-compose down -v                 # Stop and remove volumes
+#
+# Services:
+#   - PostgreSQL (10 databases - 1 per service)
+#   - Redis (cache + session)
+#   - MongoDB (document storage)
+#   - Kafka (event streaming)
+#   - MinIO (S3-compatible storage)
+#   - Milvus (vector database)
+#   - Prometheus (metrics)
+#   - Grafana (dashboards)
+#   - Jaeger (tracing)
+#   - PgAdmin, Redis Commander, Mongo Express
+#   - MailHog (email testing)
+#
+# Ports:
+#   PostgreSQL:    5432
+#   Redis:         6379
+#   MongoDB:       27017
+#   Kafka:         9092
+#   MinIO:         9000 (API), 9001 (Console)
+#   Milvus:        19530
+#   Prometheus:    9090
+#   Grafana:       3001
+#   Jaeger:        16686
+#   Kafka UI:      8081
+#   PgAdmin:       5050
+#   Redis Cmd:     8082
+#   Mongo Express: 8083
+#   MailHog:       1025 (SMTP), 8025 (Web)
+#
+
 version: '3.9'
 
-# ============================================
-# IOES - Docker Compose for Development
-# ============================================
-
 services:
-  # =============================
-  # Database - PostgreSQL
-  # =============================
+  # ============================================
+  # DATABASE TIER
+  # ============================================
+
   postgres:
     image: postgres:15-alpine
     container_name: ioes-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ioes
-      POSTGRES_PASSWORD: ioes_dev_password
-      POSTGRES_DB: ioes_dev
-      POSTGRES_MULTIPLE_DATABASES: ioes_auth,ioes_content,ioes_exam,ioes_analytics,ioes_blockchain
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ioes_dev_password}
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init-scripts:/docker-entrypoint-initdb.d
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ioes"]
+      test: ["CMD-SHELL", "pg_isready -U ioes -d postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     networks:
       - ioes-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
-  # =============================
-  # Cache - Redis Cluster
-  # =============================
   redis:
     image: redis:7-alpine
     container_name: ioes-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
     ports:
       - "6379:6379"
     volumes:
@@ -49,59 +95,131 @@ services:
       retries: 5
     networks:
       - ioes-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
-  # =============================
-  # Document DB - MongoDB
-  # =============================
+  # DOCUMENT DATABASE - MongoDB (Replica Set)
+  #
+  # Single-node replica set (`rs0`) so that Spring Data MongoDB can use
+  # transactions and change streams — same APIs available in production.
+  # Init scripts in `./mongo-init/` create per-service databases and users
+  # so that no service connects as root.
+  # ============================================
+
   mongodb:
     image: mongo:7
     container_name: ioes-mongodb
     restart: unless-stopped
+    # Replica set + keyFile auth is enforced via command-line flags.
+    # `rs.initiate()` runs once from the healthcheck on first boot.
+    command:
+      - mongod
+      - --replSet=rs0
+      - --bind_ip_all
+      - --auth
+      - --keyFile=/etc/mongo-keyfile
+      - --wiredTigerCacheSizeGB=0.5
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ioes
-      MONGO_INITDB_ROOT_PASSWORD: ioes_dev_password
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-ioes}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-ioes_dev_password}
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+      - ./mongo-init/keyfile:/etc/mongo-keyfile:ro
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "try { rs.status().ok } catch (_) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongodb:27017'}]}).ok }"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - ioes-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
-  # =============================
-  # Message Queue - Kafka
-  # =============================
+  # ============================================
+  # MESSAGE QUEUE - Kafka
+  # ============================================
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: ioes-zookeeper
+    restart: unless-stopped
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - ioes-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: ioes-kafka
+    restart: unless-stopped
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     ports:
       - "9092:9092"
+      - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_LOG_RETENTION_HOURS: 24
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_NUM_PARTITIONS: 3
+      # JMX metrics
+      KAFKA_JMX_PORT: 9999
+      KAFKA_JMX_HOSTNAME: localhost
     volumes:
       - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - ioes-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
-  # Kafka UI
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: ioes-kafka-ui
+    restart: unless-stopped
     depends_on:
       - kafka
     ports:
@@ -110,20 +228,50 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+      KAFKA_CLUSTERS_0_JMXPORT: 9999
+      DYNAMIC_CONFIG_ENABLED: "true"
     networks:
       - ioes-network
 
-  # =============================
-  # Object Storage - MinIO
-  # =============================
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:7.5.0
+    container_name: ioes-kafka-connect
+    restart: unless-stopped
+    depends_on:
+      - kafka
+      - zookeeper
+    ports:
+      - "8083:8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_REST_ADVERTISED_HOST_NAME: localhost
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: compose-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: _connect_configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_TOPIC: _connect_offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: _connect_statuses
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+    networks:
+      - ioes-network
+
+  # ============================================
+  # OBJECT STORAGE - MinIO
+  # ============================================
+
   minio:
     image: minio/minio:latest
     container_name: ioes-minio
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio123
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio123}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -132,35 +280,45 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
-      timeout: 10s
+      timeout: 20s
       retries: 3
+      start_period: 60s
+    networks:
+      - ioes-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: ioes-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+      mc mb local/ioes-media --ignore-existing;
+      mc mb local/ioes-certificates --ignore-existing;
+      mc mb local/ioes-proctoring --ignore-existing;
+      mc anonymous set download local/ioes-media;
+      mc anonymous set download local/ioes-certificates;
+      mc anonymous set download local/ioes-proctoring;
+      echo 'MinIO buckets created successfully';
+      exit 0;
+      "
     networks:
       - ioes-network
 
-  # =============================
-  # Vector Database - Milvus
-  # =============================
-  milvus-standalone:
-    image: milvusdb/milvus:v2.4.0
-    container_name: ioes-milvus
-    command: ["milvus", "run", "standalone"]
-    environment:
-      ETCD_ENDPOINTS: etcd:2379
-      MINIO_ADDRESS: minio:9000
-    ports:
-      - "19530:19530"
-      - "9091:9091"
-    depends_on:
-      - etcd
-      - minio
-    volumes:
-      - milvus_data:/var/lib/milvus
-    networks:
-      - ioes-network
+  # ============================================
+  # VECTOR DATABASE - Milvus
+  # ============================================
 
   etcd:
     image: quay.io/coreos/etcd:v3.5.5
     container_name: ioes-etcd
+    restart: unless-stopped
     environment:
       ETCD_AUTO_COMPACTION_MODE: revision
       ETCD_AUTO_COMPACTION_RETENTION: "1000"
@@ -168,13 +326,53 @@ services:
       ETCD_SNAPSHOT_COUNT: "50000"
     volumes:
       - etcd_data:/etcd
-    command: etcd -advertise-client-urls=http://etcd:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    command: >
+      etcd -advertise-client-urls=http://127.0.0.1:2379
+      -listen-client-urls http://0.0.0.0:2379
+      --data-dir /etcd
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - ioes-network
 
-  # =============================
-  # Observability Stack
-  # =============================
+  milvus-standalone:
+    image: milvusdb/milvus:v2.4.0
+    container_name: ioes-milvus
+    restart: unless-stopped
+    depends_on:
+      - etcd
+      - minio
+    command: ["milvus", "run", "standalone"]
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+      MINIO_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minio}
+      MINIO_ACCESS_KEY_SECRET: ${MINIO_ROOT_PASSWORD:-minio123}
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    volumes:
+      - milvus_data:/var/lib/milvus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      start_period: 90s
+      timeout: 20s
+      retries: 5
+    networks:
+      - ioes-network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # ============================================
+  # OBSERVABILITY STACK
+  # ============================================
+
   prometheus:
     image: prom/prometheus:latest
     container_name: ioes-prometheus
@@ -182,14 +380,24 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./infrastructure/monitoring/prometheus:/etc/prometheus
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alert.rules.yml:/etc/prometheus/alert_rules.yml:ro
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.size=10GB'
       - '--web.enable-lifecycle'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-admin-api'
     networks:
       - ioes-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   grafana:
     image: grafana/grafana:latest
@@ -198,17 +406,33 @@ services:
     ports:
       - "3001:3000"
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_SECURITY_ADMIN_EMAIL: admin@ioes.com
       GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_USERS_ALLOW_ORG_CREATE: "false"
+      GF_FEATURE_TOGGLES_ENABLE: publicDashboards
+      # SMTP for alerting
+      GF_SMTP_ENABLED: "true"
+      GF_SMTP_HOST: mailhog:1025
+      GF_SMTP_FROM_ADDRESS: grafana@ioes.local
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning
-      - ./infrastructure/monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - ioes-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   jaeger:
     image: jaegertracing/all-in-one:latest
@@ -225,34 +449,61 @@ services:
       - "9411:9411"
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
+      SPAN_STORAGE_TYPE: badger
+      BADGER_EPHEMERAL: "true"
+      LOG_LEVEL: info
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:16686/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - ioes-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
-  # =============================
-  # Development Tools
-  # =============================
+  # ============================================
+  # ADMIN & MONITORING TOOLS
+  # ============================================
+
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: ioes-pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@ioes.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@ioes.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
     ports:
       - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
     depends_on:
       - postgres
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:80/misc/sqlite-status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - ioes-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   redis-commander:
     image: rediscommander/redis-commander:latest
     container_name: ioes-redis-commander
     restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379:${REDIS_PASSWORD:-}
+      HTTP_PORT: 8082
     ports:
       - "8082:8081"
-    environment:
-      REDIS_HOSTS: local:redis:6379
     depends_on:
       - redis
     networks:
@@ -265,45 +516,107 @@ services:
     ports:
       - "8083:8081"
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ioes
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ioes_dev_password
-      ME_CONFIG_MONGODB_URL: mongodb://ioes:ioes_dev_password@mongodb:27017/
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USER:-ioes}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD:-ioes_dev_password}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_ROOT_USER:-ioes}:${MONGO_ROOT_PASSWORD:-ioes_dev_password}@mongodb:27017/?replicaSet=rs0
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
     depends_on:
       - mongodb
     networks:
       - ioes-network
 
-  # =============================
-  # MailHog (Email testing)
-  # =============================
+  # MongoDB Prometheus exporter — exposes /metrics for Prometheus to scrape.
+  # Connected with root credentials because the exporter needs cluster-wide
+  # visibility (replSet status, db.stats, serverStatus, ...).
+  # v0.30+ removed --collect-all; --compatible-mode keeps the legacy metric names.
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.52.0
+    container_name: ioes-mongodb-exporter
+    restart: unless-stopped
+    command:
+      - "--mongodb.uri=mongodb://${MONGO_ROOT_USER:-ioes}:${MONGO_ROOT_PASSWORD:-ioes_dev_password}@mongodb:27017/?replicaSet=rs0"
+      - "--compatible-mode"
+      - "--web.listen-address=:9216"
+    ports:
+      - "9216:9216"
+    depends_on:
+      - mongodb
+    networks:
+      - ioes-network
+
+  # ============================================
+  # EMAIL TESTING - MailHog
+  # ============================================
+
   mailhog:
     image: mailhog/mailhog:latest
     container_name: ioes-mailhog
     restart: unless-stopped
     ports:
-      - "1025:1025"  # SMTP
+      - "1025:1025"  # SMTP server
       - "8025:8025"  # Web UI
     networks:
       - ioes-network
 
-# =============================
-# Volumes
-# =============================
+  # ============================================
+  # LOCAL DNS - Dnsmasq
+  # ============================================
+
+  dnsmasq:
+    image: andyshinn/dnsmasq:latest
+    container_name: ioes-dnsmasq
+    restart: unless-stopped
+    command:
+      - "--log-queries"
+      - "--server=8.8.8.8"
+      - "--server=8.8.4.4"
+      - "--address=/.local/172.20.0.1"
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    volumes:
+      - dnsmasq_data:/var/lib/dnsmasq
+    networks:
+      - ioes-network
+
+# ============================================
+# VOLUMES
+# ============================================
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
   mongodb_data:
+    driver: local
   kafka_data:
+    driver: local
+  zookeeper_data:
+    driver: local
   minio_data:
+    driver: local
   milvus_data:
+    driver: local
   etcd_data:
+    driver: local
   prometheus_data:
+    driver: local
   grafana_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  dnsmasq_data:
+    driver: local
 
-# =============================
-# Networks
-# =============================
+# ============================================
+# NETWORKS
+# ============================================
 networks:
   ioes-network:
     driver: bridge
-    name: ioes-network
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1

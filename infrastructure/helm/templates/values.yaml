@@ -1,0 +1,153 @@
+# ioes-common — Default values exposed by the shared library.
+# Service charts override most of these. Anything not overridden falls back to the values here.
+# This file is required so Helm can render the chart standalone (helm lint, helm template).
+
+# Number of pods (ignored when autoscaling.enabled=true).
+replicaCount: 1
+
+# Revision history kept for rollback.
+revisionHistoryLimit: 10
+
+image:
+  repository: ghcr.io/ioes-platform/PLACEHOLDER
+  pullPolicy: IfNotPresent
+  tag: ""
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 25%
+    maxUnavailable: 25%
+
+serviceAccount:
+  create: true
+  name: ""
+  automountServiceAccountToken: false
+  annotations: {}
+  imagePullSecrets: []
+
+podLabels: {}
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+imagePullSecrets: []
+terminationGracePeriodSeconds: 30
+
+service:
+  type: ClusterIP
+  port: 8080
+
+# Extra named ports exposed by the container (e.g. ws, grpc).
+extraPorts: {}
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts: []
+  tls: []
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+env: {}
+envFromSecret: false
+envFromConfigMap: false
+
+configMap:
+  create: false
+  name: ""
+  data: {}
+  files: {}
+  annotations: {}
+
+secrets:
+  create: false
+  name: ""
+  existingSecret: ""
+  data: {}
+  annotations: {}
+
+livenessProbe: {}
+readinessProbe: {}
+startupProbe: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  metrics: []
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+        - type: Pods
+          value: 2
+          periodSeconds: 30
+      selectPolicy: Max
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  maxUnavailable: ""
+
+networkPolicy:
+  enabled: false
+  namespace: ""
+  ingressRules: []
+  egressRules: []
+
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /actuator/prometheus
+  additionalLabels: {}
+  namespaceSelector: {}
+  relabelings: []
+  metricRelabelings: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []
+
+initContainers: []
+sidecarContainers: []
+volumes: []
+volumeMounts: []
+
+commonLabels: {}
+namespace: ""

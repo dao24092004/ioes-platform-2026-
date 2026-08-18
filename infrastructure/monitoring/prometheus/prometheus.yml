@@ -1,0 +1,180 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'ioes-local'
+    environment: 'development'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files:
+  - /etc/prometheus/alert_rules.yml
+
+scrape_configs:
+  # ============================================
+  # Prometheus self-monitoring
+  # ============================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: /metrics
+
+  # ============================================
+  # Java Services (Spring Boot)
+  # ============================================
+  - job_name: 'api-gateway'
+    metrics_path: /actuator/prometheus
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'api-gateway'
+
+  - job_name: 'auth-service'
+    metrics_path: /actuator/prometheus
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['host.docker.internal:9000']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'auth-service'
+
+  - job_name: 'content-service'
+    metrics_path: /actuator/prometheus
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['host.docker.internal:9001']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'content-service'
+
+  - job_name: 'analytics-service'
+    metrics_path: /actuator/prometheus
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['host.docker.internal:9004']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'analytics-service'
+
+  - job_name: 'notification-service'
+    metrics_path: /actuator/prometheus
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['host.docker.internal:9009']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'notification-service'
+
+  # ============================================
+  # Node.js Services (NestJS)
+  # ============================================
+  - job_name: 'exam-suite'
+    metrics_path: /metrics
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['host.docker.internal:9005']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'exam-suite'
+
+  - job_name: 'blockchain-suite'
+    metrics_path: /metrics
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['host.docker.internal:9200']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'blockchain-suite'
+
+  - job_name: 'ai-suite-api'
+    metrics_path: /metrics
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['host.docker.internal:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'ai-suite-api'
+
+  # ============================================
+  # Python AI Services
+  # ============================================
+  - job_name: 'ai-ml-worker'
+    metrics_path: /metrics
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['host.docker.internal:9101']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'ai-ml-worker'
+
+  # ============================================
+  # Infrastructure
+  # ============================================
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka:9999']
+    metrics_path: /metrics
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'redis'
+
+  - job_name: 'mongodb'
+    metrics_path: /metrics
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['mongodb-exporter:9216']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'mongodb'
+
+  - job_name: 'minio'
+    static_configs:
+      - targets: ['minio:9000']
+    metrics_path: /minio/v2/metrics/cluster
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'minio'
+
+  # ============================================
+  # Frontend
+  # ============================================
+  - job_name: 'frontend'
+    static_configs:
+      - targets: ['host.docker.internal:3000']
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'frontend'
+
+  # ============================================
+  # Docker containers
+  # ============================================
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'cadvisor'

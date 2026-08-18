@@ -1,0 +1,35 @@
+server:
+  port: 9999
+
+spring:
+  application:
+    name: discovery-service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9999/eureka/
+    register-with-eureka: false
+    fetch-registry: false
+  server:
+    wait-time-in-ms-when-sync-empty: 0
+    renewal-percent-threshold: 0.85
+    eviction-interval-timer-in-ms: 10000
+  instance:
+    hostname: localhost
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.ioes: INFO
+    org.springframework.cloud.netflix.eureka: INFO
+    com.netflix.discovery: WARN

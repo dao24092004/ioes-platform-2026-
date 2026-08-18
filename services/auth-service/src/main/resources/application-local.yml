@@ -1,0 +1,30 @@
+# ============================================
+# auth-service - Local Development Profile
+# ============================================
+spring:
+  cloud:
+    config:
+      enabled: false
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    clean-disabled: false
+
+logging:
+  level:
+    com.ioes: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.kafka: INFO
+
+jwt:
+  secret: ioes-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-signing-algorithm
+  issuer: ioes-platform
+
+management:
+  endpoint:
+    health:
+      show-details: always

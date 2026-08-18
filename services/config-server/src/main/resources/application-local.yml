@@ -1,0 +1,9 @@
+# config-server - local profile (uses native classpath: config dir)
+spring:
+  cloud:
+    config:
+      enabled: false
+logging:
+  level:
+    com.ioes: DEBUG
+    org.springframework.cloud.config: DEBUG
