@@ -20,6 +20,6 @@ public interface NotificationJpaRepository extends JpaRepository<NotificationEnt
     List<NotificationEntity> findByUserIdOrderByCreatedAtDesc(UUID userId);
 
     default List<NotificationEntity> findPendingNotifications(int limit) {
-        return findPendingNotifications(NotificationStatus.PENDING, Pageable.ofSize(limit));
+        return findPendingNotifications(NotificationStatus.pending, Pageable.ofSize(limit));
     }
 }

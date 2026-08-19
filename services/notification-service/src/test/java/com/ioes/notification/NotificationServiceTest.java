@@ -41,7 +41,7 @@ class NotificationServiceTest {
     void should_SendEmail_When_AllFieldsProvided() {
         NotificationUseCase.SendCommand command = new NotificationUseCase.SendCommand(
                 UUID.randomUUID(),
-                NotificationType.EMAIL,
+                NotificationType.email,
                 "test@example.com",
                 "Test Subject",
                 "Test content");
@@ -50,8 +50,8 @@ class NotificationServiceTest {
 
         Notification notification = notificationService.send(command);
 
-        assertThat(notification.getType()).isEqualTo(NotificationType.EMAIL);
-        assertThat(notification.getStatus()).isEqualTo(NotificationStatus.SENT);
+        assertThat(notification.getType()).isEqualTo(NotificationType.email);
+        assertThat(notification.getStatus()).isEqualTo(NotificationStatus.sent);
         assertThat(notification.getSentAt()).isNotNull();
         verify(emailSender).send("test@example.com", "Test Subject", "Test content");
     }
@@ -60,7 +60,7 @@ class NotificationServiceTest {
     void should_MarkAsFailed_When_EmailSendingFails() {
         NotificationUseCase.SendCommand command = new NotificationUseCase.SendCommand(
                 UUID.randomUUID(),
-                NotificationType.EMAIL,
+                NotificationType.email,
                 "test@example.com",
                 "Test Subject",
                 "Test content");
@@ -72,7 +72,7 @@ class NotificationServiceTest {
 
         Notification notification = notificationService.send(command);
 
-        assertThat(notification.getStatus()).isEqualTo(NotificationStatus.FAILED);
+        assertThat(notification.getStatus()).isEqualTo(NotificationStatus.failed);
         assertThat(notification.getErrorMessage()).isEqualTo("SMTP error");
     }
 
@@ -80,7 +80,7 @@ class NotificationServiceTest {
     void should_RenderTemplate_When_SendingTemplatedNotification() {
         NotificationUseCase.TemplatedCommand command = new NotificationUseCase.TemplatedCommand(
                 UUID.randomUUID(),
-                NotificationType.EMAIL,
+                NotificationType.email,
                 "test@example.com",
                 "welcome",
                 Map.of("fullName", "John", "appName", "IOES"));
@@ -91,7 +91,7 @@ class NotificationServiceTest {
         Notification notification = notificationService.sendTemplated(command);
 
         assertThat(notification.getTemplate()).isEqualTo("welcome");
-        assertThat(notification.getStatus()).isEqualTo(NotificationStatus.SENT);
+        assertThat(notification.getStatus()).isEqualTo(NotificationStatus.sent);
         verify(emailSender).send("test@example.com", null, "Welcome John!");
     }
 }

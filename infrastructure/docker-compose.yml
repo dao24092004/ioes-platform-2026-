@@ -4,10 +4,9 @@
 # ============================================
 #
 # Usage:
-#   docker-compose up -d                    # Start all services
-#   docker-compose -f docker-compose.yml up  # Same as above
-#   docker-compose down                     # Stop all
-#   docker-compose down -v                 # Stop and remove volumes
+#   docker compose up -d                    # Start all services
+#   docker compose down                     # Stop all
+#   docker compose down -v                  # Stop and remove volumes
 #
 # Services:
 #   - PostgreSQL (10 databases - 1 per service)
@@ -23,11 +22,11 @@
 #   - MailHog (email testing)
 #
 # Ports:
-#   PostgreSQL:    5432
+#   PostgreSQL:    5433 (host) -> 5432 (container) — host:5432 is reserved if a local Postgres is running
 #   Redis:         6379
 #   MongoDB:       27017
-#   Kafka:         9092
-#   MinIO:         9000 (API), 9001 (Console)
+#   Kafka:         29092 (use this from host), 9092 (Docker network only)
+#   MinIO:         9002 (API), 9001 (Console) - use 9002 from host (9000 reserved for auth-service)
 #   Milvus:        19530
 #   Prometheus:    9090
 #   Grafana:       3001
@@ -35,11 +34,10 @@
 #   Kafka UI:      8081
 #   PgAdmin:       5050
 #   Redis Cmd:     8082
+#   Kafka Connect: 8089
 #   Mongo Express: 8083
 #   MailHog:       1025 (SMTP), 8025 (Web)
 #
-
-version: '3.9'
 
 services:
   # ============================================
@@ -55,7 +53,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ioes_dev_password}
       POSTGRES_DB: postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d:ro
@@ -189,7 +187,8 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
@@ -238,10 +237,10 @@ services:
     container_name: ioes-kafka-connect
     restart: unless-stopped
     depends_on:
-      - kafka
-      - zookeeper
+      kafka:
+        condition: service_healthy
     ports:
-      - "8083:8083"
+      - "8089:8083"
     environment:
       CONNECT_BOOTSTRAP_SERVERS: kafka:9092
       CONNECT_REST_ADVERTISED_HOST_NAME: localhost
@@ -257,6 +256,11 @@ services:
       CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server kafka:9092 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - ioes-network
 
@@ -273,7 +277,7 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio123}
     ports:
-      - "9000:9000"
+      - "9002:9000"
       - "9001:9001"
     volumes:
       - minio_data:/data
@@ -559,27 +563,6 @@ services:
     networks:
       - ioes-network
 
-  # ============================================
-  # LOCAL DNS - Dnsmasq
-  # ============================================
-
-  dnsmasq:
-    image: andyshinn/dnsmasq:latest
-    container_name: ioes-dnsmasq
-    restart: unless-stopped
-    command:
-      - "--log-queries"
-      - "--server=8.8.8.8"
-      - "--server=8.8.4.4"
-      - "--address=/.local/172.20.0.1"
-    ports:
-      - "53:53/udp"
-      - "53:53/tcp"
-    volumes:
-      - dnsmasq_data:/var/lib/dnsmasq
-    networks:
-      - ioes-network
-
 # ============================================
 # VOLUMES
 # ============================================
@@ -606,8 +589,6 @@ volumes:
     driver: local
   pgadmin_data:
     driver: local
-  dnsmasq_data:
-    driver: local
 
 # ============================================
 # NETWORKS
@@ -618,5 +599,5 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.20.0.0/16
-          gateway: 172.20.0.1
+        - subnet: 192.168.100.0/24
+          gateway: 192.168.100.1

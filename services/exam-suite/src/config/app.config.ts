@@ -78,11 +78,11 @@ export const appConfig = {
 };
 
 export const dbConfig = {
-  host: required('DB_HOST', 'localhost'),
-  port: int('DB_PORT', 5432),
-  user: required('DB_USER', 'ioes_exam'),
-  password: required('DB_PASSWORD', 'ioes_dev_password'),
-  database: required('DB_NAME', 'ioes_exam'),
+  host: required('POSTGRES_HOST', 'localhost'),
+  port: int('POSTGRES_PORT', 5433),
+  user: required('POSTGRES_USER', 'ioes'),
+  password: required('POSTGRES_PASSWORD', 'ioes_dev_password'),
+  database: required('EXAM_DB_NAME', 'ioes_exam'),
   poolMin: int('DB_POOL_MIN', 5),
   poolMax: int('DB_POOL_MAX', 20),
 };
@@ -96,7 +96,7 @@ export const redisConfig = {
 };
 
 export const kafkaConfig = {
-  brokers: list('KAFKA_BROKERS', ['localhost:9092']),
+  brokers: list('KAFKA_BOOTSTRAP_SERVERS', ['localhost:9092']),
   clientId: required('KAFKA_CLIENT_ID', 'exam-suite'),
   groupId: required('KAFKA_GROUP_ID', 'exam-suite'),
 };

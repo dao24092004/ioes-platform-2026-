@@ -32,7 +32,7 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
 
     @Override
     public List<Notification> findPendingNotifications(int limit) {
-        return jpaRepository.findPendingNotifications(NotificationStatus.PENDING,
+        return jpaRepository.findPendingNotifications(NotificationStatus.pending,
                 org.springframework.data.domain.Pageable.ofSize(limit))
                 .stream()
                 .map(this::toDomain)

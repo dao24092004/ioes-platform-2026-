@@ -6,32 +6,27 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================
--- ENUMS
--- ============================================
-
-CREATE TYPE notification_type AS ENUM ('email', 'push', 'sms', 'in_app');
-CREATE TYPE notification_status AS ENUM ('pending', 'sent', 'failed', 'retrying');
-
--- ============================================
--- TABLES
+-- TABLES (using VARCHAR instead of PostgreSQL enum types)
 -- ============================================
 
 -- Notifications
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID,
-    type notification_type NOT NULL,
+    type VARCHAR(20) NOT NULL DEFAULT 'email',
     recipient VARCHAR(255) NOT NULL,
     subject VARCHAR(500),
     template VARCHAR(100),
     data JSONB DEFAULT '{}',
-    status notification_status NOT NULL DEFAULT 'pending',
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
     retry_count INTEGER NOT NULL DEFAULT 0,
     error_message TEXT,
     scheduled_at TIMESTAMP WITH TIME ZONE,
     sent_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_notification_type CHECK (type IN ('email', 'push', 'sms', 'in_app')),
+    CONSTRAINT chk_notification_status CHECK (status IN ('pending', 'sent', 'failed', 'retrying'))
 );
 
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);

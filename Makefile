@@ -59,7 +59,7 @@ setup-dev: ## Start all infrastructure services (Docker)
 	@echo "$(GREEN)✓ Infrastructure services started!$(NC)"
 	@echo ""
 	@echo "Services available at:"
-	@echo "  - PostgreSQL:    localhost:5432"
+	@echo "  - PostgreSQL:    localhost:5433"
 	@echo "  - Redis:        localhost:6379"
 	@echo "  - MongoDB:      localhost:27017"
 	@echo "  - Kafka:        localhost:9092"
@@ -110,8 +110,17 @@ docker-restart: ## Restart all Docker containers
 db-init: ## Initialize databases (run after docker-up)
 	@echo "$(BLUE)=== Initializing Databases ===$(NC)"
 	@echo "Waiting for PostgreSQL to be ready..."
-	@sleep 5
-	@docker exec -i ioes-postgres psql -U ioes -d postgres < infrastructure/init-scripts/01-init-databases.sh || true
+	@docker exec ioes-postgres pg_isready -U ioes > /dev/null 2>&1 || (echo "PostgreSQL not ready, waiting..." && sleep 5)
+	@docker exec ioes-postgres pg_isready -U ioes > /dev/null 2>&1 || (echo "PostgreSQL still not ready, waiting more..." && sleep 10)
+	@echo "Running database init script..."
+	@docker exec -i ioes-postgres psql -U ioes -d postgres < infrastructure/init-scripts/01-init-databases.sql 2>&1 | grep -v "already exists" | grep -v "GRANT" || true
+	@echo "Creating extensions..."
+	@docker exec -i ioes-postgres psql -U ioes -d ioes_auth < infrastructure/init-scripts/02-extensions-auth.sql 2>&1 | grep -v "already exists" || true
+	@docker exec -i ioes-postgres psql -U ioes -d ioes_content < infrastructure/init-scripts/02-extensions-content.sql 2>&1 | grep -v "already exists" || true
+	@docker exec -i ioes-postgres psql -U ioes -d ioes_exam < infrastructure/init-scripts/02-extensions-exam.sql 2>&1 | grep -v "already exists" || true
+	@docker exec -i ioes-postgres psql -U ioes -d ioes_analytics < infrastructure/init-scripts/02-extensions-analytics.sql 2>&1 | grep -v "already exists" || true
+	@docker exec -i ioes-postgres psql -U ioes -d ioes_blockchain < infrastructure/init-scripts/02-extensions-blockchain.sql 2>&1 | grep -v "already exists" || true
+	@docker exec -i ioes-postgres psql -U ioes -d ioes_ai < infrastructure/init-scripts/02-extensions-ai.sql 2>&1 | grep -v "already exists" || true
 	@echo "$(GREEN)✓ Databases initialized!$(NC)"
 
 migrate: ## Run all database migrations

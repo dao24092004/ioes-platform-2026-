@@ -1,8 +1,9 @@
 package com.ioes.auth.domain.model;
 
 public enum UserRole {
-    STUDENT,
-    INSTRUCTOR,
-    ADMIN,
-    SUPER_ADMIN
+    student,
+    instructor,
+    admin,
+    super_admin,
+    guest
 }

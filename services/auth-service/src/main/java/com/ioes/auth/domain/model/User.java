@@ -36,7 +36,7 @@ public class User {
     private Instant deletedAt;
 
     public boolean isActive() {
-        return status == UserStatus.ACTIVE && deletedAt == null;
+        return status == UserStatus.active && deletedAt == null;
     }
 
     public boolean isLocked() {

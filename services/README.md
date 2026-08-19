@@ -116,7 +116,7 @@ cd infrastructure
 docker-compose up -d
 
 # 2. Wait cho PostgreSQL ready, sau đó init databases
-docker exec -i ioes-postgres psql -U ioes -d postgres < init-scripts/01-init-databases.sh
+docker exec -i ioes-postgres psql -U ioes -d postgres < init-scripts/01-init-databases.sql
 
 # 3. Start services theo thứ tự
 # Terminal 1 - Discovery Service

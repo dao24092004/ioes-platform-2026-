@@ -67,11 +67,11 @@ export const appConfig = {
 };
 
 export const dbConfig = {
-  host: required('DB_HOST', 'localhost'),
-  port: int('DB_PORT', 5432),
-  user: required('DB_USER', 'ioes_blockchain'),
-  password: required('DB_PASSWORD', 'ioes_dev_password'),
-  database: required('DB_NAME', 'ioes_blockchain'),
+  host: required('POSTGRES_HOST', 'localhost'),
+  port: int('POSTGRES_PORT', 5433),
+  user: required('POSTGRES_USER', 'ioes'),
+  password: required('POSTGRES_PASSWORD', 'ioes_dev_password'),
+  database: required('BLOCKCHAIN_DB_NAME', 'ioes_blockchain'),
   poolMin: int('DB_POOL_MIN', 2),
   poolMax: int('DB_POOL_MAX', 10),
 };
@@ -84,7 +84,7 @@ export const redisConfig = {
 };
 
 export const kafkaConfig = {
-  brokers: list('KAFKA_BROKERS', ['localhost:9092']),
+  brokers: list('KAFKA_BOOTSTRAP_SERVERS', ['localhost:9092']),
   clientId: required('KAFKA_CLIENT_ID', 'blockchain-suite'),
   groupId: required('KAFKA_GROUP_ID', 'blockchain-suite'),
 };

@@ -34,7 +34,7 @@ CREATE TABLE users (
     mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
     mfa_secret VARCHAR(255),
     last_login_at TIMESTAMP WITH TIME ZONE,
-    last_login_ip INET,
+    last_login_ip VARCHAR(45),
     failed_login_attempts INTEGER NOT NULL DEFAULT 0,
     locked_until TIMESTAMP WITH TIME ZONE,
     metadata JSONB DEFAULT '{}',
@@ -74,7 +74,7 @@ CREATE TABLE sessions (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     refresh_token_hash VARCHAR(255) NOT NULL,
     user_agent TEXT,
-    ip_address INET,
+    ip_address VARCHAR(45),
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMP WITH TIME ZONE
@@ -147,7 +147,7 @@ CREATE TABLE audit_logs (
     entity_id UUID,
     old_value JSONB,
     new_value JSONB,
-    ip_address INET,
+    ip_address VARCHAR(45),
     user_agent TEXT,
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -176,7 +176,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     UPDATE users 
     SET last_login_at = NOW(), 
-        last_login_ip = NEW.ip_address,
+        last_login_ip = NEW.ip_address::VARCHAR(45),
         failed_login_attempts = 0,
         locked_until = NULL
     WHERE id = NEW.user_id;

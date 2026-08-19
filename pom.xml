@@ -13,7 +13,11 @@
     <description>Parent POM for IOES Platform Microservices</description>
 
     <modules>
-        <module>libs/common-library</module>
+        <module>libs/common-core</module>
+        <module>libs/common-jwt</module>
+        <module>libs/common-web</module>
+        <module>libs/common-webflux</module>
+        <module>libs/common-kafka</module>
         <module>services/discovery-service</module>
         <module>services/config-server</module>
         <module>services/api-gateway</module>

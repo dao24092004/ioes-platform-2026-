@@ -6,7 +6,7 @@ spring:
   application:
     name: content-service
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${CONTENT_DB_NAME:ioes_content}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${CONTENT_DB_NAME:ioes_content}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -16,7 +16,7 @@ spring:
           batch_size: 20
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME:ioes_content_user}:${MONGO_PASSWORD}@${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${MONGO_DB_NAME:ioes_content}?replicaSet=${MONGO_REPLICA_SET:rs0}&authSource=${MONGO_AUTH_SOURCE:admin}
+      uri: mongodb://${MONGO_CONTENT_USER:ioes_content_user}:${MONGO_CONTENT_PASSWORD}@${MONGO_HOST:localhost}:${MONGO_PORT:27017}/${MONGO_DB_CONTENT:ioes_content}?replicaSet=${MONGO_REPLICA_SET:rs0}&authSource=${MONGO_AUTH_SOURCE:admin}
 
 server:
   port: 9001

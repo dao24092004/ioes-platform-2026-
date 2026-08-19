@@ -45,7 +45,7 @@ make setup-dev
 # 3. Đợi Postgres + MongoDB ready, sau đó tạo per-service databases + users
 make db-init
 # Tương đương: docker exec -i ioes-postgres psql -U ioes -d postgres \
-#                          < infrastructure/init-scripts/01-init-databases.sh
+#                          < infrastructure/init-scripts/01-init-databases.sql
 
 # 4. Chạy migrations cho từng service (Flyway/JPA tự chạy khi service start)
 make migrate
@@ -84,7 +84,29 @@ cd infrastructure
 docker-compose up -d postgres redis mongodb kafka minio prometheus grafana jaeger
 ```
 
-### 1.4 Chạy từng service độc lập
+### 1.4 Build Java services
+
+**Build all Java modules** (from project root, includes `common-library`):
+
+```bash
+cd /home/minhdao/projects/team/AiProject
+mvn install -DskipTests
+```
+
+**Build a specific service + its dependencies:**
+
+```bash
+mvn install -pl services/api-gateway -am -DskipTests
+```
+
+Flags: `-pl` = project list, `-am` = also make (build dependencies first), `-DskipTests` = skip tests.
+
+### 1.5 Chạy từng service độc lập
+
+> **Lưu ý:** Trước khi chạy bất kỳ service nào, phải build toàn bộ modules trước:
+> ```bash
+> mvn install -DskipTests   # chạy từ project root
+> ```
 
 #### Java services (Spring Boot 3 + Spring Cloud)
 
@@ -130,7 +152,7 @@ pnpm dev    # http://localhost:3000
 
 Frontend proxy qua `http://localhost:8080` (API Gateway) — xem `apps/web/vite.config.ts`.
 
-### 1.5 Chạy production-style (Kubernetes)
+### 1.6 Chạy production-style (Kubernetes)
 
 ```bash
 # 1. Cài helm (nếu chưa có)
@@ -154,7 +176,7 @@ make tf-plan    TF_ENV=dev
 make tf-apply   TF_ENV=dev
 ```
 
-### 1.6 Verify mọi thứ OK
+### 1.7 Verify mọi thứ OK
 
 ```bash
 # Health check tổng
@@ -172,7 +194,7 @@ curl http://localhost:8080/api/auth/register -X POST \
   -d '{"email":"test@ioes.com","password":"Password123!","fullName":"Test User"}'
 ```
 
-### 1.7 Common commands
+### 1.8 Common commands
 
 ```bash
 # Docker
