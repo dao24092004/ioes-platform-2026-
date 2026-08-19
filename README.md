@@ -59,6 +59,39 @@ make dev-frontend  # apps/web (React + Vite)
 
 > **Discovery & Config phải chạy trước tiên** — các service khác đăng ký với Eureka và load config từ Spring Cloud Config.
 
+> ⚠️ **Lưu ý khi chạy trên Windows:**
+> Makefile dùng cú pháp GNU Make + Unix shell (`sleep`, `/dev/null`, `grep`, `awk`...) nên **không chạy trực tiếp trên PowerShell/CMD** được.
+>
+> **Cách 1 — Khuyến nghị: Dùng Git Bash** (đơn giản nhất)
+> 1. Cài [Git for Windows](https://git-scm.com/download/win) — đã bao gồm `make`
+> 2. Cài thêm `make` nếu Git Bash chưa có: `choco install make -y` (chạy PowerShell **Run as Administrator**)
+> 3. Mở **Git Bash** rồi chạy:
+>    ```bash
+>    cd /d/NCKH/ioes-platform-2026-
+>    make setup-dev
+>    make db-init
+>    make dev-java
+>    ```
+>
+> **Cách 2 — WSL** (ổn định nhất)
+> ```powershell
+> wsl
+> cd /mnt/d/NCKH/ioes-platform-2026-
+> make setup-dev
+> ```
+>
+> **Cách 3 — Chạy trực tiếp Docker Compose** (bỏ qua `make`)
+> ```powershell
+> cd infrastructure
+> docker compose up -d
+> ```
+>
+> Nếu `choco install make` bị lỗi **"Unable to obtain lock file"** hoặc **"Access to the path 'C:\ProgramData\chocolatey\lib-bad' is denied"**, mở PowerShell **Run as Administrator** rồi xóa lock cũ:
+> ```powershell
+> Remove-Item "C:\ProgramData\chocolatey\lib\*lock*" -Force -ErrorAction SilentlyContinue
+> choco install make -y --force
+> ```
+
 ### 1.3 Stack infrastructure (Docker Compose)
 
 | Service | Port | Mục đích |
