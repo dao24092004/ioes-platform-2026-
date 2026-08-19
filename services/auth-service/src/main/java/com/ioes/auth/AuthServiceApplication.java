@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication(scanBasePackages = {"com.ioes.auth", "com.ioes.common"})
 @EnableDiscoveryClient
-@EnableJpaAuditing
+@EnableJpaAuditing(auditorAwareRef = "auditorAwareImpl")
 @EnableAsync
 public class AuthServiceApplication {
     public static void main(String[] args) {

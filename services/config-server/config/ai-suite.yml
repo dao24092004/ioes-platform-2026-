@@ -88,7 +88,7 @@ redis:
 
 # Kafka
 kafka:
-  brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
   topics:
     user: user.events
     course: course.events

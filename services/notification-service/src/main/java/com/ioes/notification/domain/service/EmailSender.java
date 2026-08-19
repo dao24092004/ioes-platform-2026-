@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Slf4j
@@ -37,7 +36,6 @@ public class EmailSender {
         message.setTo(to);
         message.setSubject(subject);
         message.setText(content);
-        message.setDefaultEncoding(StandardCharsets.UTF_8.name());
 
         mailSender.send(message);
         log.debug("Email sent successfully to: {}", to);

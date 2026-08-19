@@ -30,7 +30,7 @@ make setup-dev
 ```
 
 This will start:
-- PostgreSQL (port 5432)
+- PostgreSQL (host port 5433, container port 5432 — host 5432 is reserved if you have a local Postgres)
 - Redis (port 6379)
 - MongoDB (port 27017)
 - Kafka (port 9092)
@@ -141,7 +141,7 @@ make health-check    # Check all services
 
 | Service | Port | URL |
 |---------|------|-----|
-| PostgreSQL | 5432 | localhost:5432 |
+| PostgreSQL | 5433 | localhost:5433 |
 | Redis | 6379 | localhost:6379 |
 | MongoDB | 27017 | localhost:27017 |
 | Kafka | 9092 | localhost:9092 |

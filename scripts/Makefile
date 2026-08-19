@@ -12,6 +12,9 @@
 COMPOSE_FILE := docker-compose.yml
 PROJECT_NAME := ioes
 
+# Detect Docker Compose V2 (`docker compose`) vs V1 (`docker-compose`).
+DOCKER_COMPOSE := $(shell docker compose version >/dev/null 2>&1 && echo "docker compose" || echo "docker-compose")
+
 # =============================
 # Help
 # =============================
@@ -26,9 +29,9 @@ help: ## Hiển thị help
 # Setup
 # =============================
 setup-dev: ## Setup môi trường dev (Docker services)
-	docker-compose -f $(COMPOSE_FILE) up -d
+	$(DOCKER_COMPOSE) -f $(COMPOSE_FILE) up -d
 	@echo "✅ Dev environment is up"
-	@echo "   - Postgres: localhost:5432"
+	@echo "   - Postgres: localhost:5433"
 	@echo "   - Redis: localhost:6379"
 	@echo "   - Kafka: localhost:9092"
 	@echo "   - MongoDB: localhost:27017"

@@ -52,8 +52,8 @@ class AuthServiceTest {
                 .email("test@ioes.com")
                 .passwordHash(passwordEncoder.encode("Password123!"))
                 .fullName("Test User")
-                .role(UserRole.STUDENT)
-                .status(UserStatus.ACTIVE)
+                .role(UserRole.student)
+                .status(UserStatus.pending)
                 .emailVerified(true)
                 .failedLoginAttempts(0)
                 .createdAt(Instant.now())
@@ -72,8 +72,8 @@ class AuthServiceTest {
         User user = authService.register(command);
 
         assertThat(user.getEmail()).isEqualTo("newuser@ioes.com");
-        assertThat(user.getRole()).isEqualTo(UserRole.STUDENT);
-        assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING);
+        assertThat(user.getRole()).isEqualTo(UserRole.student);
+        assertThat(user.getStatus()).isEqualTo(UserStatus.pending);
         assertThat(user.getPasswordHash()).isNotNull();
         verify(userRepositoryPort).save(any(User.class));
     }

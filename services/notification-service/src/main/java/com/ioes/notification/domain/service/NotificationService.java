@@ -36,7 +36,7 @@ public class NotificationService implements NotificationUseCase {
                 .type(command.type())
                 .recipient(command.recipient())
                 .subject(command.subject())
-                .status(NotificationStatus.PENDING)
+                .status(NotificationStatus.pending)
                 .retryCount(0)
                 .scheduledAt(Instant.now())
                 .createdAt(Instant.now())
@@ -45,11 +45,11 @@ public class NotificationService implements NotificationUseCase {
 
         try {
             deliver(notification, command.content(), null);
-            notification.setStatus(NotificationStatus.SENT);
+            notification.setStatus(NotificationStatus.sent);
             notification.setSentAt(Instant.now());
         } catch (Exception e) {
             log.error("Failed to send notification: {}", e.getMessage(), e);
-            notification.setStatus(NotificationStatus.FAILED);
+            notification.setStatus(NotificationStatus.failed);
             notification.setErrorMessage(e.getMessage());
         }
 
@@ -67,7 +67,7 @@ public class NotificationService implements NotificationUseCase {
                 .recipient(command.recipient())
                 .template(command.template())
                 .data(command.data())
-                .status(NotificationStatus.PENDING)
+                .status(NotificationStatus.pending)
                 .retryCount(0)
                 .scheduledAt(Instant.now())
                 .createdAt(Instant.now())
@@ -77,11 +77,11 @@ public class NotificationService implements NotificationUseCase {
         try {
             String content = emailSender.renderTemplate(command.template(), command.data());
             deliver(notification, content, command.data());
-            notification.setStatus(NotificationStatus.SENT);
+            notification.setStatus(NotificationStatus.sent);
             notification.setSentAt(Instant.now());
         } catch (Exception e) {
             log.error("Failed to send templated notification: {}", e.getMessage(), e);
-            notification.setStatus(NotificationStatus.FAILED);
+            notification.setStatus(NotificationStatus.failed);
             notification.setErrorMessage(e.getMessage());
         }
 
@@ -98,7 +98,7 @@ public class NotificationService implements NotificationUseCase {
             try {
                 if (notification.getRetryCount() >= maxRetryAttempts) {
                     log.warn("Max retry attempts reached for notification: {}", notification.getId());
-                    notification.setStatus(NotificationStatus.FAILED);
+                    notification.setStatus(NotificationStatus.failed);
                     notificationRepositoryPort.save(notification);
                     continue;
                 }
@@ -108,7 +108,7 @@ public class NotificationService implements NotificationUseCase {
                         : notification.getSubject();
 
                 deliver(notification, content, notification.getData());
-                notification.setStatus(NotificationStatus.SENT);
+                notification.setStatus(NotificationStatus.sent);
                 notification.setSentAt(Instant.now());
                 notification.setUpdatedAt(Instant.now());
                 notificationRepositoryPort.save(notification);
@@ -120,8 +120,8 @@ public class NotificationService implements NotificationUseCase {
 
                 notification.setRetryCount(notification.getRetryCount() + 1);
                 notification.setStatus(notification.getRetryCount() >= maxRetryAttempts
-                        ? NotificationStatus.FAILED
-                        : NotificationStatus.RETRYING);
+                        ? NotificationStatus.failed
+                        : NotificationStatus.retrying);
                 notification.setErrorMessage(e.getMessage());
                 notification.setUpdatedAt(Instant.now());
                 notificationRepositoryPort.save(notification);
@@ -130,7 +130,7 @@ public class NotificationService implements NotificationUseCase {
     }
 
     private void deliver(Notification notification, String content, java.util.Map<String, Object> data) {
-        if (notification.getType() != NotificationType.EMAIL) {
+        if (notification.getType() != NotificationType.email) {
             throw ApiException.badRequest("Only EMAIL type is currently supported");
         }
         emailSender.send(notification.getRecipient(), notification.getSubject(), content);

@@ -8,11 +8,11 @@ app:
   port: 9200
 
 database:
-  host: ${DB_HOST:localhost}
-  port: 5432
+  host: ${POSTGRES_HOST:localhost}
+  port: ${POSTGRES_PORT:5433}
   name: ${BLOCKCHAIN_DB_NAME:ioes_blockchain}
-  username: ${DB_USERNAME:ioes}
-  password: ${DB_PASSWORD:ioes_dev_password}
+  username: ${POSTGRES_USER:ioes}
+  password: ${POSTGRES_PASSWORD:ioes_dev_password}
   pool:
     min: 2
     max: 10
@@ -25,7 +25,7 @@ redis:
   key-prefix: "ioes:blockchain:"
 
 kafka:
-  brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
   client-id: blockchain-suite
   group-id: blockchain-suite
   topics:

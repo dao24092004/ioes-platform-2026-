@@ -29,8 +29,8 @@ class BaseServiceSettings(BaseSettings):
     # Tracing
     otlp_endpoint: Optional[str] = None
 
-    # Database
-    database_url: str = "postgresql+asyncpg://user:pass@localhost:5432/db"
+    # Database (host port 5433 maps to container 5432; see infrastructure/docker-compose.yml)
+    database_url: str = "postgresql+asyncpg://user:pass@localhost:5433/db"
 
     # Cache
     redis_url: str = "redis://localhost:6379/0"

@@ -76,7 +76,22 @@
 
         <dependency>
             <groupId>com.ioes</groupId>
-            <artifactId>common-library</artifactId>
+            <artifactId>common-core</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.ioes</groupId>
+            <artifactId>common-jwt</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.ioes</groupId>
+            <artifactId>common-web</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.ioes</groupId>
+            <artifactId>common-kafka</artifactId>
             <version>1.0.0</version>
         </dependency>
     </dependencies>

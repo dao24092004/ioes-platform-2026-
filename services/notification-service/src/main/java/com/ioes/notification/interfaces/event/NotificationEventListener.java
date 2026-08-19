@@ -36,7 +36,7 @@ public class NotificationEventListener {
 
             NotificationUseCase.TemplatedCommand command = new NotificationUseCase.TemplatedCommand(
                     null,
-                    com.ioes.notification.domain.model.NotificationType.EMAIL,
+                    com.ioes.notification.domain.model.NotificationType.email,
                     email,
                     "welcome",
                     Map.of(
@@ -69,7 +69,7 @@ public class NotificationEventListener {
 
             NotificationUseCase.TemplatedCommand command = new NotificationUseCase.TemplatedCommand(
                     null,
-                    com.ioes.notification.domain.model.NotificationType.EMAIL,
+                    com.ioes.notification.domain.model.NotificationType.email,
                     email,
                     passed != null && passed ? "exam-passed" : "exam-failed",
                     Map.of(
