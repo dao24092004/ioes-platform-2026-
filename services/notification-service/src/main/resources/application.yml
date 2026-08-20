@@ -93,3 +93,4 @@ logging:
   level:
     com.ioes: DEBUG
     org.springframework.kafka: INFO
+    

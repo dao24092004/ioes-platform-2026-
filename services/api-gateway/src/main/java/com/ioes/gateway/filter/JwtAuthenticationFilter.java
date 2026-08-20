@@ -40,15 +40,21 @@ public class JwtAuthenticationFilter implements WebFilter {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
+        log.debug("JwtAuthenticationFilter processing path: {}", path);
+
         // Allow CORS preflight
         if (HttpMethod.OPTIONS.equals(request.getMethod())) {
+            log.debug("Allowing OPTIONS request");
             return chain.filter(exchange);
         }
 
         // Allow public paths
         if (isPublicPath(path)) {
+            log.debug("Allowing public path: {}", path);
             return chain.filter(exchange);
         }
+
+        log.debug("Path {} requires authentication", path);
 
         // Get token from header
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
@@ -83,7 +89,15 @@ public class JwtAuthenticationFilter implements WebFilter {
     }
 
     private boolean isPublicPath(String path) {
-        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
+        // Exact match for specific paths, startsWith for paths ending with /
+        for (String publicPath : PUBLIC_PATHS) {
+            if (publicPath.endsWith("/")) {
+                if (path.startsWith(publicPath)) return true;
+            } else {
+                if (path.equals(publicPath) || path.startsWith(publicPath + "/")) return true;
+            }
+        }
+        return false;
     }
 
     private Mono<Void> onError(ServerWebExchange exchange, String message) {
