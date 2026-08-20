@@ -540,12 +540,9 @@ VALUES
 ON CONFLICT (provider, provider_user_id) DO NOTHING;
 
 -- ============================================
--- VERIFICATION OUTPUT
+-- MIGRATION COMPLETE
 -- ============================================
-\echo ''
-\echo '=== AUTH SERVICE INIT COMPLETE ==='
-\echo 'Total users created:'
-SELECT COUNT(*) as user_count FROM users;
-\echo ''
-\echo 'Users by role:'
-SELECT role, COUNT(*) as count FROM users GROUP BY role ORDER BY count DESC;
+-- Users seeded: admin@ioes.com, instructor@ioes.com, student1@ioes.com, student2@ioes.com
+-- Default password (BCrypt 12 rounds): Test@123
+-- Total OAuth providers: 2
+-- ============================================

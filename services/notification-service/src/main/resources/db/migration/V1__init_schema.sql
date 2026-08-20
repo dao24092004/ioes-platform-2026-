@@ -225,15 +225,8 @@ VALUES
 ON CONFLICT DO NOTHING;
 
 -- ============================================
--- VERIFICATION OUTPUT
+-- MIGRATION COMPLETE
 -- ============================================
-\echo ''
-\echo '=== NOTIFICATION SERVICE INIT COMPLETE ==='
-\echo 'Total notifications:'
-SELECT COUNT(*) as notification_count FROM notifications;
-\echo ''
-\echo 'Notifications by status:'
-SELECT status, COUNT(*) as count FROM notifications GROUP BY status ORDER BY count DESC;
-\echo ''
-\echo 'Total templates:'
-SELECT COUNT(*) as template_count FROM notification_templates;
+-- Total notifications: 11 rows inserted
+-- Total templates: 6 rows inserted
+-- ============================================
