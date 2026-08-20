@@ -23,6 +23,8 @@ desktop.ini
 *.iws
 *.ipr
 out/
+# Hexagonal architecture: keep /port/out/ source folders (IntelliJ build output)
+!**/port/out/
 
 # VS Code (commit .vscode/settings.json but ignore workspace state)
 .vscode/*
