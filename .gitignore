@@ -290,6 +290,12 @@ site/
 !**/src/**/*.d.ts.bak
 
 # =============================
+# Runtime logs (NestJS write to *.err when stderr redirected)
+# =============================
+*.err
+!.gitkeep.err
+
+# =============================
 # Generated files
 # =============================
 **/generated/
