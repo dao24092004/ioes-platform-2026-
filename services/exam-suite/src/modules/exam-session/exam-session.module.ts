@@ -18,9 +18,17 @@ import { KafkaPublisherService } from '../../common/kafka-publisher.service';
 import { ContentServiceHttpClient } from '../../common/content-service.client';
 import { MockContentServiceClient } from '../../common/mock-content-service.client';
 import { serviceUrls, wsConfig, redisConfig, appConfig } from '../../config/app.config';
+import { FrameProcessorService } from './services/frame-processor.service';
+import { ViolationCounterService } from './services/violation-counter.service';
+import {
+  PROCTOR_CLIENT,
+  MockProctorClient,
+  HttpProctorClient,
+} from './services/ai-proctor.client';
 import Redis from 'ioredis';
 
 const useMockContent = process.env.DEV_MOCK_CONTENT_SERVICE === 'true';
+const useMockAiProctor = process.env.DEV_MOCK_AI_PROCTOR !== 'false'; // default mock khi dev
 
 /**
  * Providers dùng Symbol để inject theo interface (DI theo contract).
@@ -96,6 +104,30 @@ const useCaseProviders: Provider[] = [
       provide: 'APP_NAME',
       useValue: appConfig.name,
     },
+    {
+      provide: 'AI_PROCTOR_URL',
+      useValue: process.env.AI_PROCTOR_URL ?? 'http://localhost:9101',
+    },
+    {
+      provide: 'AI_PROCTOR_TIMEOUT_MS',
+      useValue: parseInt(process.env.AI_PROCTOR_TIMEOUT_MS ?? '3000', 10),
+    },
+    {
+      provide: 'VIOLATION_THRESHOLD',
+      useValue: parseInt(process.env.VIOLATION_THRESHOLD ?? '3', 10),
+    },
+    {
+      provide: PROCTOR_CLIENT,
+      useFactory: (url: string, timeout: number, useMock: boolean) =>
+        useMock ? new MockProctorClient() : new HttpProctorClient(url, timeout),
+      inject: ['AI_PROCTOR_URL', 'AI_PROCTOR_TIMEOUT_MS', Symbol.for('USE_MOCK_AI_PROCTOR')],
+    },
+    {
+      provide: Symbol.for('USE_MOCK_AI_PROCTOR'),
+      useValue: useMockAiProctor,
+    },
+    ViolationCounterService,
+    FrameProcessorService,
     ExamSessionRepository,
     SessionCacheService,
     KafkaPublisherService,

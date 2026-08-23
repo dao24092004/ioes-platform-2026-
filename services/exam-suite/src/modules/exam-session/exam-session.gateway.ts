@@ -17,6 +17,8 @@ import { AnswerSaveRequestDto } from './dto/answer-save.dto';
 import { AnswerBulkSaveRequestDto } from './dto/reconnect.dto';
 import { ExamJoinRequestDto } from './dto/reconnect.dto';
 import { SessionCacheService } from './session-cache.service';
+import { FrameProcessorService } from './services/frame-processor.service';
+import { ViolationCounterService } from './services/violation-counter.service';
 
 /**
  * WebSocket Gateway cho Student khi đang thi (UC_008).
@@ -60,6 +62,8 @@ export class ExamSessionGateway
   constructor(
     private readonly examSessionService: ExamSessionService,
     private readonly sessionCache: SessionCacheService,
+    private readonly frameProcessor: FrameProcessorService,
+    private readonly violationCounter: ViolationCounterService,
   ) {}
 
   afterInit(): void {
@@ -203,6 +207,115 @@ export class ExamSessionGateway
       client.emit('exam:error', {
         code: 'SUBMIT_FAILED',
         message: err?.message ?? 'Không thể nộp bài',
+      });
+      return { success: false };
+    }
+  }
+
+  // ========== Proctoring: frame intake (UC_008 bước 9-12) ==========
+
+  /**
+   * Client capture khung hình webcam mỗi 1 giây, gửi qua WS đến server.
+   *
+   * Server:
+   * 1. Validate attemptId
+   * 2. Gọi FrameProcessorService.processFrame() (gọi ai-suite evaluate)
+   * 3. Nếu có violation → emit `proctoring:violation` cho Student
+   * 4. Nếu count > threshold → trigger autoSubmit + emit `proctoring:auto-submitted`
+   *
+   * Exception 9e (mất kết nối ai-suite): processFrame trả no-violation, không emit.
+   * Exception 5e (mất WS): handleDisconnect ở trên đã handle timer.
+   *
+   * Payload: { attemptId, frameBase64, capturedAt? }
+   * Client capture với `canvas.toDataURL('image/jpeg', 0.5)` → 1 frame ~30KB.
+   */
+  @SubscribeMessage('proctoring:frame')
+  async onProctoringFrame(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { attemptId: string; frameBase64: string; capturedAt?: string },
+  ) {
+    return this.handleFrame(client, payload);
+  }
+
+  /**
+   * Testable wrapper — tách riêng để unit test mà không cần thực sự mount WebSocket.
+   */
+  async handleFrame(
+    client: Socket,
+    payload: { attemptId: string; frameBase64: string; capturedAt?: string },
+  ): Promise<{ success: boolean }> {
+    if (!payload?.attemptId || !isUuid(payload.attemptId)) {
+      client.emit('proctoring:error', {
+        code: 'INVALID_INPUT',
+        message: 'attemptId không hợp lệ hoặc thiếu frameBase64',
+      });
+      return { success: false };
+    }
+
+    try {
+      const result = await this.frameProcessor.processFrame({
+        attemptId: payload.attemptId,
+        capturedAt: payload.capturedAt ? new Date(payload.capturedAt) : new Date(),
+        frameBase64: payload.frameBase64,
+      });
+
+      if (result.violationType) {
+        client.emit('proctoring:violation', {
+          type: result.violationType,
+          attentionScore: result.attentionScore,
+          faceDetected: result.faceDetected,
+          violationCount: result.violationCount,
+          threshold: 3,
+          occurredAt: new Date().toISOString(),
+        });
+      }
+
+      if (result.shouldAutoSubmit) {
+        // BR-013: violation count > 3 → auto-submit + flag
+        this.logger.warn(
+          `[ws] auto-submit triggered attempt=${payload.attemptId} count=${result.violationCount}`,
+        );
+
+        // Clear timer + counter trước khi submit (tránh race với cron auto-submit TIMEOUT)
+        const interval = this.timerIntervals.get(client.id);
+        if (interval) {
+          clearInterval(interval);
+          this.timerIntervals.delete(client.id);
+        }
+        await this.violationCounter.clear(payload.attemptId);
+
+        try {
+          const submitted = await this.examSessionService.autoSubmit(
+            payload.attemptId,
+            'AUTO_FLAG',
+          );
+
+          client.emit('proctoring:auto-submitted', {
+            attemptId: payload.attemptId,
+            submissionId: submitted.submissionId,
+            flagged: submitted.flagged,
+            reason: 'BR-013: violation count exceeded threshold',
+            occurredAt: new Date().toISOString(),
+          });
+        } catch (err) {
+          this.logger.error(
+            `[ws] auto-submit failed attempt=${payload.attemptId}: ${err instanceof Error ? err.message : String(err)}`,
+          );
+          client.emit('proctoring:error', {
+            code: 'AUTO_SUBMIT_FAILED',
+            message: 'Không thể auto-submit do vi phạm',
+          });
+        }
+      }
+
+      return { success: true };
+    } catch (err) {
+      this.logger.error(
+        `[ws] proctoring:frame error: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      client.emit('proctoring:error', {
+        code: 'PROCESS_FAILED',
+        message: err instanceof Error ? err.message : 'Lỗi xử lý frame',
       });
       return { success: false };
     }

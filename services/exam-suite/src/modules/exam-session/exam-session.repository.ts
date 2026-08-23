@@ -160,6 +160,28 @@ export class ExamSessionRepository {
     return this.submissionRepo.findOne({ where: { attemptId } });
   }
 
+  /**
+   * Update submission sau khi auto-grade (UC_008 step 15).
+   */
+  async updateSubmissionGrading(
+    submissionId: string,
+    update: Partial<SubmissionEntity>,
+  ): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await this.submissionRepo.update(submissionId, update as any);
+  }
+
+  /**
+   * Update attempt sau khi grade xong — set score + status GRADED.
+   */
+  async updateAttemptScore(
+    attemptId: string,
+    update: Partial<ExamAttemptEntity>,
+  ): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await this.attemptRepo.update(attemptId, update as any);
+  }
+
   // ========== transaction helper ==========
 
   /**

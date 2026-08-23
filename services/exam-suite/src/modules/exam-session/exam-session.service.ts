@@ -151,4 +151,40 @@ export class ExamSessionService {
     if (attempt.userId !== userId) return null; // ẩn existence
     return attempt;
   }
+
+  /**
+   * [UC_009 bước 2] List active attempts cho Instructor.
+   * Phase 1: filter theo examId, không check ownership (giả định Instructor phụ trách mọi exam).
+   * Phase 2 (sau): check Instructor có quyền với exam này không (qua exam.instructorIds).
+   */
+  async listActiveAttempts(examId: string, _instructorId: string) {
+    return this.repository.listActiveAttempts(examId);
+  }
+
+  /**
+   * [UC_009 bước 13] Report chi tiết 1 attempt cho Instructor.
+   * Trả về: attempt info + violations + screenRecording (nếu có).
+   *
+   * Phase 1: chỉ aggregate từ `exam_attempt.flag`, `flagReason`, `submissionKind`.
+   * Phase 2 (sau): join với bảng proctoring_violation + media frame khi có migration V3-V5.
+   */
+  async getProctoringReport(attemptId: string, _instructorId: string) {
+    const attempt = await this.repository.findAttemptById(attemptId);
+    if (!attempt) return null;
+    const submission = await this.repository.findSubmissionByAttempt(attemptId);
+    return {
+      attemptId: attempt.id,
+      userId: attempt.userId,
+      examId: attempt.examId,
+      status: attempt.status,
+      score: attempt.score,
+      maxScore: attempt.maxScore,
+      flag: attempt.flag,
+      flagReason: attempt.flagReason,
+      submissionKind: attempt.submissionKind,
+      violations: [], // Phase 2: join với proctoring_violation
+      screenRecording: null, // Phase 2: S3 presigned URL
+      submission: submission ?? null,
+    };
+  }
 }

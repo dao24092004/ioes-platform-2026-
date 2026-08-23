@@ -192,4 +192,55 @@ export class ExamSessionController {
       'Lưu câu trả lời thành công',
     );
   }
+
+  /**
+   * GET /api/v1/instructor/exams/:examId/active-attempts
+   * [UC_009 bước 2] List tất cả attempt IN_PROGRESS của 1 exam (cho Instructor).
+   *
+   * Response: ApiResponse<ExamAttemptEntity[]>
+   */
+  @Get('instructor/exams/:examId/active-attempts')
+  @Roles('INSTRUCTOR', 'ADMIN')
+  @ApiOperation({
+    summary: '[UC_009] List attempts đang thi (real-time monitoring)',
+    description:
+      'Instructor xem danh sách attempts đang IN_PROGRESS của 1 exam. ' +
+      'Dùng cho màn hình Live Monitor.',
+  })
+  @ApiDocResponse({ status: 200, description: 'Danh sách attempts.' })
+  @ApiDocResponse({ status: 403, description: 'Không phải Instructor/Admin.' })
+  async listActiveAttempts(
+    @Param('examId') examId: string,
+    @CurrentUser() user: UserPrincipalDto,
+  ): Promise<ApiResponse<any[]>> {
+    const list = await this.examSessionService.listActiveAttempts(examId, user.userId);
+    return ApiResponse.success(list, `Tìm thấy ${list.length} attempt đang thi`);
+  }
+
+  /**
+   * GET /api/v1/exam-attempts/:id/proctoring-report
+   * [UC_009 bước 13] Report chi tiết sau thi cho Instructor.
+   *
+   * Response: ApiResponse<ProctoringReport>
+   */
+  @Get(':id/proctoring-report')
+  @Roles('INSTRUCTOR', 'ADMIN')
+  @ApiOperation({
+    summary: '[UC_009] Báo cáo proctoring chi tiết 1 attempt',
+    description:
+      'Trả về thông tin chi tiết: điểm, flag, lý do flag, danh sách violations ' +
+      '(Phase 2), screenRecording URL (Phase 2).',
+  })
+  @ApiDocResponse({ status: 200, description: 'Report.' })
+  @ApiDocResponse({ status: 404, description: 'Attempt không tồn tại.' })
+  async getProctoringReport(
+    @Param('id') id: string,
+    @CurrentUser() user: UserPrincipalDto,
+  ): Promise<ApiResponse<any>> {
+    const report = await this.examSessionService.getProctoringReport(id, user.userId);
+    if (!report) {
+      return ApiResponse.error('Attempt không tồn tại');
+    }
+    return ApiResponse.success(report, 'Lấy báo cáo thành công');
+  }
 }

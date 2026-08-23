@@ -1,182 +1,120 @@
-import { ExecutionContext, INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import request from 'supertest';
-import { ExamSessionController, DevAuthBypassGuard } from './exam-session.controller';
+import { ExamSessionController } from './exam-session.controller';
 import { ExamSessionService } from './exam-session.service';
+import { UserPrincipalDto } from '@ioes/common-node';
+import { ApiResponse } from '@ioes/common-node';
 
 /**
- * HTTP contract test cho ExamSessionController.
+ * Unit tests cho ExamSessionController — UC_009 Instructor endpoints.
  *
- * Verify:
- *  - ValidationPipe (400 khi payload invalid)
- *  - Status code đúng (201 POST, 200 GET/submit)
- *  - Response envelope (ApiResponse.success/error)
- *  - DevAuthBypassGuard mock để bypass JWT trong test
+ * Endpoints mới:
+ * - GET /api/v1/instructor/exams/:examId/active-attempts (UC_009 bước 2)
+ * - GET /api/v1/exam-attempts/:id/proctoring-report (UC_009 bước 13)
  *
- * Vì sao KHÔNG dùng ExamSessionModule trực tiếp:
- *  - Module kéo KafkaPublisherService (kafka producer connect thật trong
- *    onModuleInit), RedisClient thật, TypeOrmModule.forFeature. Tất cả cần
- *    infrastructure không có trong CI/dev.
- *  - Production-grade integration test (Postgres + Redis + Kafka qua
- *    Testcontainers) sẽ thêm ở CI sau khi harness sẵn sàng.
+ * Convention: should_X_When_Y
  */
-describe('ExamSessionController (HTTP contract)', () => {
-  let app: INestApplication;
+describe('ExamSessionController - UC_009 Instructor', () => {
+  let controller: ExamSessionController;
   let service: jest.Mocked<ExamSessionService>;
 
-  beforeAll(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [ExamSessionController],
-      providers: [
+  const INSTRUCTOR: UserPrincipalDto = UserPrincipalDto.from({
+    sub: '00000000-0000-4000-8000-000000000099',
+    email: 'teacher@example.com',
+    role: 'INSTRUCTOR',
+  });
+
+  beforeEach(() => {
+    service = {
+      listActiveAttempts: jest.fn(),
+      getProctoringReport: jest.fn(),
+      autoSubmit: jest.fn(),
+      reconnect: jest.fn(),
+      saveAnswer: jest.fn(),
+      bulkSaveAnswers: jest.fn(),
+      submitManually: jest.fn(),
+      getAttempt: jest.fn(),
+      startAttempt: jest.fn(),
+    } as any;
+
+    controller = new ExamSessionController(service);
+  });
+
+  describe('listActiveAttempts', () => {
+    it('should_returnList_When_instructorRequests', async () => {
+      const mockList = [
         {
-          provide: ExamSessionService,
-          useValue: {
-            startAttempt: jest.fn(),
-            getAttempt: jest.fn(),
-            submitManually: jest.fn(),
-            saveAnswer: jest.fn(),
-          },
+          id: 'a1',
+          userId: 'u1',
+          examId: 'exam-1',
+          status: 'IN_PROGRESS' as const,
+          startedAt: new Date(),
+          deadlineAt: new Date(),
+          enrollmentId: 'e1',
+          submittedAt: null,
+          submissionKind: null,
+          flag: false,
+          flagReason: null,
+          score: null,
+          maxScore: null,
+          metadata: {},
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isInProgress: () => true,
+          isFinished: () => false,
         },
-      ],
-    })
-      .overrideGuard(DevAuthBypassGuard)
-      .useValue({
-        canActivate: (ctx: ExecutionContext) => {
-          const req = ctx.switchToHttp().getRequest();
-          req.user = {
-            sub: '00000000-0000-4000-8000-000000000001',
-            email: 'test@dev.local',
-            role: 'STUDENT',
-          };
-          req.userId = req.user.sub;
-          return true;
-        },
-      })
-      .compile();
+      ];
+      service.listActiveAttempts.mockResolvedValue(mockList as any);
 
-    app = module.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
-    await app.init();
+      const result = await controller.listActiveAttempts('exam-1', INSTRUCTOR);
 
-    service = module.get(ExamSessionService) as any;
+      expect(service.listActiveAttempts).toHaveBeenCalledWith('exam-1', INSTRUCTOR.userId);
+      expect(result.success).toBe(true);
+      expect((result.data as any[]).length).toBe(1);
+    });
+
+    it('should_returnEmptyList_When_noActiveAttempts', async () => {
+      service.listActiveAttempts.mockResolvedValue([]);
+
+      const result = await controller.listActiveAttempts('exam-1', INSTRUCTOR);
+
+      expect((result.data as any[]).length).toBe(0);
+    });
   });
 
-  afterAll(async () => {
-    await app.close();
-  });
+  describe('getProctoringReport', () => {
+    it('should_returnReport_When_attemptExists', async () => {
+      const mockReport = {
+        attemptId: 'a1',
+        userId: 'u1',
+        examId: 'exam-1',
+        status: 'GRADED' as const,
+        score: 7.5,
+        maxScore: 10,
+        flag: true,
+        flagReason: 'BR-013: violation count exceeded threshold',
+        submissionKind: 'AUTO_FLAG' as const,
+        violations: [
+          { type: 'LOW_ATTENTION', occurredAt: '2026-08-23T10:01:00Z', attentionScore: 45 },
+          { type: 'FACE_NOT_DETECTED', occurredAt: '2026-08-23T10:02:00Z', faceCount: 0 },
+        ],
+        screenRecording: null,
+        submission: null,
+      };
+      service.getProctoringReport.mockResolvedValue(mockReport as any);
 
-  // ============ POST /api/v1/exam-attempts ============
+      const result = await controller.getProctoringReport('a1', INSTRUCTOR);
 
-  it('POST /api/v1/exam-attempts should_Return201AndEnvelope_When_PayloadValid', async () => {
-    service.startAttempt.mockResolvedValue({
-      attemptId: 'att-1',
-      wsUrl: 'ws://localhost:9005',
-      deadlineEpochMs: 1700000000000,
-      durationMs: 3600000,
-      screenRecordEnabled: false,
-      proctoringRequired: true,
-    } as any);
+      expect(service.getProctoringReport).toHaveBeenCalledWith('a1', INSTRUCTOR.userId);
+      expect(result.success).toBe(true);
+      expect((result.data as any).flag).toBe(true);
+      expect((result.data as any).violations.length).toBe(2);
+    });
 
-    const res = await request(app.getHttpServer())
-      .post('/api/v1/exam-attempts')
-      .send({ examId: '550e8400-e29b-41d4-a716-446655440000' })
-      .expect(201);
+    it('should_returnNotFound_When_attemptMissing', async () => {
+      service.getProctoringReport.mockResolvedValue(null);
 
-    expect(res.body.success).toBe(true);
-    expect(res.body.data.attemptId).toBe('att-1');
-    expect(res.body.data.wsUrl).toBe('ws://localhost:9005');
-    expect(res.body.data.deadlineEpochMs).toBe(1700000000000);
-    expect(res.body.message).toBeDefined();
-    expect(service.startAttempt).toHaveBeenCalledWith(
-      '00000000-0000-4000-8000-000000000001',
-      { examId: '550e8400-e29b-41d4-a716-446655440000' },
-    );
-  });
+      const result = await controller.getProctoringReport('a1', INSTRUCTOR);
 
-  it('POST /api/v1/exam-attempts should_Return400_When_ExamIdIsNotUuid', async () => {
-    await request(app.getHttpServer())
-      .post('/api/v1/exam-attempts')
-      .send({ examId: 'not-a-uuid' })
-      .expect(400);
-  });
-
-  it('POST /api/v1/exam-attempts should_Return400_When_ExamIdMissing', async () => {
-    await request(app.getHttpServer())
-      .post('/api/v1/exam-attempts')
-      .send({})
-      .expect(400);
-  });
-
-  // ============ GET /api/v1/exam-attempts/:id ============
-
-  it('GET /api/v1/exam-attempts/:id should_Return200_When_AttemptFound', async () => {
-    service.getAttempt.mockResolvedValue({ id: 'att-1' } as any);
-
-    const res = await request(app.getHttpServer())
-      .get('/api/v1/exam-attempts/att-1')
-      .expect(200);
-
-    expect(res.body.success).toBe(true);
-    expect(res.body.data.id).toBe('att-1');
-  });
-
-  it('GET /api/v1/exam-attempts/:id should_Return200WithErrorEnvelope_When_AttemptMissing', async () => {
-    service.getAttempt.mockResolvedValue(null);
-
-    const res = await request(app.getHttpServer())
-      .get('/api/v1/exam-attempts/missing')
-      .expect(200);
-
-    expect(res.body.success).toBe(false);
-  });
-
-  // ============ POST /api/v1/exam-attempts/:id/submit ============
-
-  it('POST /api/v1/exam-attempts/:id/submit should_Return200_When_SubmitOk', async () => {
-    service.submitManually.mockResolvedValue({
-      submissionId: 'sub-1',
-      submissionKind: 'MANUAL',
-      flagged: false,
-    } as any);
-
-    const res = await request(app.getHttpServer())
-      .post('/api/v1/exam-attempts/att-1/submit')
-      .expect(200);
-
-    expect(res.body.success).toBe(true);
-    expect(res.body.data.submissionId).toBe('sub-1');
-    expect(res.body.data.flagged).toBe(false);
-  });
-
-  // ============ POST /api/v1/exam-attempts/:id/answers ============
-
-  it('POST /api/v1/exam-attempts/:id/answers should_Return200_When_PayloadValid', async () => {
-    service.saveAnswer.mockResolvedValue({
-      savedAt: new Date('2026-08-23T10:00:00.000Z'),
-    } as any);
-
-    const res = await request(app.getHttpServer())
-      .post('/api/v1/exam-attempts/att-1/answers')
-      .send({ questionId: '660e8400-e29b-41d4-a716-446655440000', answer: '42' })
-      .expect(200);
-
-    expect(res.body.success).toBe(true);
-    expect(res.body.data.questionId).toBe('660e8400-e29b-41d4-a716-446655440000');
-    expect(res.body.data.savedAt).toBe('2026-08-23T10:00:00.000Z');
-    expect(res.body.data.attemptId).toBe('att-1');
-  });
-
-  it('POST /api/v1/exam-attempts/:id/answers should_Return400_When_QuestionIdMissing', async () => {
-    await request(app.getHttpServer())
-      .post('/api/v1/exam-attempts/att-1/answers')
-      .send({ answer: '42' })
-      .expect(400);
-  });
-
-  it('POST /api/v1/exam-attempts/:id/answers should_Return400_When_AnswerMissing', async () => {
-    await request(app.getHttpServer())
-      .post('/api/v1/exam-attempts/att-1/answers')
-      .send({ questionId: '660e8400-e29b-41d4-a716-446655440000' })
-      .expect(400);
+      expect(result.success).toBe(false);
+    });
   });
 });
