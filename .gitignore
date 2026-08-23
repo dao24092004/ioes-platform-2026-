@@ -281,6 +281,15 @@ docs/site/
 site/
 
 # =============================
+# TypeScript build artifacts (NEVER commit .js/.d.ts trong src/)
+# =============================
+*.tsbuildinfo
+**/src/**/*.js
+**/src/**/*.js.map
+**/src/**/*.d.ts
+!**/src/**/*.d.ts.bak
+
+# =============================
 # Generated files
 # =============================
 **/generated/
