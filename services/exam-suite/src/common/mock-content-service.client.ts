@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import {
   CONTENT_SERVICE_CLIENT,
   ExamMetadata,
@@ -35,7 +36,7 @@ export class MockContentServiceClient implements IContentServiceClient {
       screenRecordEnabled: false,
       proctoringEnabled: true,
       maxScore: 10,
-      enrollmentId: `enr-${userId}-${examId}`,
+      enrollmentId: randomUUID(),
     };
   }
 }

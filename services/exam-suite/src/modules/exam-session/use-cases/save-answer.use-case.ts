@@ -3,7 +3,7 @@ import { AnswerSaveRequestDto } from '../dto/answer-save.dto';
 import { ExamSessionRepository } from '../exam-session.repository';
 import { SessionCacheService } from '../session-cache.service';
 
-export const SAVE_ANSWER_USE_CASE = Symbol('SAVE_ANSWER_USE_CASE');
+export const SAVE_ANSWER_USE_CASE = Symbol.for('SAVE_ANSWER_USE_CASE');
 export interface ISaveAnswerUseCase {
   execute(userId: string, dto: AnswerSaveRequestDto): Promise<{ savedAt: Date }>;
 }

@@ -2,7 +2,7 @@ import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nest
 import { ExamSessionRepository } from '../exam-session.repository';
 import { SessionCacheService } from '../session-cache.service';
 
-export const RECONNECT_SESSION_USE_CASE = Symbol('RECONNECT_SESSION_USE_CASE');
+export const RECONNECT_SESSION_USE_CASE = Symbol.for('RECONNECT_SESSION_USE_CASE');
 export interface IReconnectSessionUseCase {
   /**
    * Khôi phục session sau khi client mất kết nối WebSocket tạm thời.

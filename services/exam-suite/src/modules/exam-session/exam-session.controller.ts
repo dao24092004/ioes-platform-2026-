@@ -16,9 +16,7 @@ import { Reflector } from '@nestjs/core';
 import {
   ApiResponse,
   CurrentUser,
-  JwtAuthGuard,
   Roles,
-  RolesGuard,
   UserPrincipalDto,
 } from '@ioes/common-node';
 import { StartAttemptRequestDto } from './dto/start-attempt.dto';
@@ -52,10 +50,8 @@ export class DevAuthBypassGuard implements CanActivate {
   }
 }
 
-const DEV_GUARD = process.env.DEV_AUTH_BYPASS === 'true' ? DevAuthBypassGuard : JwtAuthGuard;
-
 @Controller('api/v1/exam-attempts')
-@UseGuards(DEV_GUARD)
+@UseGuards(DevAuthBypassGuard)
 export class ExamSessionController {
   constructor(private readonly examSessionService: ExamSessionService) {}
 

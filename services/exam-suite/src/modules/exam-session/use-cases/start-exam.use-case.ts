@@ -8,7 +8,7 @@ import { SessionCacheService, SessionState } from '../session-cache.service';
  * Token của mỗi UseCase để controller / gateway không cần biết business logic.
  * Inject interface `IStartExamUseCase` ở module layer.
  */
-export const START_EXAM_USE_CASE = Symbol('START_EXAM_USE_CASE');
+export const START_EXAM_USE_CASE = Symbol.for('START_EXAM_USE_CASE');
 export interface IStartExamUseCase {
   execute(userId: string, dto: StartAttemptRequestDto): Promise<StartAttemptResponseDto>;
 }
@@ -63,8 +63,8 @@ export class StartExamUseCase implements IStartExamUseCase {
     private readonly repository: ExamSessionRepository,
     private readonly sessionCache: SessionCacheService,
     @Inject(CONTENT_SERVICE_CLIENT) private readonly contentClient: IContentServiceClient,
-    private readonly wsBaseUrl: string,
-    private readonly appName: string,
+    @Inject('WS_BASE_URL') private readonly wsBaseUrl: string,
+    @Inject('APP_NAME') private readonly appName: string,
   ) {}
 
   async execute(

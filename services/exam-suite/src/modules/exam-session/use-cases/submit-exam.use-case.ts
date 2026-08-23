@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { ExamSessionRepository } from '../exam-session.repository';
 import { SessionCacheService } from '../session-cache.service';
 
-export const SUBMIT_EXAM_USE_CASE = Symbol('SUBMIT_EXAM_USE_CASE');
+export const SUBMIT_EXAM_USE_CASE = Symbol.for('SUBMIT_EXAM_USE_CASE');
 export interface ISubmitExamUseCase {
   /**
    * Submit attempt chủ động (BR-008).
