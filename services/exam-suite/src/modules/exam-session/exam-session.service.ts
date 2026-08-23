@@ -1,7 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { KAFKA_TOPICS } from '@ioes/common-node';
 import { StartAttemptRequestDto, StartAttemptResponseDto } from './dto/start-attempt.dto';
-import { AnswerSaveRequestDto, AnswerBulkSaveRequestDto } from './dto/answer-save.dto';
+import { AnswerSaveRequestDto } from './dto/answer-save.dto';
+import { AnswerBulkSaveRequestDto } from './dto/reconnect.dto';
 import { ExamSessionRepository } from './exam-session.repository';
 import { SessionCacheService } from './session-cache.service';
 import {
@@ -41,7 +42,7 @@ export class ExamSessionService {
     private readonly sessionCache: SessionCacheService,
     private readonly kafkaPublisher: KafkaPublisherService,
     @Inject(START_EXAM_USE_CASE) private readonly startExam: IStartExamUseCase,
-    @Inject(SAVE_ANSWER_USE_CASE) private readonly saveAnswer: ISaveAnswerUseCase,
+    @Inject(SAVE_ANSWER_USE_CASE) private readonly saveAnswerUc: ISaveAnswerUseCase,
     @Inject(SUBMIT_EXAM_USE_CASE) private readonly submitExam: ISubmitExamUseCase,
     @Inject(RECONNECT_SESSION_USE_CASE)
     private readonly reconnectSession: IReconnectSessionUseCase,
@@ -77,7 +78,7 @@ export class ExamSessionService {
    * [WS] Auto-save 1 câu (BR-012).
    */
   async saveAnswer(userId: string, dto: AnswerSaveRequestDto) {
-    return this.saveAnswer.execute(userId, dto);
+    return this.saveAnswerUc.execute(userId, dto);
   }
 
   /**
@@ -86,7 +87,7 @@ export class ExamSessionService {
   async bulkSaveAnswers(userId: string, dto: AnswerBulkSaveRequestDto) {
     const results: Array<{ questionId: string; savedAt: Date }> = [];
     for (const a of dto.answers) {
-      const r = await this.saveAnswer.execute(userId, a);
+      const r = await this.saveAnswerUc.execute(userId, a);
       results.push({ questionId: a.questionId, savedAt: r.savedAt });
     }
     return { saved: results.length, items: results };

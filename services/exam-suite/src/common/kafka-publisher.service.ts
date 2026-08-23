@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Kafka, Producer, logLevel } from 'kafkajs';
 import { randomUUID } from 'node:crypto';
-import { kafkaConfig } from '../../config/app.config';
+import { kafkaConfig } from '../config/app.config';
 import { KAFKA_TOPICS, KafkaTopic } from '@ioes/common-node';
 
 /**
