@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ExamSessionModule } from './modules/exam-session/exam-session.module';
 import { SubmissionModule } from './modules/submission/submission.module';
 import { HealthModule } from './modules/health/health.module';
@@ -8,6 +9,7 @@ import { HealthModule } from './modules/health/health.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env', '.env.dev'] }),
+    ScheduleModule.forRoot(), // Required cho @Cron() decorators (auto-submit scheduler, etc.)
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: 'postgres',

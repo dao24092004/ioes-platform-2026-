@@ -12,6 +12,10 @@ import {
  * Trả về metadata cứng cho mọi examId để bạn test Postman không cần chạy content-service.
  *
  * Activation: set `DEV_MOCK_CONTENT_SERVICE=true`
+ *
+ * Tuỳ chỉnh duration:
+ * - `DEV_MOCK_EXAM_DURATION_SEC=60`  → 60 giây (dùng để test auto-submit nhanh)
+ * - không set hoặc =0               → 60 phút (mặc định)
  */
 @Injectable()
 export class MockContentServiceClient implements IContentServiceClient {
@@ -19,22 +23,31 @@ export class MockContentServiceClient implements IContentServiceClient {
 
   onModuleInit() {
     if (process.env.DEV_MOCK_CONTENT_SERVICE === 'true') {
-      this.logger.warn('⚠️  Using MOCK content-service. Set DEV_MOCK_CONTENT_SERVICE=false to disable.');
+      const durSec = parseInt(process.env.DEV_MOCK_EXAM_DURATION_SEC ?? '0', 10);
+      this.logger.warn(
+        `⚠️  Using MOCK content-service. durationMs = ${durSec > 0 ? durSec * 1000 : 60 * 60 * 1000}ms. ` +
+          `Set DEV_MOCK_EXAM_DURATION_SEC để đổi.`,
+      );
     }
   }
 
   async getExamForStudent(examId: string, userId: string): Promise<ExamMetadata | null> {
     this.logger.debug(`[mock] getExamForStudent examId=${examId} userId=${userId}`);
-    // Trả metadata mặc định: 60 phút, proctoring bật, trong khung giờ
+
+    const durSec = parseInt(process.env.DEV_MOCK_EXAM_DURATION_SEC ?? '0', 10);
+    const durationMs = durSec > 0 ? durSec * 1000 : 60 * 60 * 1000;
+
     const now = Date.now();
     return {
       id: examId,
-      title: `[MOCK] Exam ${examId}`,
-      durationMs: 60 * 60 * 1000, // 60 phút
-      openFrom: new Date(now - 3600_000), // mở 1h trước
-      openUntil: new Date(now + 24 * 3600_000), // đóng sau 24h
+      title: `[MOCK ${Math.round(durationMs / 1000)}s] Exam ${examId}`,
+      durationMs,
+      openFrom: new Date(now - 3600_000),
+      openUntil: new Date(now + 24 * 3600_000),
       screenRecordEnabled: false,
-      proctoringEnabled: true,
+      // Tắt proctoring để khỏi phải nhớ tới BR-010 khi test exam ngắn (< 30p).
+      // Bật nếu cần test BR-010: `DEV_MOCK_PROCTORING=true`.
+      proctoringEnabled: process.env.DEV_MOCK_PROCTORING === 'true',
       maxScore: 10,
       enrollmentId: randomUUID(),
     };

@@ -13,6 +13,7 @@ import { StartExamUseCase, CONTENT_SERVICE_CLIENT } from './use-cases/start-exam
 import { SaveAnswerUseCase } from './use-cases/save-answer.use-case';
 import { SubmitExamUseCase } from './use-cases/submit-exam.use-case';
 import { ReconnectSessionUseCase } from './use-cases/reconnect-session.use-case';
+import { AutoSubmitScheduler } from './schedulers/auto-submit.scheduler';
 import { KafkaPublisherService } from '../../common/kafka-publisher.service';
 import { ContentServiceHttpClient } from '../../common/content-service.client';
 import { MockContentServiceClient } from '../../common/mock-content-service.client';
@@ -100,6 +101,7 @@ const useCaseProviders: Provider[] = [
     KafkaPublisherService,
     ExamSessionService,
     ExamSessionGateway,
+    AutoSubmitScheduler,
   ],
   exports: [ExamSessionService],
 })

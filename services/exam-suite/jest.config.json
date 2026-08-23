@@ -9,7 +9,7 @@
   "coverageDirectory": "./coverage",
   "testEnvironment": "node",
   "moduleNameMapper": {
-    "^@ioes/common-node$": "<rootDir>/../libs/common-node/src/index.ts",
-    "^@ioes/common-node/(.*)$": "<rootDir>/../libs/common-node/src/$1"
+    "^@ioes/common-node$": "<rootDir>/../../../libs/common-node/src/index.ts",
+    "^@ioes/common-node/(.*)$": "<rootDir>/../../../libs/common-node/src/$1"
   }
 }

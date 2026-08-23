@@ -16,11 +16,20 @@ describe('StartExamUseCase', () => {
   let contentClient: jest.Mocked<IContentServiceClient>;
 
   const FIXED_NOW = new Date('2026-08-23T10:00:00.000Z').getTime();
-  const originalDateNow = Date.now;
+
+  // Use jest fake timers anchored tại FIXED_NOW — vì StartExamUseCase dùng
+  // `new Date()` (không qua Date.now), nên chỉ mock Date.now là chưa đủ.
+  // Fake timers mock cả Date constructor lẫn Date.now → toàn bộ timestamp
+  // trong use case đều deterministic.
+  beforeEach(() => {
+    jest.useFakeTimers({ now: FIXED_NOW });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
 
   beforeEach(async () => {
-    Date.now = jest.fn(() => FIXED_NOW);
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StartExamUseCase,
@@ -59,10 +68,6 @@ describe('StartExamUseCase', () => {
     repository = module.get(ExamSessionRepository) as any;
     sessionCache = module.get(SessionCacheService) as any;
     contentClient = module.get(CONTENT_SERVICE_CLIENT) as any;
-  });
-
-  afterEach(() => {
-    Date.now = originalDateNow;
   });
 
   const baseExam = (overrides: Partial<ExamMetadata> = {}): ExamMetadata => ({
