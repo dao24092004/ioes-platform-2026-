@@ -39,6 +39,15 @@ export const appConfig = {
   port: int('AI_GATEWAY_PORT', 9100),
 };
 
+export const dbConfig = {
+  host: required('POSTGRES_HOST', 'localhost'),
+  port: int('POSTGRES_PORT', 5433),
+  user: required('POSTGRES_USER', 'ioes'),
+  password: required('POSTGRES_PASSWORD', 'ioes_dev_password'),
+  database: required('AI_DB_NAME', 'ioes_ai'),
+  poolMax: int('DB_POOL_MAX', 10),
+};
+
 /**
  * Tên đăng ký trong Eureka phải là `ai-suite`, vì api-gateway (Spring)
  * định tuyến bằng `uri: lb://ai-suite` — xem services/api-gateway/src/main/resources/application.yml.
@@ -52,6 +61,11 @@ export const eurekaConfig = {
   instanceHost: required('EUREKA_INSTANCE_HOST', 'localhost'),
   heartbeatIntervalMs: int('EUREKA_HEARTBEAT_INTERVAL_MS', 30_000),
   registryFetchIntervalMs: int('EUREKA_REGISTRY_FETCH_INTERVAL_MS', 30_000),
+};
+
+export const throttleConfig = {
+  ttlMs: int('THROTTLE_TTL_MS', 60_000),
+  limit: int('THROTTLE_LIMIT', 100),
 };
 
 export const mlWorkerConfig = {
