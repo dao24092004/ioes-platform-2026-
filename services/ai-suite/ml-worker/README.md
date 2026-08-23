@@ -1,308 +1,123 @@
-# 🧠 ML Worker
+# ML Worker
 
-> **ML Inference Service cho IOES**
-> Tech: Python 3.11 + FastAPI + PyTorch + TensorRT + vLLM
+Tầng suy luận của AI Suite. Nhúng văn bản, truy xuất từ Milvus, gọi mô hình
+ngôn ngữ. `ai-gateway` (NestJS, cổng 9100) gọi sang đây; service này không phơi
+ra ngoài internet.
 
-## 📋 TỔNG QUAN Nhanh
+Thuộc **Epic 5 — AI-Powered Learning**. Story đang thi công: **US-017 Chatbot v1 (RAG)**.
 
-**ML Worker** chịu trách nhiệm:
-- **Agentic RAG** (5 agents) cho personalized learning path
-- **Vision Proctoring** (CNN-LSTM + Attention) cho proctoring
-- **Auto-grading** (LLM-based) cho essay
-- **Embeddings Generation** cho similarity search
-- **Inference** cho các models khác
+## Tech stack
 
-**Port:** 9101
-**Database:** PostgreSQL (`ioes_ai`) + Milvus
-**Owner:** `ai@ioes.com`
+| Thành phần | Lựa chọn |
+|---|---|
+| Runtime | Python 3.11 |
+| Web | FastAPI + Uvicorn |
+| RAG | LangChain |
+| Vector store | Milvus 2.4 qua `langchain-milvus` |
+| Nhúng | `paraphrase-multilingual-MiniLM-L12-v2`, 384 chiều, CPU |
+| Mô hình ngôn ngữ | Gemini qua endpoint tương thích OpenAI, hoặc mock |
+| Cổng | 9101 |
 
-## 🏗️ KIẾN TRÚC
+## Cấu trúc
 
 ```
-ml-worker/
-├── src/ml_worker/
-│   ├── main.py                          # FastAPI entry
-│   ├── api/                             # Routes
-│   │   ├── embeddings.py                # /embeddings
-│   │   ├── llm.py                       # /llm/*
-│   │   ├── vision.py                    # /vision/*
-│   │   └── grading.py                   # /grading
-│   │
-│   ├── models/                          # ML models
-│   │   ├── embeddings/
-│   │   │   ├── sentence_transformer.py
-│   │   │   └── instructor_embeddings.py
-│   │   │
-│   │   ├── grading/
-│   │   │   ├── essay_grader.py
-│   │   │   └── rubric_grader.py
-│   │   │
-│   │   ├── agentic_rag/
-│   │   │   ├── agents/
-│   │   │   │   ├── router_agent.py
-│   │   │   │   ├── planner_agent.py
-│   │   │   │   ├── tutor_agent.py
-│   │   │   │   ├── assessor_agent.py
-│   │   │   │   └── recommender_agent.py
-│   │   │   ├── graph.py                 # LangGraph
-│   │   │   └── orchestrator.py
-│   │   │
-│   │   └── vision/
-│   │       ├── cnn_lstm_attention.py    # Paper 2
-│   │       └── proctoring_model.py
-│   │
-│   ├── services/                        # Business logic
-│   │   ├── inference_service.py
-│   │   ├── rag_service.py
-│   │   └── proctoring_service.py
-│   │
-│   ├── schemas/                         # Pydantic models
-│   │   ├── embedding.py
-│   │   ├── grading.py
-│   │   └── learning_path.py
-│   │
-│   ├── core/                            # Configuration
-│   │   ├── config.py                    # Pydantic Settings
-│   │   ├── logging.py                   # structlog
-│   │   └── security.py
-│   │
-│   └── db/                              # Database
-│       ├── session.py
-│       └── milvus_client.py
-│
-├── tests/
-│   ├── unit/
-│   └── integration/
-│
-├── notebooks/                           # Research
-│   ├── 01_agentic_rag.ipynb
-│   ├── 02_vision_attention.ipynb
-│   └── 03_blockchain_records.ipynb
-│
-├── data/                                # Training data
-│   ├── raw/
-│   └── processed/
-│
-├── models/                              # Trained models
-│   ├── checkpoints/
-│   ├── onnx/
-│   └── tensorrt/
-│
-└── k8s/
+src/ml_worker/
+├── main.py                  FastAPI app
+├── api/rag.py               POST /v1/rag/query, /v1/rag/ingest, GET /v1/rag/status
+├── core/config.py           Pydantic settings
+├── db/milvus.py             Vectorstore, tạo collection
+├── schemas/rag.py           Request/response models
+└── services/
+    ├── embeddings.py        Mô hình nhúng, nạp một lần
+    ├── llm.py               Chọn nhà cung cấp theo LLM_PROVIDER
+    ├── ingest.py            Đọc corpus, cắt đoạn, nạp vào Milvus
+    └── rag.py               Chuỗi truy xuất rồi sinh câu trả lời
+scripts/crawl_corpus.py      Thu thập học liệu từ MDN
+data/corpus/                 Học liệu dạng Markdown
 ```
 
-## 🚀 QUICK START
+## Chạy local
+
+Cần Milvus đang chạy ở cổng 19530:
 
 ```bash
-# Prerequisites
-- Python 3.11
-- Docker (for Milvus, PostgreSQL)
-- CUDA-capable GPU (recommended)
-
-# 1. Setup Python env
+make docker-up                  # ở thư mục gốc monorepo
 cd services/ai-suite/ml-worker
-python3.11 -m venv venv
-source venv/bin/activate
-
-# 2. Install dependencies
-pip install -r requirements.txt
-
-# 3. Setup env
 cp .env.example .env
-
-# 4. Start dependencies
-docker-compose up -d postgres milvus kafka
-
-# 5. Run migrations
-alembic upgrade head
-
-# 6. Start service
-uvicorn ml_worker.main:app --reload --port 9101
-
-# 7. Verify
-curl http://localhost:9101/health
-# → {"status":"ok"}
-
-# 8. API docs
-open http://localhost:9101/docs
+poetry install                  # hoặc pip install -e . nếu Poetry giải phụ thuộc quá lâu
+poetry run uvicorn ml_worker.main:app --host 0.0.0.0 --port 9101
 ```
 
-## 📡 API ENDPOINTS
-
-### Embeddings
+Nạp corpus rồi hỏi thử:
 
 ```bash
-POST /embeddings/text
-- Generate text embeddings (sentence-transformer)
-- Used for: similarity search, content recommendation
-
-POST /embeddings/batch
-- Batch embeddings for multiple texts
+curl -X POST http://localhost:9101/v1/rag/ingest
+curl http://localhost:9101/v1/rag/status
+curl -X POST http://localhost:9101/v1/rag/query \
+  -H "Content-Type: application/json" \
+  -d '{"question":"Flexbox khác Grid thế nào?"}'
 ```
 
-### LLM (Agentic RAG)
+## Corpus
+
+`data/corpus/` chứa hai nhóm:
+
+- **8 tài liệu tiếng Việt** viết tay, bám lộ trình Full-Stack trong `BA_DOCUMENT §11.4`
+- **88 tài liệu tiếng Anh** thu thập từ MDN Web Docs
+
+Thu thập lại:
 
 ```bash
-POST /llm/learning-path
-- Generate personalized learning path
-- Uses 5 agents: Router → Planner → Tutor → Assessor → Recommender
-
-POST /llm/chat
-- Chatbot for student Q&A
-
-POST /llm/answer-question
-- RAG-based Q&A
+python scripts/crawl_corpus.py              # toàn bộ
+python scripts/crawl_corpus.py --limit 10   # thử nhanh
 ```
 
-### Vision (Proctoring)
+> **Nguồn và giấy phép.** Nội dung MDN phát hành theo **CC BY-SA 2.5**, cho phép
+> tái sử dụng kèm ghi nguồn. Mỗi tài liệu lưu `source_url` và `license` trong
+> frontmatter, và tầng RAG trích dẫn tiêu đề trong câu trả lời. Thêm nguồn mới
+> phải kiểm giấy phép trước — không phải trang nào cũng cho tái sử dụng.
+
+Script lấy Markdown gốc từ repo `mdn/content` chứ không cào HTML: sạch hơn,
+không dính điều hướng, và không tạo tải lên máy chủ MDN.
+
+## Vì sao dùng mô hình nhúng đa ngữ
+
+Corpus MDN là tiếng Anh, học viên hỏi tiếng Việt. `all-MiniLM-L6-v2` chỉ hiểu
+tiếng Anh nên truy xuất chéo ngôn ngữ gần như vô dụng. Bản
+`paraphrase-multilingual-MiniLM-L12-v2` cùng 384 chiều nên đổi sang không phải
+sửa lược đồ Milvus — nhưng **phải nạp lại toàn bộ corpus**, vì vector cũ sinh
+bởi mô hình khác thì không so sánh được với vector mới.
+
+## Ngưỡng điểm và việc từ chối trả lời
+
+`RAG_SCORE_THRESHOLD` là chốt chặn duy nhất ngăn mô hình bịa. Không có nó, câu
+hỏi ngoài phạm vi corpus vẫn kéo về `top_k` đoạn gần nhất dù chẳng liên quan, và
+mô hình sẽ dựa vào đó dựng nên câu trả lời nghe rất thuyết phục. Vượt ngưỡng thì
+`grounded=true`; không đoạn nào vượt thì trả lời thẳng là không đủ dữ liệu.
+
+Vector được chuẩn hoá L2 và Milvus dùng độ đo `IP`, nên điểm số chính là cosine
+similarity, nằm trong khoảng `[-1, 1]`.
+
+## Token suy luận ẩn
+
+Gemini tính token suy luận vào `total_tokens` nhưng không vào `completion_tokens`.
+Đo thực tế: prompt 17, completion 168, **tổng 736**. Hai hệ quả:
+
+- `RAG_MAX_TOKENS` đặt thấp thì câu trả lời bị cắt cụt mà không báo lỗi
+- Tính hạn mức phải dựa vào `total_tokens`, không thì hụt khoảng 4 lần
+
+## Test
 
 ```bash
-POST /vision/proctoring/predict
-- Predict exam cheating behavior
-- Input: sequence of webcam frames
-- Output: class + confidence + attention weights
-
-POST /vision/object-detection
-- Detect objects (phone, book, etc.)
+poetry run pytest
+poetry run pytest --cov=ml_worker --cov-report=term-missing
 ```
 
-### Auto-grading
+Test chạy hoàn toàn trên `LLM_PROVIDER=mock`, không cần khoá API và không gọi
+mạng. `tests/conftest.py` xoá biến môi trường của máy dev để kết quả không đổi
+theo từng máy.
 
-```bash
-POST /grading/essay
-- Auto-grade essay using LLM
-- Input: essay + rubric
-- Output: score + feedback
+## Sở hữu
 
-POST /grading/short-answer
-- Auto-grade short answer
-```
-
-**Swagger:** http://localhost:9101/docs
-
-## 📚 TÀI LIỆU QUAN TRỌNG
-
-| Tài liệu | Mục đích |
-|----------|----------|
-| [Python Style Guide](../../docs/03-development/coding-standards/python-styleguide.md) | **BẮT BUỘC đọc** |
-| [Service Boundaries](../../docs/02-architecture/service-boundaries.md) | Quy tắc microservices |
-| [Paper 1: Agentic RAG](../../docs/05-research/paper-1-agentic-rag/) | Kiến trúc 5 agents |
-| [Paper 2: Vision Attention](../../docs/05-research/paper-2-vision-attention/) | CNN-LSTM model |
-| [PROJECT_RULES.md](../../docs/01-business/PROJECT_RULES.md) | Master rules |
-
-## ⚙️ ENVIRONMENT VARIABLES
-
-```bash
-# App
-APP_ENV=development
-LOG_LEVEL=INFO
-DEBUG=false
-
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=ioes_ai
-DB_USER=ioes
-DB_PASSWORD=secret
-
-# Milvus (Vector DB)
-MILVUS_HOST=localhost
-MILVUS_PORT=19530
-
-# Kafka
-KAFKA_BROKERS=localhost:9092
-KAFKA_CLIENT_ID=ml-worker
-KAFKA_GROUP_ID=ml-worker-consumer
-
-# Model cache
-MODEL_CACHE_DIR=/models
-HF_HOME=/models/huggingface
-
-# GPU
-CUDA_VISIBLE_DEVICES=0
-
-# LLM
-OPENAI_API_KEY=xxx
-ANTHROPIC_API_KEY=xxx
-LLM_TEMPERATURE=0.7
-LLM_MAX_TOKENS=2048
-
-# Inference
-INFERENCE_BATCH_SIZE=32
-INFERENCE_TIMEOUT_SECONDS=30
-INFERENCE_DEVICE=cuda  # cuda | cpu
-```
-
-## 🧪 TESTING
-
-```bash
-# Unit tests
-pytest tests/unit -v
-
-# Integration tests
-pytest tests/integration -v
-
-# Coverage
-pytest --cov=ml_worker --cov-report=html
-open htmlcov/index.html
-
-# Research notebooks (manual)
-jupyter lab notebooks/
-```
-
-**Coverage target:** 80%
-
-## 🔗 EVENTS (Kafka)
-
-### Publishes
-
-| Topic | Event | Khi nào |
-|-------|-------|---------|
-| `ai.events` | `LearningPathGenerated` | Generate xong path |
-| `ai.events` | `RecommendationUpdated` | Update recommendation |
-| `proctoring.events` | `ProctorAlert` | Phát hiện gian lận |
-| `grading.events` | `EssayGraded` | Chấm essay xong |
-
-### Consumes
-
-| Topic | Event | Xử lý |
-|-------|-------|--------|
-| `user.events` | `UserRegistered` | Tạo user profile embeddings |
-| `course.events` | `CoursePublished` | Index course content |
-| `exam.events` | `ExamSubmitted` | Auto-grade essay |
-
-## 🐛 TROUBLESHOOTING
-
-| Lỗi | Nguyên nhân | Fix |
-|-----|-------------|-----|
-| `CUDA out of memory` | Batch quá lớn | Giảm `INFERENCE_BATCH_SIZE` |
-| `Model not found` | Chưa download model | Chạy `python scripts/download_models.py` |
-| `Milvus connection failed` | Milvus chưa start | `docker-compose up -d milvus` |
-| `LLM API rate limit` | Quá nhiều request | Tăng `LLM_MAX_TOKENS` retry |
-
-## 📊 PERFORMANCE
-
-| Model | Latency | GPU Memory |
-|-------|---------|-----------|
-| Sentence Embeddings | < 50ms | 2GB |
-| CNN-LSTM (proctoring) | < 200ms | 4GB |
-| LLM (GPT-4 API) | 1-3s | 0 (API) |
-| LLM (local vLLM) | 500ms-2s | 16GB |
-
-**Optimization:**
-- TensorRT cho inference (3-5x faster)
-- ONNX export cho portability
-- Quantization (INT8/FP16)
-- Batch processing
-- Model caching
-
-## 📞 LIÊN HỆ
-
-- **Owner:** AI/ML Lead
-- **Slack:** `#ioes-ai`
-- **Email:** `ai@ioes.com`
-
----
-
-**Version:** 0.1.0
-**Last updated:** 12/08/2026
+Epic 5 — Ngọc. Ranh giới bounded context xem `docs/02-architecture/service-boundaries.md`.
+`FR-AI-006 Vision Attention` **không** thuộc service này — đã giao Sơn (Epic 4 Proctoring).
