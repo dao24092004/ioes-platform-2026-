@@ -1,46 +1,54 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
 import {
   GlobalExceptionFilter,
   HttpExceptionFilter,
-  getLogger,
-  KAFKA_TOPICS,
+  StructuredLogger,
+  MetricsController,
 } from '@ioes/common-node';
+import { CorrelationIdMiddleware } from '@ioes/common-node';
+import { HttpLoggingInterceptor } from '@ioes/common-node';
+import { AuditLogInterceptor } from '@ioes/common-node';
 
-async function bootstrap() {
-  const logger = getLogger('ExamSuite');
+async function bootstrap(): Promise<void> {
+  const logger = new StructuredLogger('ExamSuite');
 
-  // HTTP app (REST)
-  const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
-  app.useGlobalFilters(new GlobalExceptionFilter(), new HttpExceptionFilter());
-
-  const port = process.env.PORT ?? 9005;
-  await app.listen(port);
-  logger.info(`HTTP listening on port ${port}`);
-
-  // Kafka microservice for EXAM events
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.KAFKA,
-    options: {
-      client: {
-        clientId: 'exam-suite',
-        brokers: (process.env.KAFKA_BROKERS ?? 'localhost:9092').split(','),
-      },
-      consumer: {
-        groupId: process.env.KAFKA_GROUP_ID ?? 'exam-suite',
-        allowAutoTopicCreation: true,
-      },
-    },
+  // HTTP app (REST only)
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: false,
   });
 
-  await app.startAllMicroservices();
-  logger.info('Kafka consumer started');
+  // Setup correlation ID middleware (sets x-trace-id header, AsyncLocalStorage)
+  app.use(new CorrelationIdMiddleware().use);
 
-  // Subscribe to topics we care about
-  logger.info(`Subscribed topics: ${KAFKA_TOPICS.USER_REGISTERED}`);
+  // Global pipes
+  app.useGlobalPipes(
+    new ValidationPipe({ transform: true, whitelist: true }),
+  );
+
+  // Global filters
+  app.useGlobalFilters(new GlobalExceptionFilter(), new HttpExceptionFilter());
+
+  // Global interceptors (Sprint 2 - Observability)
+  app.useGlobalInterceptors(
+    new HttpLoggingInterceptor(),
+    new AuditLogInterceptor(),
+  );
+
+  // Enable graceful shutdown (BA §8.4: drain 30s before exit)
+  app.enableShutdownHooks();
+
+  const port = parseInt(process.env.PORT ?? '9005', 10);
+  await app.listen(port);
+  logger.log(`HTTP listening on port ${port}`);
+
+  // Note:
+  // - Kafka consumer được start trong AppModule.onApplicationBootstrap()
+  //   thông qua DgraphSyncConsumer.start() → KafkaConsumer.start()
+  // - Eureka client tự register trong EurekaClient.onModuleInit()
+  // - KHÔNG dùng NestJS built-in connectMicroservice() ở đây
+  //   để tránh conflict group ID.
 }
 
 bootstrap().catch((err) => {

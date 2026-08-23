@@ -102,10 +102,27 @@ export const kafkaConfig = {
 };
 
 export const jwtConfig = {
-  secret: required('JWT_SECRET', 'ioes-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-signing-algorithm'),
+  // BUG #105 fix: KHÔNG có default - bắt buộc set JWT_SECRET trong .env hoặc CI/CD.
+  // Nếu thiếu, throw lỗi ngay khi load config (fail-fast).
+  secret: required('JWT_SECRET'),  // ← BẮT BUỘC, không có fallback
   algorithm: required('JWT_ALGORITHM', 'HS256'),
   expireMinutes: int('JWT_EXPIRE_MINUTES', 60),
+  issuer: process.env.JWT_ISSUER,
+  audience: process.env.JWT_AUDIENCE,
 };
+
+/**
+ * Validate JWT secret strength.
+ * Throw nếu secret quá ngắn (< 32 chars) để tránh brute-force.
+ */
+export function validateJwtConfig(): void {
+  if (!jwtConfig.secret || jwtConfig.secret.length < 32) {
+    throw new Error(
+      'JWT_SECRET must be at least 32 characters. ' +
+        'Generate one with: openssl rand -hex 32',
+    );
+  }
+}
 
 export const wsConfig = {
   port: int('WS_PORT', 9006),

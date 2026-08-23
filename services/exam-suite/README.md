@@ -154,6 +154,32 @@ open http://localhost:9005/api/docs
 | [Service Boundaries](../../docs/02-architecture/service-boundaries.md) | Quy tắc microservices |
 | [PROJECT_RULES.md](../../docs/01-business/PROJECT_RULES.md) | Master rules |
 | [WebSocket Guide](./docs/websockets.md) | _(sẽ tạo khi triển khai)_ |
+| [ADR-001: Use Dgraph for Question Bank](../../docs/02-architecture/adr/ADR-001-use-dgraph-for-question-bank.md) | Module `question-bank` |
+| [Roadmap Question Bank](../../docs/02-architecture/adr/ROADMAP-question-bank-dgraph.md) | Lộ trình triển khai |
+
+## 🆕 Module: Question Bank (Dgraph)
+
+Module `question-bank` cung cấp **ngân hàng câu hỏi ôn tập** sử dụng **Dgraph** (Graph NoSQL native GraphQL) làm read-side store.
+
+### Tech
+- **Dgraph v23.3.0** - Graph database với native GraphQL API
+- **CQRS pattern** - PostgreSQL (write) ↔ Kafka ↔ Dgraph (read)
+- **Knowledge graph**: Topic → SubTopic → Skill → Question → Prerequisite
+
+### Endpoints
+
+| Method | Endpoint | Auth | Mô tả |
+|--------|----------|------|-------|
+| `GET` | `/api/v1/question-bank/questions/search` | Auth | Full-text search câu hỏi |
+| `GET` | `/api/v1/question-bank/questions/{id}` | Auth | Chi tiết câu hỏi + relations |
+| `GET` | `/api/v1/question-bank/topics` | Auth | List topics (tree) |
+| `GET` | `/api/v1/question-bank/topics/{topicId}/practice` | STUDENT | Practice path cho topic |
+| `GET` | `/api/v1/question-bank/questions/{id}/similar` | Auth | Top-K similar questions |
+| `POST` | `/api/v1/question-bank/questions` | INSTRUCTOR | Tạo câu hỏi mới |
+| `PATCH` | `/api/v1/question-bank/questions/{id}` | INSTRUCTOR | Cập nhật |
+| `DELETE` | `/api/v1/question-bank/questions/{id}` | INSTRUCTOR | Soft delete |
+
+Xem chi tiết: `docs/02-architecture/adr/ADR-001-use-dgraph-for-question-bank.md`
 
 ## ⚙️ ENVIRONMENT VARIABLES
 
