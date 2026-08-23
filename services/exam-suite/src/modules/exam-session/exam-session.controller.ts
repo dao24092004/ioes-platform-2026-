@@ -1,25 +1,61 @@
 import {
   Body,
   Controller,
+  ExecutionContext,
   Get,
   HttpCode,
   HttpStatus,
+  Injectable,
   Param,
   Post,
+  SetMetadata,
   UseGuards,
+  CanActivate,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import {
   ApiResponse,
   CurrentUser,
   JwtAuthGuard,
   Roles,
+  RolesGuard,
   UserPrincipalDto,
 } from '@ioes/common-node';
 import { StartAttemptRequestDto } from './dto/start-attempt.dto';
 import { ExamSessionService } from './exam-session.service';
 
+export const DEV_AUTH_BYPASS_KEY = 'dev_auth_bypass';
+
+/**
+ * Dev-only guard: cho phép bypass JWT auth khi `DEV_AUTH_BYPASS=true`.
+ *
+ * Chỉ áp dụng ở exam-session controller — KHÔNG động vào common-node.
+ * Production: set DEV_AUTH_BYPASS=false (mặc định).
+ *
+ * Khi bypass, user lấy từ header `X-Dev-User-Id` (UUID) thay vì JWT.
+ */
+@Injectable()
+export class DevAuthBypassGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
+  canActivate(ctx: ExecutionContext): boolean {
+    const bypass = process.env.DEV_AUTH_BYPASS === 'true';
+    if (!bypass) return false;
+    const req = ctx.switchToHttp().getRequest();
+    const userId = req.headers['x-dev-user-id'] || '00000000-0000-4000-8000-000000000001';
+    req.user = {
+      sub: userId,
+      email: `${userId}@dev.local`,
+      role: 'STUDENT',
+    };
+    req.userId = userId;
+    return true;
+  }
+}
+
+const DEV_GUARD = process.env.DEV_AUTH_BYPASS === 'true' ? DevAuthBypassGuard : JwtAuthGuard;
+
 @Controller('api/v1/exam-attempts')
-@UseGuards(JwtAuthGuard)
+@UseGuards(DEV_GUARD)
 export class ExamSessionController {
   constructor(private readonly examSessionService: ExamSessionService) {}
 

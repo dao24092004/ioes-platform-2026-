@@ -7,7 +7,7 @@ import { SubmissionEntity } from './entities/submission.entity';
 import { ExamSessionRepository } from './exam-session.repository';
 import { SessionCacheService, REDIS_CLIENT } from './session-cache.service';
 import { ExamSessionService } from './exam-session.service';
-import { ExamSessionController } from './exam-session.controller';
+import { ExamSessionController, DevAuthBypassGuard } from './exam-session.controller';
 import { ExamSessionGateway } from './exam-session.gateway';
 import { StartExamUseCase, CONTENT_SERVICE_CLIENT } from './use-cases/start-exam.use-case';
 import { SaveAnswerUseCase } from './use-cases/save-answer.use-case';
@@ -15,8 +15,11 @@ import { SubmitExamUseCase } from './use-cases/submit-exam.use-case';
 import { ReconnectSessionUseCase } from './use-cases/reconnect-session.use-case';
 import { KafkaPublisherService } from '../../common/kafka-publisher.service';
 import { ContentServiceHttpClient } from '../../common/content-service.client';
+import { MockContentServiceClient } from '../../common/mock-content-service.client';
 import { serviceUrls, wsConfig, redisConfig, appConfig } from '../../config/app.config';
 import Redis from 'ioredis';
+
+const useMockContent = process.env.DEV_MOCK_CONTENT_SERVICE === 'true';
 
 /**
  * Providers dùng Symbol để inject theo interface (DI theo contract).
@@ -25,7 +28,7 @@ import Redis from 'ioredis';
 const useCaseProviders: Provider[] = [
   {
     provide: CONTENT_SERVICE_CLIENT,
-    useClass: ContentServiceHttpClient,
+    useClass: useMockContent ? MockContentServiceClient : ContentServiceHttpClient,
   },
   StartExamUseCase,
   {
@@ -96,6 +99,7 @@ const useCaseProviders: Provider[] = [
     SessionCacheService,
     KafkaPublisherService,
     JwtAuthGuard,
+    DevAuthBypassGuard,
     RolesGuard,
     ExamSessionService,
     ExamSessionGateway,
