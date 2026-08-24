@@ -553,82 +553,35 @@ services:
 # GRAPH DATABASE - Dgraph (Question Bank)
 # Read-side store cho module question-bank trong exam-suite
 # Xem: docs/02-architecture/adr/ADR-001-use-dgraph-for-question-bank.md
+# NOTE: Dgraph v23.3.0 image không tồn tại trên Docker Hub.
+#       Uncomment khi image khả dụng hoặc dùng tag 'latest'.
 # ============================================
 
-  dgraph-zero:
-    image: dgraph/dgraph:v23.3.0
-    container_name: ioes-dgraph-zero
-    restart: unless-stopped
-    ports:
-      - "5080:5080"
-      - "6080:6080"
-    command: dgraph zero --my=dgraph-zero:5080
-    networks:
-      - ioes-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
+# dgraph-zero:
+#   image: dgraph/dgraph:v23.1.0
+#   container_name: ioes-dgraph-zero
+#   restart: unless-stopped
+#   ports:
+#     - "5080:5080"
+#     - "6080:6080"
+#   command: dgraph zero --my=dgraph-zero:5080
+#   networks:
+#     - ioes-network
 
-  dgraph-alpha:
-    image: dgraph/dgraph:v23.3.0
-    container_name: ioes-dgraph-alpha
-    restart: unless-stopped
-    depends_on:
-      - dgraph-zero
-    ports:
-      - "8080:8080"   # GraphQL + HTTP
-      - "9080:9080"   # gRPC
-      - "8000:8000"   # Ratel UI (dev only)
-    volumes:
-      - dgraph_data:/var/lib/dgraph
-    command:
-      - dgraph
-      - alpha
-      - --my=dgraph-alpha:7080
-      - --zero=dgraph-zero:5080
-      - --security whitelist=0.0.0.0/0
-      - --logtostderr
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    networks:
-      - ioes-network
-    deploy:
-      resources:
-        limits:
-          memory: 1G
+# dgraph-alpha:
+#   image: dgraph/dgraph:v23.1.0
+#   container_name: ioes-dgraph-alpha
+#   ports:
+#     - "8080:8080"
+#     - "9080:9080"
+#   networks:
+#     - ioes-network
 
-  # Auto-deploy GraphQL schema khi Dgraph khởi động lần đầu
-  dgraph-schema-init:
-    image: curlimages/curl:latest
-    container_name: ioes-dgraph-schema-init
-    depends_on:
-      dgraph-alpha:
-        condition: service_healthy
-    volumes:
-      - ./dgraph-init:/dgraph-init:ro
-    entrypoint: /bin/sh
-    command:
-      - -c
-      - |
-        echo "Waiting for Dgraph Alpha to be ready..."
-        sleep 10
-        echo "Deploying Question Bank schema..."
-        if [ -f /dgraph-init/question-bank-schema.graphql ]; then
-          curl -s -X POST \
-            --data-binary @/dgraph-init/question-bank-schema.graphql \
-            http://dgraph-alpha:8080/admin/schema
-          echo "Schema deployed successfully"
-        else
-          echo "WARNING: Schema file not found, deploy manually via Ratel UI (http://localhost:8000)"
-        fi
-    networks:
-      - ioes-network
-    restart: "no"
+# dgraph-schema-init:
+#   image: curlimages/curl:latest
+#   container_name: ioes-dgraph-schema-init
+#   networks:
+#     - ioes-network
 
 # ============================================
 # EMAIL TESTING - MailHog
@@ -664,8 +617,8 @@ volumes:
     driver: local
   etcd_data:
     driver: local
-  dgraph_data:
-    driver: local
+  # dgraph_data:
+  #   driver: local
   prometheus_data:
     driver: local
   grafana_data:
