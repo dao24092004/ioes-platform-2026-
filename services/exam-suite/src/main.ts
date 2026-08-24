@@ -1,74 +1,54 @@
 import { NestFactory } from '@nestjs/core';
-import { Logger, ValidationPipe } from '@nestjs/common';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import {
   GlobalExceptionFilter,
   HttpExceptionFilter,
-  KAFKA_TOPICS,
+  StructuredLogger,
+  MetricsController,
 } from '@ioes/common-node';
+import { CorrelationIdMiddleware } from '@ioes/common-node';
+import { HttpLoggingInterceptor } from '@ioes/common-node';
+import { AuditLogInterceptor } from '@ioes/common-node';
 
-async function bootstrap() {
-  const logger = new Logger('ExamSuite');
+async function bootstrap(): Promise<void> {
+  const logger = new StructuredLogger('ExamSuite');
 
-  // HTTP app (REST)
-  const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+  // HTTP app (REST only)
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: false,
+  });
+
+  // Setup correlation ID middleware (sets x-trace-id header, AsyncLocalStorage)
+  app.use(new CorrelationIdMiddleware().use);
+
+  // Global pipes
+  app.useGlobalPipes(
+    new ValidationPipe({ transform: true, whitelist: true }),
+  );
+
+  // Global filters
   app.useGlobalFilters(new GlobalExceptionFilter(), new HttpExceptionFilter());
 
-  const port = process.env.PORT ?? 9005;
+  // Global interceptors (Sprint 2 - Observability)
+  app.useGlobalInterceptors(
+    new HttpLoggingInterceptor(),
+    new AuditLogInterceptor(),
+  );
 
-  // Swagger / OpenAPI — source of truth cho frontend team.
-  // Mount tại /api/docs. BearerAuth cho JWT thật, ApiKey 'X-Dev-User-Id' cho dev bypass.
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('IOES Exam Suite API')
-    .setDescription(
-      'API cho exam-taking real-time suite (UC_008 Start, UC_009 Reconnect + Auto-save, UC_010 Submit).\n\n' +
-        '- **Dev mode**: set header `X-Dev-User-Id` (UUID) để bypass JWT.\n' +
-        '- **Prod**: gửi `Authorization: Bearer <jwt>`.\n\n' +
-        'Xem collection Postman tại `tests/postman/exam-suite.postman_collection.json`.',
-    )
-    .setVersion('1.0')
-    .addBearerAuth(
-      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-      'bearer',
-    )
-    .addApiKey({ type: 'apiKey', name: 'X-Dev-User-Id', in: 'header' }, 'dev-user-id')
-    .addTag('health', 'Liveness / readiness probes')
-    .addTag('exam-session', 'Start, get, auto-save, submit attempt')
-    .addTag('submission', 'Tạo submission cho exam')
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document, {
-    swaggerOptions: { persistAuthorization: true },
-    customSiteTitle: 'IOES Exam Suite API',
-  });
+  // Enable graceful shutdown (BA §8.4: drain 30s before exit)
+  app.enableShutdownHooks();
 
+  const port = parseInt(process.env.PORT ?? '9005', 10);
   await app.listen(port);
   logger.log(`HTTP listening on port ${port}`);
-  logger.log(`Swagger UI: http://localhost:${port}/api/docs`);
 
-  // Kafka microservice for EXAM events
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.KAFKA,
-    options: {
-      client: {
-        clientId: process.env.KAFKA_CLIENT_ID ?? 'exam-suite',
-        brokers: (process.env.KAFKA_BOOTSTRAP_SERVERS ?? 'localhost:9092').split(','),
-      },
-      consumer: {
-        groupId: process.env.KAFKA_GROUP_ID ?? 'exam-suite',
-        allowAutoTopicCreation: true,
-      },
-    },
-  });
-
-  await app.startAllMicroservices();
-  logger.log('Kafka consumer started');
-
-  // Subscribe to topics we care about
-  logger.log(`Subscribed topics: ${KAFKA_TOPICS.USER_REGISTERED}`);
+  // Note:
+  // - Kafka consumer được start trong AppModule.onApplicationBootstrap()
+  //   thông qua DgraphSyncConsumer.start() → KafkaConsumer.start()
+  // - Eureka client tự register trong EurekaClient.onModuleInit()
+  // - KHÔNG dùng NestJS built-in connectMicroservice() ở đây
+  //   để tránh conflict group ID.
 }
 
 bootstrap().catch((err) => {

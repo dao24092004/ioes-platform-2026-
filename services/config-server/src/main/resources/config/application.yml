@@ -118,12 +118,13 @@ logging:
 
 # ============================================
 # JWT CONFIGURATION
+# ADR-008: NO DEFAULT FALLBACK — JWT_SECRET required from env.
 # ============================================
 jwt:
-  secret: ${JWT_SECRET:change-me-in-production-use-at-least-256-bits-key-here}
-  access-token-expiration: 900000    # 15 minutes
-  refresh-token-expiration: 604800000 # 7 days
-  issuer: ioes-platform
+  secret: ${JWT_SECRET}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}    # 15 minutes
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000} # 7 days
+  issuer: ${JWT_ISSUER:ioes-platform}
 
 # ============================================
 # API CONFIGURATION

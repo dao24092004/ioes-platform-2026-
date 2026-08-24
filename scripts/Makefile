@@ -141,6 +141,19 @@ format-check: ## Check formatting
 	pnpm format:check
 
 # =============================
+# Config checks (ADR-008, ADR-009)
+# =============================
+ci-check-jwt: ## CI check: JWT secret sync (ADR-008)
+	@bash $(CURDIR)/ci-check-jwt-secret.sh
+
+ci-check-gateway: ## CI check: Gateway config (ADR-009)
+	@bash $(CURDIR)/ci-check-gateway-config.sh
+
+ci-check-config: ## Run all config CI checks (run before merge)
+	@bash $(CURDIR)/ci-check-jwt-secret.sh
+	@bash $(CURDIR)/ci-check-gateway-config.sh
+
+# =============================
 # Docker
 # =============================
 docker-up: ## Start Docker services

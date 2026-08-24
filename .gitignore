@@ -77,6 +77,15 @@ coverage/
 .nyc_output/
 
 # Environment files
+# ============================================
+# ADR-008 + ADR-009: SINGLE SOURCE OF TRUTH
+# ----------------------------------------
+# .env.example ở ROOT là single source of truth. KHÔNG tạo
+# services/<svc>/.env riêng — sửa root .env.example một lần duy nhất.
+# Mọi service (Node.js, Python, Java) load từ root .env.
+# ============================================
+
+# Root .env (giữ lại — single source)
 .env
 .env.local
 .env.development
@@ -84,6 +93,15 @@ coverage/
 .env.production
 .env.*.local
 !.env.example
+
+# Service-level .env BỊ CẤM — fail nếu service nào tạo
+services/**/.env
+services/**/.env.local
+services/**/.env.development
+services/**/.env.test
+services/**/.env.production
+services/**/.env.*.local
+services/**/.env.example
 
 # Logs
 logs/
