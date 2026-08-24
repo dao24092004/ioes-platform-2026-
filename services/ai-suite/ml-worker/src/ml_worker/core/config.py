@@ -33,16 +33,18 @@ class MLSettings(BaseServiceSettings):
     # Vector store
     milvus_host: str = "localhost"
     milvus_port: int = 19530
+    # ADR-008: milvus_user/password — optional trong dev nếu MilIO không set auth
     milvus_user: str = ""
     milvus_password: str = ""
     milvus_database: str = "ioes_ai"
 
     # LLM
+    # ADR-008: openai/azure API keys phải load từ env, không default trong code.
     llm_provider: str = "openai"
-    openai_api_key: str = ""
+    openai_api_key: str = Field(default="")  # set via env OPENAI_API_KEY
     openai_model: str = "gpt-4o"
     azure_openai_endpoint: str = ""
-    azure_openai_key: str = ""
+    azure_openai_key: str = ""  # set via env AZURE_OPENAI_KEY
     azure_openai_deployment: str = ""
 
     # Service URLs (overrides BaseServiceSettings defaults)

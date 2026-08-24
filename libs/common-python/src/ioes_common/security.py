@@ -61,7 +61,14 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    secret = getattr(request.app.state, "jwt_secret", None) or _default_secret()
+    # ADR-008: NO DEFAULT FALLBACK. JWT_SECRET phải được set qua env
+    # và load qua app.state.jwt_secret trong lifespan startup.
+    secret = getattr(request.app.state, "jwt_secret", None)
+    if not secret:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Server misconfigured: JWT_SECRET not loaded",
+        )
 
     try:
         payload = verify_jwt_token(credentials.credentials, secret)
@@ -78,9 +85,3 @@ async def get_current_user(
         full_name=payload.get("name"),
         exp=payload.get("exp"),
     )
-
-
-def _default_secret() -> str:
-    import os
-
-    return os.getenv("JWT_SECRET", "ioes-jwt-secret-key-must-be-at-least-256-bits-long")

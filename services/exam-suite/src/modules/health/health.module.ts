@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { HealthController } from './health.controller';
-import { DgraphClient } from '@ioes/common-node';
+import { DgraphClient } from '../question-bank/dgraph.client';
+import { QuestionBankModule } from '../question-bank/question-bank.module';
 
 @Module({
+  imports: [QuestionBankModule],
   controllers: [HealthController],
-  providers: [DgraphClient],
-  exports: [DgraphClient],
+  providers: [],
+  exports: [],
 })
 export class HealthModule {}

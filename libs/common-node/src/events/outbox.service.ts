@@ -66,7 +66,7 @@ export class OutboxService {
    * Caller PHẢI ở trong 1 transaction (entityManager).
    * Event sẽ chỉ được publish nếu transaction commit thành công.
    */
-  async enqueueInTx(
+  async enqueueInTx<T = unknown>(
     em: EntityManager,
     topic: string,
     envelope: {
@@ -77,7 +77,7 @@ export class OutboxService {
       aggregateType?: string;
       source: string;
       correlationId?: string;
-      payload: Record<string, unknown>;
+      payload: T;
       headers?: Record<string, string>;
     },
   ): Promise<OutboxEvent> {
@@ -90,7 +90,7 @@ export class OutboxService {
       aggregateType: envelope.aggregateType,
       source: envelope.source,
       correlationId: envelope.correlationId,
-      payload: envelope.payload,
+      payload: envelope.payload as unknown as Record<string, unknown>,
       headers: envelope.headers,
       status: 'PENDING',
       attempts: 0,

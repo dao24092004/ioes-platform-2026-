@@ -179,7 +179,34 @@ Module `question-bank` cung cấp **ngân hàng câu hỏi ôn tập** sử dụ
 | `PATCH` | `/api/v1/question-bank/questions/{id}` | INSTRUCTOR | Cập nhật |
 | `DELETE` | `/api/v1/question-bank/questions/{id}` | INSTRUCTOR | Soft delete |
 
-Xem chi tiết: `docs/02-architecture/adr/ADR-001-use-dgraph-for-question-bank.md`
+### Phase 2: Bulk Import + Image Upload + Resync
+
+| Method | Endpoint | Auth | Mô tả |
+|--------|----------|------|-------|
+| `POST` | `/api/v1/question-bank/bulk-import` | INSTRUCTOR | Upload CSV/TSV (max 5000 rows) |
+| `POST` | `/api/v1/question-bank/questions/{id}/images/upload-url` | INSTRUCTOR | Presigned URL cho image upload |
+| `POST` | `/api/v1/question-bank/questions/{id}/images/confirm` | INSTRUCTOR | Confirm image URL attached |
+| `DELETE` | `/api/v1/question-bank/images/{bucket}/{key(*)}` | INSTRUCTOR | Delete image từ storage |
+| `POST` | `/api/v1/question-bank/admin/resync` | ADMIN | Force re-sync all → Dgraph |
+| `POST` | `/api/v1/question-bank/admin/resync/{id}` | ADMIN | Re-sync single question |
+| `GET` | `/api/v1/question-bank/admin/storage/health` | ADMIN | Storage health check |
+
+### CSV Bulk Import Format
+
+Upload file UTF-8 CSV/TSV với headers (case-insensitive):
+
+```
+question_text,question_type,difficulty,points,topic_id,language,hint,explanation,tags,options,test_cases,status
+"What is 2+2?",multiple_choice,easy,5,<uuid>,,,,,4|true;5|false,,
+"Sum",coding,medium,20,<uuid>,python,,,,,1|1|true|10||2|4|false|5,
+```
+
+- `question_type`: `multiple_choice` | `multiple_select` | `true_false` | `short_answer` | `essay` | `coding`
+- `difficulty`: `very_easy` | `easy` | `medium` | `hard` | `very_hard`
+- `options`: format `"text|isCorrect,text|isCorrect"`
+- `test_cases`: format `"input|expected|isSample|points||input|expected|isSample|points"`
+
+Xem chi tiết: `docs/02-architecture/adr/ADR-001-use-dgraph-for-question-bank.md`, `docs/02-architecture/adr/ADR-007-storage.md`
 
 ## ⚙️ ENVIRONMENT VARIABLES
 
@@ -218,6 +245,30 @@ JUDGE0_API_KEY=xxx
 PROCTORING_ENABLED=true
 PROCTORING_VIDEO_QUALITY=720p
 PROCTORING_FRAME_RATE=5
+
+# Dgraph (Question Bank read store)
+DGRAPH_URL=http://localhost:8080
+DGRAPH_GRAPHQL_ENDPOINT=/graphql
+DGRAPH_ADMIN_ENDPOINT=/admin
+DGRAPH_TIMEOUT_MS=5000
+
+# S3-compatible storage (Phase 2: image upload + bulk import)
+STORAGE_ENDPOINT=http://localhost:9000
+STORAGE_REGION=us-east-1
+STORAGE_ACCESS_KEY=minioadmin
+STORAGE_SECRET_KEY=minioadmin
+STORAGE_BUCKET_QUESTIONS=ioes-questions
+STORAGE_BUCKET_TEMP=ioes-temp
+STORAGE_FORCE_PATH_STYLE=true
+STORAGE_MAX_IMAGE_SIZE=10485760        # 10MB
+STORAGE_MAX_BULK_SIZE=52428800         # 50MB
+STORAGE_PRESIGNED_TTL=3600             # 1 hour
+STORAGE_CDN_BASE_URL=                  # Optional CDN
+
+# Bulk import limits
+BULK_IMPORT_MAX_ROWS=5000
+BULK_IMPORT_BATCH_SIZE=100
+BULK_IMPORT_DEFAULT_STATUS=draft
 ```
 
 ## 🧪 TESTING

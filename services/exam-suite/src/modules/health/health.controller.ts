@@ -3,8 +3,8 @@ import {
   Public,
   ApiResponse,
   StructuredLogger,
-  DgraphClient,
 } from '@ioes/common-node';
+import { DgraphClient } from '../question-bank/dgraph.client';
 import { SkipThrottle } from '@nestjs/throttler';
 import { HealthCheckService, HealthCheck, TypeOrmHealthIndicator } from '@nestjs/terminus';
 import { Public as PublicDecorator } from '@ioes/common-node';
