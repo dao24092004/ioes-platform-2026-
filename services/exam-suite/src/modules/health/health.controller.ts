@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Res } from '@nestjs/common';
 import {
   Public,
   ApiResponse,

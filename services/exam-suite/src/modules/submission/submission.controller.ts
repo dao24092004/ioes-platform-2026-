@@ -1,11 +1,22 @@
-import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
 import {
-  JwtAuthGuard,
-  RolesGuard,
-  Roles,
-  UserId,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiResponse as ApiDocResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
   ApiResponse,
   CurrentUser,
+  Roles,
+  UserId,
   UserPrincipalDto,
 } from '@ioes/common-node';
 import { SubmissionService } from './submission.service';
@@ -17,13 +28,29 @@ import { GradeExamDto } from '../exam/dto/grade-exam.dto';
  * - POST /exams/:examId/submissions              - student submit attempt
  * - POST /exams/:examId/submissions/:attemptId/grade - instructor/admin trigger grade
  */
+@ApiTags('submission')
+@ApiBearerAuth('bearer')
+@ApiHeader({
+  name: 'X-Dev-User-Id',
+  description: 'Dev-only: UUID của user. Chỉ hoạt động khi DEV_AUTH_BYPASS=true.',
+  required: false,
+  example: '00000000-0000-4000-8000-000000000001',
+})
 @Controller('exams/:examId/submissions')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class SubmissionController {
   constructor(private readonly submissionService: SubmissionService) {}
 
   @Post()
   @Roles('STUDENT')
+  @ApiOperation({
+    summary: 'Tạo submission cho exam',
+    description:
+      'Nhận payload `{ answers: unknown }` và lưu vào submission table. ' +
+      'Trả về `ApiResponse` chứa submission record.',
+  })
+  @ApiDocResponse({ status: 201, description: 'Submission đã được tạo.' })
+  @ApiDocResponse({ status: 400, description: 'Validation error — body không đúng shape.' })
+  @ApiDocResponse({ status: 403, description: 'Không có quyền nộp bài thi này.' })
   async submit(
     @Param('examId') examId: string,
     @UserId() userId: string,

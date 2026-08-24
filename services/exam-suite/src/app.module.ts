@@ -28,7 +28,9 @@ import { DgraphSyncConsumer } from './modules/question-bank/dgraph-sync.consumer
         password: process.env.DB_PASSWORD ?? 'ioes_exam',
         database: process.env.DB_NAME ?? 'ioes_exam',
         autoLoadEntities: true,
-        synchronize: false, // Flyway owns schema
+        // Dev mode: synchronize=true để bạn test không cần Flyway.
+        // Production: set TYPEORM_SYNCHRONIZE=false (mặc định false).
+        synchronize: process.env.TYPEORM_SYNCHRONIZE === 'true',
       }),
     }),
     ExamModule,

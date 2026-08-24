@@ -299,6 +299,21 @@ docs/site/
 site/
 
 # =============================
+# TypeScript build artifacts (NEVER commit .js/.d.ts trong src/)
+# =============================
+*.tsbuildinfo
+**/src/**/*.js
+**/src/**/*.js.map
+**/src/**/*.d.ts
+!**/src/**/*.d.ts.bak
+
+# =============================
+# Runtime logs (NestJS write to *.err when stderr redirected)
+# =============================
+*.err
+!.gitkeep.err
+
+# =============================
 # Generated files
 # =============================
 **/generated/
