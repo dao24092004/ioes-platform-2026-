@@ -1,0 +1,3850 @@
+{
+  "common": {
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "reset": "Khôi phục mặc định",
+    "search": "Tìm kiếm...",
+    "loading": "Đang tải...",
+    "noData": "Chưa có dữ liệu",
+    "apply": "Áp dụng",
+    "exportCSV": "Xuất CSV",
+    "exportPNG": "Xuất PNG"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "dashboard": "Bảng điều khiển",
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt",
+    "logout": "Đăng xuất",
+    "about": "Giới thiệu",
+    "courses": "Khóa học",
+    "contact": "Liên hệ",
+    "tenants": "Đối tác",
+    "verifyCertificate": "Xác minh chứng chỉ"
+  },
+  "error": {
+    "pageNotFound": "Trang không tìm thấy",
+    "pageNotFoundDesc": "Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.",
+    "serverError": "Lỗi máy chủ",
+    "serverErrorDesc": "Đã xảy ra sự cố từ phía chúng tôi. Vui lòng thử lại sau.",
+    "backHome": "Quay về trang chủ",
+    "backToLogin": "Quay về đăng nhập",
+    "tryAgain": "Thử lại",
+    "helpText": "Cần hỗ trợ? Liên hệ support@ioes.com"
+  },
+  "publicCheckout": {
+    "secureBadge": "Thanh toán an toàn & bảo mật",
+    "title": "Thông tin thanh toán",
+    "instructor": "Giáo viên",
+    "hours": "{{count}} giờ",
+    "lessons": "{{count}} bài học",
+    "email": "Email",
+    "phone": "Số điện thoại",
+    "paymentMethod": "Phương thức thanh toán",
+    "method": {
+      "card": {
+        "title": "Thẻ Visa / Mastercard",
+        "desc": "Thanh toán an toàn với thẻ tín dụng"
+      },
+      "vnpay": {
+        "title": "VNPay",
+        "desc": "Ví điện tử, Internet Banking",
+        "qrNote": "Quét mã QR bằng ứng dụng VNPay"
+      },
+      "momo": {
+        "title": "MoMo",
+        "desc": "Thanh toán nhanh chóng qua ví MoMo",
+        "qrNote": "Quét mã QR bằng ứng dụng MoMo"
+      },
+      "bank": {
+        "title": "Chuyển khoản ngân hàng",
+        "desc": "ATM / Internet Banking / Quầy giao dịch"
+      }
+    },
+    "card": {
+      "number": "Số thẻ",
+      "expiry": "Ngày hết hạn",
+      "cvv": "CVV",
+      "name": "Tên trên thẻ"
+    },
+    "bank": {
+      "info": "Thông tin chuyển khoản",
+      "bankName": "Ngân hàng",
+      "accountNumber": "Số tài khoản",
+      "accountName": "Chủ tài khoản",
+      "amount": "Số tiền",
+      "content": "Nội dung chuyển"
+    },
+    "promo": {
+      "label": "Mã giảm giá",
+      "placeholder": "Nhập mã giảm giá",
+      "apply": "Áp dụng",
+      "applied": "{{code}} - Giảm {{percent}}%",
+      "remove": "Xóa",
+      "emptyError": "Vui lòng nhập mã giảm giá",
+      "invalidError": "Mã giảm giá không hợp lệ",
+      "hint": "Thử: IOES2026, WELCOME, STUDENT"
+    },
+    "processing": "Đang xử lý...",
+    "payNow": "Thanh toán {{amount}}",
+    "sslNote": "Thông tin thanh toán được mã hóa SSL 256-bit",
+    "summary": {
+      "title": "Tóm tắt đơn hàng",
+      "originalPrice": "Giá gốc",
+      "saleDiscount": "Giảm giá",
+      "promoDiscount": "{{code}} (-{{percent}}%)",
+      "processingFee": "Phí xử lý",
+      "free": "Miễn phí",
+      "total": "Tổng cộng",
+      "youGet": "Bạn sẽ nhận được",
+      "features": {
+        "lifetime": "Truy cập trọn đời {{count}} bài học",
+        "certificate": "Chứng chỉ hoàn thành khóa học",
+        "aiMentor": "Hỗ trợ AI Mentor 24/7",
+        "updates": "Cập nhật nội dung miễn phí",
+        "materials": "Tải tài liệu & code mẫu"
+      },
+      "commitment": "Cam kết của chúng tôi",
+      "trust": {
+        "refund": "Hoàn tiền 30 ngày",
+        "support": "Hỗ trợ 24/7",
+        "blockchain": "Chứng chỉ Blockchain"
+      }
+    },
+    "success": {
+      "title": "Thanh toán thành công!",
+      "desc": "Bạn đã đăng ký thành công khóa học \"{{title}}\". Bắt đầu học ngay thôi.",
+      "continue": "Bắt đầu học"
+    },
+    "notFound": {
+      "title": "Không tìm thấy khóa học",
+      "desc": "Khóa học này không tồn tại hoặc đã bị xoá.",
+      "back": "Quay lại danh sách"
+    }
+  },
+  "publicCourseDetail": {
+    "studentsCount": "{{count, number}} học viên",
+    "ratingReviews": "{{rating}} ({{count, number}} đánh giá)",
+    "hoursCount": "{{count}} giờ",
+    "lessonsCount": "{{count}} bài giảng",
+    "courseTags": "Thẻ khoá học",
+    "instructor": "Giảng viên",
+    "instructorRole": "Giảng viên",
+    "enrollNow": "Đăng ký ngay",
+    "enrollFree": "Đăng ký miễn phí",
+    "features": {
+      "lifetime": "Truy cập trọn đời",
+      "certificate": "Chứng chỉ hoàn thành",
+      "aiMentor": "AI Mentor 24/7",
+      "videoLectures": "{{count}} bài giảng video",
+      "practice": "{{count}} bài tập thực hành"
+    },
+    "tabs": {
+      "overview": "Tổng quan",
+      "reviews": "Đánh giá",
+      "curriculum": "Nội dung",
+      "instructor": "Giảng viên"
+    },
+    "reviewsTitle": "Đánh giá từ học viên",
+    "reviewsCount": "{{count, number}} đánh giá",
+    "filter": {
+      "newest": "Mới nhất",
+      "highest": "Cao nhất",
+      "lowest": "Thấp nhất"
+    },
+    "ratingBars": {
+      "five": "5",
+      "four": "4",
+      "three": "3",
+      "two": "2",
+      "one": "1"
+    },
+    "actions": {
+      "helpful": "Hữu ích ({{count}})",
+      "reply": "Phản hồi"
+    },
+    "instructorResponse": "Phản hồi của giảng viên",
+    "writeReview": {
+      "title": "Viết đánh giá của bạn",
+      "placeholder": "Chia sẻ trải nghiệm học tập của bạn...",
+      "submit": "Gửi đánh giá"
+    },
+    "pagination": {
+      "prev": "Trang trước",
+      "next": "Trang sau"
+    },
+    "notFound": {
+      "title": "Không tìm thấy khóa học",
+      "desc": "Khóa học này không tồn tại hoặc đã bị xoá.",
+      "back": "Quay lại danh sách"
+    }
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "logout": "Đăng xuất",
+    "myPage": "Trang của tôi",
+    "accountMenu": "Tài khoản",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "forgotPassword": "Quên mật khẩu?",
+    "forgotPasswordError": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "forgotPasswordTitle": "Quên mật khẩu",
+    "forgotPasswordSubtitle": "Nhập email của bạn để nhận liên kết đặt lại mật khẩu",
+    "forgotPasswordHint": "Chúng tôi sẽ gửi liên kết đặt lại mật khẩu đến email này",
+    "forgotPasswordSend": "Gửi liên kết đặt lại",
+    "forgotPasswordSending": "Đang gửi...",
+    "forgotPasswordBackToLogin": "Quay lại đăng nhập",
+    "forgotPasswordSuccess": "Kiểm tra email của bạn",
+    "forgotPasswordSuccessDesc": "Chúng tôi đã gửi liên kết đặt lại mật khẩu đến địa chỉ email của bạn.",
+    "forgotPasswordSentTo": "Đã gửi đến",
+    "forgotPasswordCheckSpam": "Không thấy email? Kiểm tra thư mục spam hoặc thử lại.",
+    "forgotPasswordTryAnother": "Thử với email khác",
+    "forgotPasswordCountdownLabel": "Liên kết hết hạn sau",
+    "forgotPasswordExpired": "Đã hết hạn",
+    "forgotPasswordResend": "Gửi lại email xác minh",
+    "forgotPasswordResendCooldown": "Gửi lại sau {seconds}s",
+    "forgotPasswordResendSent": "Đã gửi lại!",
+    "noAccount": "Chưa có tài khoản?",
+    "hasAccount": "Đã có tài khoản?",
+    "signUpNow": "Đăng ký ngay",
+    "signInNow": "Đăng nhập ngay",
+    "rememberMe": "Ghi nhớ đăng nhập",
+    "firstName": "Họ",
+    "lastName": "Tên",
+    "agreeTerms": "Tôi đồng ý với",
+    "terms": "Điều khoản",
+    "privacy": "Chính sách bảo mật",
+    "createAccount": "Tạo tài khoản",
+    "creatingAccount": "Đang tạo tài khoản…",
+    "welcomeBack": "Chào mừng bạn!",
+    "loginSubtitle": "Đăng nhập hoặc tạo tài khoản mới",
+    "registerSubtitle": "Đăng ký để bắt đầu học tập",
+    "orLoginWith": "hoặc đăng nhập với",
+    "orRegisterWith": "hoặc đăng ký với",
+    "loginWithGoogle": "Đăng nhập với Google",
+    "loginWithGithub": "Đăng nhập với GitHub",
+    "registerWithGoogle": "Đăng ký với Google",
+    "minChars": "Ít nhất 8 ký tự",
+    "passwordMismatch": "Mật khẩu xác nhận không khớp",
+    "fullName": "Họ và tên",
+    "fullNamePlaceholder": "Nhập họ và tên đầy đủ",
+    "forgotPasswordHeading": "Quên mật khẩu",
+    "forgotPasswordSubheading": "Nhập email của bạn để nhận liên kết đặt lại mật khẩu",
+    "forgotPasswordSendLink": "Gửi liên kết đặt lại",
+    "forgotPasswordSuccessTitle": "Kiểm tra Email của bạn",
+    "forgotPasswordSuccessSentTo": "Đã gửi đến",
+    "forgotPasswordSuccessCheckSpam": "Nếu bạn không thấy email, hãy kiểm tra thư mục spam.",
+    "forgotPasswordSuccessBackToLogin": "Quay lại đăng nhập",
+    "forgotPasswordSuccessTryAnother": "Thử với email khác",
+    "verifyEmail": {
+      "title": "Xác minh email",
+      "verifying": "Đang xác minh email của bạn...",
+      "verifyingDesc": "Chúng tôi đang xác nhận địa chỉ email của bạn. Việc này thường chỉ mất vài giây.",
+      "success": "Email đã được xác minh!",
+      "successDesc": "Email của bạn đã được xác minh thành công. Bây giờ bạn có thể đăng nhập vào tài khoản.",
+      "redirecting": "Đang chuyển đến trang đăng nhập...",
+      "goToLogin": "Đi đến trang đăng nhập",
+      "error": "Xác minh thất bại",
+      "errorExpiredDesc": "Liên kết xác minh đã hết hạn. Vui lòng yêu cầu liên kết mới để xác minh email.",
+      "errorAlreadyUsedDesc": "Email này đã được xác minh trước đó. Hãy thử đăng nhập trực tiếp.",
+      "errorInvalidDesc": "Liên kết xác minh không hợp lệ hoặc bị lỗi. Vui lòng kiểm tra lại URL hoặc yêu cầu liên kết mới.",
+      "tokenLabel": "Mã token",
+      "noToken": "(thiếu token)",
+      "resend": "Gửi lại email xác minh",
+      "resending": "Đang gửi...",
+      "resent": "Đã gửi lại email!",
+      "backToLogin": "Quay lại đăng nhập",
+      "needHelp": "Cần hỗ trợ?",
+      "checkInbox": "Kiểm tra hộp thư của bạn",
+      "checkInboxDesc": "Chúng tôi đã gửi liên kết xác minh tới email. Vui lòng mở email và nhấp vào liên kết để kích hoạt tài khoản."
+    },
+    "oauthCallback": {
+      "title": "Đang hoàn tất đăng nhập {{provider}}",
+      "processing": "Đang hoàn tất đăng nhập an toàn...",
+      "success": "Đăng nhập thành công!",
+      "redirecting": "Đang đưa bạn đến bảng điều khiển...",
+      "errorMissingParams": "Thiếu tham số bắt buộc trong URL callback. Vui lòng thử đăng nhập lại.",
+      "errorDenied": "Bạn đã từ chối cấp quyền truy cập. Vui lòng cho phép để tiếp tục.",
+      "errorExpired": "Phiên đăng nhập đã hết hạn. Vui lòng thử đăng nhập lại.",
+      "errorInvalidState": "Mã state không khớp — có thể là tấn công CSRF. Vui lòng thử đăng nhập lại.",
+      "provider": "Nhà cung cấp",
+      "authCode": "Mã xác thực",
+      "code": "Code",
+      "stateToken": "State token",
+      "debugLabel": "Thông tin gỡ lỗi",
+      "retryLogin": "Thử đăng nhập lại",
+      "goHome": "Về trang chủ",
+      "secureNote": "Quá trình xác thực của bạn được mã hóa end-to-end."
+    }
+  },
+  "password": {
+    "weak": "Yếu",
+    "medium": "Trung bình",
+    "strong": "Mạnh",
+    "veryStrong": "Rất mạnh"
+  },
+  "tenant": {
+    "nav": "Đối tác",
+    "hero": {
+      "badge": "Multi-Tenant Network",
+      "title": "Các tổ chức đang dùng IOES",
+      "subtitle": "Khám phá hệ sinh thái các trường đại học, trung tâm đào tạo và doanh nghiệp đã triển khai thành công nền tảng IOES trên toàn quốc.",
+      "ctaExplore": "Xem danh sách",
+      "ctaBecome": "Trở thành đối tác"
+    },
+    "marketing": {
+      "partners": "Đối tác",
+      "learners": "Người học",
+      "examsMonthly": "Bài thi/tháng",
+      "uptime": "Uptime SLA"
+    },
+    "filters": {
+      "searchPlaceholder": "Tìm theo tên, domain, khu vực…"
+    },
+    "actions": {
+      "viewDetail": "Xem chi tiết"
+    },
+    "flags": {
+      "featured": "Nổi bật"
+    },
+    "why": {
+      "title": "Vì sao chọn IOES Multi-tenant?",
+      "subtitle": "Một nền tảng, hàng trăm tổ chức — nhưng dữ liệu được cô lập tuyệt đối.",
+      "isolation": {
+        "title": "Cô lập dữ liệu",
+        "desc": "Mỗi tenant là một không gian dữ liệu riêng — không trộn lẫn user, khóa học hay kết quả thi giữa các tổ chức."
+      },
+      "branding": {
+        "title": "Thương hiệu riêng",
+        "desc": "Mỗi tenant có logo, màu sắc, custom domain và SSO riêng — trải nghiệm đồng nhất với nhận diện của tổ chức."
+      },
+      "analytics": {
+        "title": "Analytics tách biệt",
+        "desc": "Dashboard thống kê riêng cho từng tenant, đồng thời super admin có góc nhìn tổng hợp toàn hệ thống."
+      }
+    },
+    "noResults": "Không có tenant nào khớp với bộ lọc.",
+    "detail": {
+      "contactCta": "Liên hệ tư vấn",
+      "browseCourses": "Xem khóa học",
+      "about": "Giới thiệu",
+      "partnerSince": "Đối tác từ",
+      "partnerSinceValue": "2022",
+      "plan": "Gói dịch vụ",
+      "expiresAt": "Thời hạn",
+      "departments": "Khoa / Phòng ban",
+      "students": "sinh viên",
+      "instructors": "giảng viên",
+      "loginsThisYear": "Lượt đăng nhập (năm)",
+      "peak": "cao điểm {{peak}}",
+      "usageTitle": "Lượt đăng nhập",
+      "usageDesc": "Thống kê 12 tháng gần nhất",
+      "featuredCourses": "Khóa học nổi bật",
+      "viewAll": "Xem tất cả →",
+      "view": "Xem",
+      "recentActivity": "Hoạt động gần đây",
+      "suspendedTitle": "Tổ chức này hiện đang tạm dừng",
+      "suspendedDesc": "Các dịch vụ đã bị tạm ngưng do gói hết hạn. Vui lòng liên hệ để được hỗ trợ kích hoạt lại."
+    },
+    "organization": {
+      "headerTitle": "Tổng quan tổ chức",
+      "headerSubtitle": "Quản lý thành viên, khóa học và thanh toán cho tổ chức của bạn.",
+      "tabs": {
+        "overview": "Tổng quan",
+        "members": "Thành viên",
+        "courses": "Khóa học",
+        "billing": "Thanh toán",
+        "settings": "Cài đặt"
+      },
+      "stats": {
+        "members": "Thành viên hoạt động",
+        "activeCourses": "Khóa học đang chạy",
+        "totalExams": "Tổng lượt thi",
+        "mrr": "Doanh thu tháng"
+      },
+      "activityTitle": "Hoạt động gần đây",
+      "upgradeTitle": "Cần thêm chỗ ngồi?",
+      "upgradeDesc": "Đội ngũ của bạn đã lớn — mở khóa thành viên không giới hạn và các tính năng cao cấp.",
+      "upgradeFeature1": "Thành viên & khóa học không giới hạn",
+      "upgradeFeature2": "Account manager riêng",
+      "upgradeFeature3": "SLA tùy chỉnh & hỗ trợ ưu tiên",
+      "upgradeBtn": "Liên hệ kinh doanh",
+      "searchMember": "Tìm theo tên, email, khoa...",
+      "searchCourse": "Tìm khóa học...",
+      "inviteMember": "Mời thành viên",
+      "inviteTitle": "Mời thành viên mới",
+      "inviteEmailLabel": "Địa chỉ email",
+      "inviteRoleLabel": "Phân quyền",
+      "inviteSend": "Gửi lời mời",
+      "noMembers": "Không có thành viên nào khớp.",
+      "colName": "Tên",
+      "colEmail": "Email",
+      "colRole": "Vai trò",
+      "colStatus": "Trạng thái",
+      "colLastActive": "Hoạt động cuối",
+      "colActions": "Hành động",
+      "colInvoice": "Hóa đơn",
+      "colDate": "Ngày",
+      "colAmount": "Số tiền",
+      "ago": "trước",
+      "students": "học viên",
+      "lessons": "bài học",
+      "newCourse": "Khóa học mới",
+      "courseStatus": {
+        "published": "Đã xuất bản",
+        "draft": "Bản nháp",
+        "archived": "Đã lưu trữ"
+      },
+      "currentPlan": "GÓI HIỆN TẠI",
+      "billedMonthly": "Thanh toán hàng tháng",
+      "planDesc": "Hoàn hảo cho đội ngũ đang phát triển lên tới 500 thành viên.",
+      "month": "tháng",
+      "planFeature1": "Tối đa 500 thành viên hoạt động",
+      "planFeature2": "Khóa học và bài thi không giới hạn",
+      "planFeature3": "SSO, SCORM, tên miền riêng",
+      "managePlan": "Quản lý gói",
+      "contactSales": "Liên hệ kinh doanh",
+      "paymentMethod": "Phương thức thanh toán",
+      "updateCard": "Cập nhật thẻ",
+      "invoicesTitle": "Hóa đơn",
+      "invoiceStatus": {
+        "paid": "Đã thanh toán",
+        "pending": "Chờ thanh toán",
+        "overdue": "Quá hạn"
+      },
+      "sectionGeneral": "Thông tin chung",
+      "sectionBranding": "Thương hiệu & Logo",
+      "sectionFaq": "Câu hỏi thường gặp",
+      "orgName": "Tên tổ chức",
+      "orgDomain": "Tên miền riêng",
+      "orgContactEmail": "Email liên hệ",
+      "orgPhone": "Số điện thoại",
+      "orgAddress": "Địa chỉ",
+      "orgLogo": "Logo tổ chức",
+      "orgLogoHint": "PNG hoặc SVG, hình vuông, khuyến nghị 256x256.",
+      "uploadLogo": "Tải lên logo mới",
+      "dangerTitle": "Vùng nguy hiểm",
+      "dangerDesc": "Các hành động không thể hoàn tác. Hãy cẩn trọng.",
+      "deleteOrg": "Xóa tổ chức",
+      "deleteTitle": "Xóa tổ chức này?",
+      "deleteDesc": "Hành động này không thể hoàn tác. Toàn bộ dữ liệu — thành viên, khóa học, bài thi, chứng chỉ — sẽ bị xóa vĩnh viễn.",
+      "deleteConfirmPlaceholder": "Nhập \"delete\" để xác nhận",
+      "roles": {
+        "owner": "Chủ sở hữu",
+        "admin": "Quản trị viên",
+        "instructor": "Giảng viên",
+        "student": "Học viên"
+      },
+      "statuses": {
+        "active": "Hoạt động",
+        "invited": "Đã mời",
+        "suspended": "Đã tạm khóa"
+      },
+      "faq1Q": "Làm sao thêm tên miền riêng?",
+      "faq1A": "Vào Cài đặt → Thương hiệu, thêm bản ghi CNAME, chúng tôi sẽ tự động cấp chứng chỉ SSL miễn phí.",
+      "faq2Q": "Tôi có thể xuất dữ liệu không?",
+      "faq2A": "Có — giảng viên và quản trị viên có thể xuất toàn bộ dữ liệu khóa học, kết quả thi và chứng chỉ từ tab Báo cáo.",
+      "faq3Q": "Nếu gói hết hạn thì sao?",
+      "faq3A": "Tổ chức sẽ chuyển sang chế độ chỉ đọc sau 7 ngày, và dữ liệu sẽ được lưu trữ sau 90 ngày. Bạn có thể kích hoạt lại bất cứ lúc nào bằng cách gia hạn gói."
+    }
+  },
+  "home": {
+    "hero": {
+      "title": "Nền tảng thi trực tuyến",
+      "titleHighlight": "thông minh hàng đầu",
+      "subtitle": "IOES tích hợp AI tiên tiến, giám sát thi bằng Computer Vision, và xác thực bằng Blockchain.",
+      "cta": "Bắt đầu miễn phí",
+      "learnMore": "Tìm hiểu thêm",
+      "online": "Hệ thống đang hoạt động 24/7",
+      "watchDemo": "Xem demo",
+      "users": "Người dùng",
+      "uptime": "Uptime",
+      "aiProctoring": "AI Proctoring",
+      "autoMonitor": "Giám sát tự động 24/7",
+      "blockchainVerified": "Blockchain Verified",
+      "certVerified": "100% chứng chỉ xác thực"
+    }
+  },
+  "stats": {
+    "students": "Học viên",
+    "courses": "Khóa học",
+    "exams": "Bài thi hoàn thành",
+    "rating": "Đánh giá",
+    "section": {
+      "activeStudents": "Học viên tích cực",
+      "qualityCourses": "Khóa học chất lượng",
+      "examsCompleted": "Bài thi đã hoàn thành",
+      "avgRating": "Đánh giá trung bình"
+    }
+  },
+  "features": {
+    "title": "Tại sao chọn IOES?",
+    "subtitle": "Nền tảng thi trực tuyến hiện đại với công nghệ tiên tiến",
+    "section": {
+      "highlight": "Tính năng nổi bật"
+    },
+    "ai": {
+      "title": "AI Assistant 24/7",
+      "desc": "Hệ thống gia sư thông minh hỗ trợ học tập mọi lúc"
+    },
+    "proctoring": {
+      "title": "Giám sát thi bằng AI",
+      "desc": "Giám sát thi tự động bằng công nghệ computer vision"
+    },
+    "certificate": {
+      "title": "Chứng chỉ Blockchain",
+      "desc": "Chứng chỉ chống giả mạo, xác thực toàn cầu"
+    },
+    "analytics": {
+      "title": "Phân tích thông minh",
+      "desc": "Báo cáo chi tiết giúp tối ưu hóa việc học"
+    },
+    "anytime": {
+      "title": "Thi mọi lúc mọi nơi",
+      "desc": "Thi trực tuyến 24/7 trên mọi thiết bị với giao diện responsive"
+    },
+    "security": {
+      "title": "Bảo mật tối đa",
+      "desc": "Mã hóa AES-256, xác thực 2 lớp, chống gian lận"
+    },
+    "multilang": {
+      "title": "Đa ngôn ngữ",
+      "desc": "Hỗ trợ tiếng Việt, tiếng Anh và 10+ ngôn ngữ khác"
+    },
+    "virtualClass": {
+      "title": "Lớp học ảo",
+      "desc": "Tạo lớp học, giao bài, chấm điểm tự động trong một nền tảng"
+    }
+  },
+  "courses": {
+    "title": "Học tập thông minh,",
+    "titleHighlight": "tiến bộ mỗi ngày",
+    "subtitle": "Hơn 2.000 khóa học chất lượng cao từ các chuyên gia hàng đầu.",
+    "explore": "Khám phá khóa học",
+    "all": "Tất cả",
+    "free": "Miễn phí",
+    "premium": "Premium",
+    "popular": "Phổ biến",
+    "newest": "Mới nhất",
+    "coursesOf": "khóa học",
+    "viewDetail": "Xem chi tiết",
+    "register": "Đăng ký",
+    "section": {
+      "featured": "Khóa học nổi bật",
+      "explore": "Khám phá khóa học được yêu thích",
+      "qualityCourses": "Hàng trăm khóa học chất lượng cao từ chuyên gia",
+      "viewAll": "Xem tất cả khóa học"
+    },
+    "badge": {
+      "new": "Mới",
+      "popular": "Phổ biến",
+      "pro": "PRO",
+      "free": "FREE"
+    }
+  },
+  "arena": {
+    "title": "Arena Thi đấu",
+    "subtitle": "Kiểm tra kiến thức với các kỳ thi thi đấu có giám sát bằng AI",
+    "competeTitle": "Tranh Giành Vị Trí TOP",
+    "competeDesc": "Thi đấu real-time với hàng ngàn thí sinh, leo rank mỗi ngày",
+    "joinNow": "Tham gia Arena ngay",
+    "leaderboard": "Bảng Xếp Hạng Live",
+    "live": "LIVE",
+    "points": "điểm",
+    "streak": "streak",
+    "challenges": "Thử Thách Đang Diễn Ra",
+    "participants": "người",
+    "join": "Tham gia",
+    "aiChallenge": "AI Master Challenge",
+    "aiChallengeDesc": "Hoàn thành 20 câu hỏi AI trong thời gian ngắn nhất",
+    "mathChallengeDesc": "Thi toán nhanh 50 câu, top 10 nhận thưởng",
+    "challengeTime1": "Còn 2h 15p",
+    "challengeTime2": "Còn 5h 30p"
+  },
+  "skillTree": {
+    "title": "Lộ trình học tập",
+    "subtitle": "Lộ trình học tập có cấu trúc từ người mới bắt đầu đến chuyên gia",
+    "startPath": "Bắt đầu lộ trình",
+    "buildTitle": "Xây Dựng Kỹ Năng Như Game RPG",
+    "buildDesc": "Mỗi kỹ năng là một \"skill\" bạn unlock khi hoàn thành bài học.",
+    "starter": "STARTER",
+    "completed": "Hoàn thành",
+    "inProgress": "Đang học",
+    "locked": "Locked",
+    "expert": "EXPERT",
+    "fullStackMaster": "Full Stack Master",
+    "legendaryTitle": "Legendary Title",
+    "achievements": {
+      "title": "Achievement Đã Mở Khóa",
+      "firstBlood": "Bài thi đầu tiên",
+      "streak7": "Học 7 ngày",
+      "speedDemon": "Hoàn thành dưới 5p",
+      "perfectScore": "100 điểm"
+    }
+  },
+  "aiMentor": {
+    "title": "AI Mentor",
+    "subtitle": "Gia sư AI cá nhân có sẵn 24/7 để trả lời câu hỏi",
+    "chatTitle": "Trò Chuyện Với AI Mentor 24/7",
+    "chatDesc": "Giống như có một giáo viên riêng bên cạnh bạn mọi lúc, trả lời ngay lập tức",
+    "online": "Online • Trả lời trong 2s",
+    "welcomeMsg": "Xin chào! Mình là Emma, AI Mentor của bạn. Bạn đang gặp khó khăn gì về bài học hôm nay? Mình có thể giúp bạn giải thích khái niệm, giải bài tập, hoặc tạo quiz ôn tập nhé!",
+    "justNow": "Vừa xong",
+    "userQuestion": "Emma ơi, giải thích giúp mình về Neural Network trong AI đi!",
+    "aiResponse1": "Tất nhiên rồi! Neural Network (Mạng Neural) hoạt động giống như não bộ con người:",
+    "aiResponse2": "Bạn muốn mình tạo một quiz 5 câu để ôn tập không?",
+    "typing": "Đang trả lời...",
+    "createQuiz": "Tạo Quiz",
+    "explain": "Giải thích bài",
+    "analyze": "Phân tích lỗi",
+    "review": "Ôn tập chủ đề",
+    "placeholder": "Hỏi AI Mentor bất cứ điều gì...",
+    "send": "Gửi",
+    "tryNow": "Trải Nghiệm AI Mentor Ngay",
+    "neuron": "Neuron",
+    "neuronDesc": "Mỗi node nhận data, xử lý",
+    "layers": "Layers",
+    "layersDesc": "Input → Hidden → Output",
+    "weights": "Weights",
+    "weightsDesc": "Độ quan trọng kết nối"
+  },
+  "testimonials": {
+    "title": "Đánh giá",
+    "heading": "Học viên nói gì về IOES",
+    "subtitle": "Những trải nghiệm thực tế từ cộng đồng học viên",
+    "studentRole": "Sinh viên CNTT - ĐH Bách Khoa",
+    "studentContent": "\"IOES đã thay đổi hoàn toàn cách tôi tiếp cận việc học trực tuyến.\"",
+    "teacherRole": "Giảng viên - Trường ĐH FPT",
+    "teacherContent": "\"AI chatbot hỗ trợ học viên rất hiệu quả.\"",
+    "alumniRole": "Cựu sinh viên - Kinh tế",
+    "alumniContent": "\"Chứng chỉ blockchain giúp tôi tự tin hơn khi ứng tuyển.\""
+  },
+  "cta": {
+    "home": {
+      "title": "Sẵn sàng tham gia cùng IOES?",
+      "subtitle": "Đăng ký ngay hôm nay và bắt đầu hành trình học tập của bạn.",
+      "button": "Bắt đầu miễn phí",
+      "contactSales": "Liên hệ sales"
+    },
+    "courses": {
+      "title": "Sẵn sàng bắt đầu học tập?",
+      "subtitle": "Đăng ký miễn phí ngay hôm nay và nhận ưu đãi 50%.",
+      "button": "Đăng ký miễn phí"
+    },
+    "about": {
+      "title": "Sẵn sàng tham gia cùng IOES?",
+      "subtitle": "Đăng ký ngay hôm nay và bắt đầu hành trình học tập của bạn.",
+      "button": "Bắt đầu miễn phí"
+    }
+  },
+  "about": {
+    "title": "Về chúng tôi",
+    "hero": {
+      "title": "Khám phá câu chuyện IOES",
+      "desc": "Chúng tôi xây dựng nền tảng thi trực tuyến thông minh, giúp hàng triệu học viên và giáo viên kết nối, học tập và phát triển."
+    },
+    "heroTitle": "Khám phá câu chuyện IOES",
+    "heroDesc": "Chúng tôi xây dựng nền tảng thi trực tuyến thông minh.",
+    "storyTitle": "Câu chuyện của IOES",
+    "story": {
+      "title": "Câu chuyện của IOES",
+      "desc1": "IOES - Intelligent Online Examination System được thành lập vào năm 2020 với sứ mệnh mang đến giải pháp thi trực tuyến thông minh cho các tổ chức giáo dục.",
+      "desc2": "Từ một dự án khởi nghiệp nhỏ, chúng tôi đã phát triển thành nền tảng hàng đầu với hơn 500.000 học viên và 2.000 khóa học chất lượng cao.",
+      "desc3": "Đội ngũ của chúng tôi gồm các chuyên gia về AI, giáo dục và công nghệ, luôn không ngừng sáng tạo để mang đến trải nghiệm tốt nhất cho người dùng."
+    },
+    "storyDesc1": "IOES được thành lập vào năm 2020 với sứ mệnh mang đến giải pháp thi trực tuyến thông minh.",
+    "storyDesc2": "Từ một dự án khởi nghiệp nhỏ, chúng tôi đã phát triển thành nền tảng hàng đầu.",
+    "storyDesc3": "Đội ngũ của chúng tôi gồm các chuyên gia về AI, giáo dục và công nghệ.",
+    "mission": "Sứ mệnh",
+    "missionLabel": "Sứ mệnh",
+    "vision": "Tầm nhìn & Sứ mệnh",
+    "visionDesc": "Chúng tôi cam kết mang đến giáo dục công bằng và chất lượng cho tất cả mọi người.",
+    "values": "Giá trị cốt lõi",
+    "valuesTitle": "Những giá trị định hướng",
+    "valuesSubtitle": "6 giá trị cốt lõi là kim chỉ nam cho mọi hoạt động của IOES.",
+    "team": "Đội ngũ",
+    "teamTitle": "Gặp gỡ đội ngũ IOES",
+    "teamDesc": "Đội ngũ lãnh đạo giàu kinh nghiệm và tâm huyết với giáo dục.",
+    "timelineLabel": "Hành trình",
+    "timelineTitle": "Lịch sử phát triển",
+    "timelineDesc": "Những cột mốc quan trọng trong hành trình xây dựng IOES.",
+    "missions": {
+      "global": {
+        "title": "Kết nối toàn cầu",
+        "desc": "Xây dựng cộng đồng học tập không biên giới."
+      },
+      "innovation": {
+        "title": "Đổi mới sáng tạo",
+        "desc": "Ứng dụng trí tuệ nhân tạo và công nghệ tiên tiến."
+      },
+      "quality": {
+        "title": "Chất lượng & An toàn",
+        "desc": "Đảm bảo tính công bằng, bảo mật và độ tin cậy cao nhất."
+      }
+    },
+    "valuesData": {
+      "quality": {
+        "title": "Chất lượng",
+        "desc": "Không ngừng nâng cao chất lượng sản phẩm và dịch vụ."
+      },
+      "collaboration": {
+        "title": "Hợp tác",
+        "desc": "Xây dựng mối quan hệ đối tác bền vững và tin cậy."
+      },
+      "innovation": {
+        "title": "Đổi mới",
+        "desc": "Luôn tiên phong trong việc ứng dụng công nghệ mới."
+      },
+      "transparency": {
+        "title": "Minh bạch",
+        "desc": "Hoạt động công khai, trung thực và có trách nhiệm."
+      }
+    },
+    "timeline": {
+      "2020": {
+        "title": "Thành lập IOES",
+        "desc": "Dự án khởi nghiệp được khởi động với 3 thành viên."
+      },
+      "2021": {
+        "title": "Ra mắt phiên bản đầu tiên",
+        "desc": "Hoàn thành MVP và có 10.000 học viên đầu tiên."
+      },
+      "2022": {
+        "title": "Tích hợp AI",
+        "desc": "Ra mắt tính năng chấm điểm tự động bằng AI."
+      },
+      "2023": {
+        "title": "Mở rộng quốc tế",
+        "desc": "Bắt đầu phục vụ học viên tại 5 quốc gia Đông Nam Á."
+      },
+      "2024": {
+        "title": "Đạt 500.000 học viên",
+        "desc": "Trở thành nền tảng thi trực tuyến hàng đầu."
+      }
+    }
+  },
+  "contact": {
+    "title": "Liên hệ với chúng tôi",
+    "hero": {
+      "title": "Chúng tôi luôn sẵn sàng lắng nghe bạn",
+      "desc": "Bạn có câu hỏi, góp ý hoặc cần hỗ trợ? Đội ngũ IOES luôn sẵn sàng giúp đỡ bạn 24/7."
+    },
+    "heroTitle": "Chúng tôi luôn sẵn sàng lắng nghe bạn",
+    "heroDesc": "Bạn có câu hỏi, góp ý hoặc cần hỗ trợ? Đội ngũ IOES luôn sẵn sàng giúp đỡ bạn 24/7.",
+    "infoTitle": "Thông tin liên hệ",
+    "infoDesc": "Hãy liên hệ với chúng tôi qua bất kỳ kênh nào dưới đây.",
+    "address": "Địa chỉ văn phòng",
+    "addressValue": "Tầng 15, Tòa nhà ABC Tower, 123 Nguyễn Huệ, Quận 1, TP.HCM",
+    "hotline": "Hotline",
+    "hotlineValue": "1900 1234 (8:00 - 22:00)\nHỗ trợ kỹ thuật: 1900 5678",
+    "email": "Email",
+    "emailValue": "contact@ioes.edu.vn\nsupport@ioes.edu.vn",
+    "hours": "Giờ làm việc",
+    "hoursValue": "Thứ 2 - Thứ 6: 8:00 - 18:00\nThứ 7: 9:00 - 12:00",
+    "connect": "Kết nối với chúng tôi",
+    "formTitle": "Gửi tin nhắn cho chúng tôi",
+    "formName": "Họ và tên *",
+    "formNamePlaceholder": "Nhập họ và tên",
+    "formEmail": "Email *",
+    "formEmailPlaceholder": "email@example.com",
+    "formPhone": "Số điện thoại",
+    "formPhonePlaceholder": "0912 345 678",
+    "formTopic": "Chủ đề *",
+    "formTopicPlaceholder": "Chọn chủ đề",
+    "formTopicSupport": "Hỗ trợ kỹ thuật",
+    "formTopicSales": "Tư vấn dịch vụ",
+    "formTopicFeedback": "Góp ý sản phẩm",
+    "formTopicPartnership": "Hợp tác kinh doanh",
+    "formTopicOther": "Khác",
+    "formMessage": "Nội dung tin nhắn *",
+    "formMessagePlaceholder": "Mô tả chi tiết vấn đề hoặc câu hỏi của bạn...",
+    "formSubmit": "Gửi tin nhắn",
+    "ctaTitle": "Bạn cần hỗ trợ ngay?",
+    "ctaDesc": "Gọi ngay hotline 1900 1234 để được tư vấn miễn phí."
+  },
+  "faq": {
+    "support": {
+      "title": "Tôi có thể liên hệ hỗ trợ qua kênh nào?",
+      "desc": "Bạn có thể liên hệ qua hotline 1900 1234, email support@ioes.edu.vn, hoặc chat trực tiếp trên website."
+    },
+    "response": {
+      "title": "Thời gian phản hồi là bao lâu?",
+      "desc": "Chúng tôi cam kết phản hồi email trong vòng 24 giờ làm việc."
+    },
+    "partnership": {
+      "title": "Làm thế nào để trở thành đối tác của IOES?",
+      "desc": "Hãy gửi email đến partnership@ioes.edu.vn hoặc điền vào form liên hệ."
+    },
+    "technical": {
+      "title": "Tôi gặp lỗi kỹ thuật thì báo cáo ở đâu?",
+      "desc": "Bạn có thể báo cáo qua email support@ioes.edu.vn hoặc gọi hotline kỹ thuật 1900 5678."
+    }
+  },
+  "footer": {
+    "quickLinks": "Liên kết nhanh",
+    "courses": "Khóa học",
+    "exams": "Kỳ thi",
+    "certificates": "Chứng chỉ",
+    "verifyCertificate": "Xác minh chứng chỉ",
+    "pricing": "Bảng giá",
+    "api": "API",
+    "docs": "Tài liệu",
+    "support": "Hỗ trợ",
+    "helpCenter": "Trung tâm trợ giúp",
+    "faq": "Câu hỏi thường gặp",
+    "contact": "Liên hệ",
+    "community": "Cộng đồng",
+    "company": "Công ty",
+    "about": "Về chúng tôi",
+    "careers": "Tuyển dụng",
+    "blog": "Blog",
+    "press": "Báo chí",
+    "legal": "Pháp lý",
+    "privacy": "Chính sách bảo mật",
+    "terms": "Điều khoản sử dụng",
+    "cookies": "Chính sách cookie",
+    "copyright": "© 2024 IOES. Mọi quyền được bảo lưu."
+  },
+  "branding": {
+    "login": {
+      "title": "Nền tảng thi trực tuyến",
+      "title2": "thông minh hàng đầu",
+      "desc": "IOES tích hợp AI tiên tiến, giám sát thi bằng Computer Vision, và xác thực bằng Blockchain.",
+      "feature1": "AI Assistant 24/7 hỗ trợ học tập",
+      "feature2": "Giám sát thi tự động bằng AI",
+      "feature3": "Chứng chỉ được xác thực Blockchain",
+      "noAccount": "Bạn chưa có tài khoản?",
+      "signUp": "Đăng ký ngay",
+      "testimonial": "\"IOES đã giúp quá trình đào tạo nhân viên của chúng tôi trở nên hiệu quả hơn rất nhiều.\"",
+      "testimonialAuthor": "Hoàng Trung",
+      "testimonialRole": "HR Director, TechCorp",
+      "backHome": "Quay lại trang chủ"
+    },
+    "register": {
+      "title": "Nền tảng thi trực tuyến thông minh hàng đầu",
+      "desc": "IOES tích hợp AI tiên tiến, giám sát thi bằng Computer Vision, và xác thực bằng Blockchain.",
+      "feature1": "Tiếp cận 500+ khóa học chất lượng cao",
+      "feature2": "Chứng chỉ có giá trị toàn cầu",
+      "feature3": "Kết nối với 10,000+ người học",
+      "hasAccount": "Đã có tài khoản?",
+      "signIn": "Đăng nhập ngay",
+      "testimonial": "\"Sau khi đăng ký, tôi đã nâng cao kỹ năng lập trình của mình nhanh chóng.\"",
+      "testimonialAuthor": "Minh Linh",
+      "testimonialRole": "Software Engineer, Startup"
+    }
+  },
+  "theme": {
+    "light": "Giao diện sáng",
+    "dark": "Giao diện tối",
+    "system": "Theo hệ thống"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "myCourses": "Khóa học của tôi",
+    "myExams": "Bài thi của tôi",
+    "progress": "Tiến độ",
+    "certificates": "Chứng chỉ",
+    "settings": "Cài đặt",
+    "profile": "Hồ sơ",
+    "createCourse": "Tạo khóa học",
+    "grading": "Chấm điểm",
+    "analytics": "Phân tích",
+    "users": "Người dùng",
+    "courses": "Khóa học",
+    "approval": "Phê duyệt khóa học",
+    "role": {
+      "instructor": "Giảng viên",
+      "student": "Học viên",
+      "admin": "Quản trị viên",
+      "super_admin": "Super Admin"
+    }
+  },
+  "header": {
+    "search": "Tìm kiếm...",
+    "toggleTheme": "Chuyển giao diện",
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt",
+    "logout": "Đăng xuất",
+    "notifications": "Thông báo"
+  },
+  "student": {
+    "tokenWallet": {
+      "title": "Ví Token",
+      "subtitle": "Quản lý token thưởng, đổi quà và theo dõi lịch sử giao dịch",
+      "actions": {
+        "transfer": "Chuyển token",
+        "earnMore": "Cách kiếm thêm",
+        "browseMarket": "Danh mục đổi thưởng",
+        "inviteFriends": "Mời bạn bè"
+      },
+      "stats": {
+        "currentBalance": "Số dư hiện tại",
+        "lifetimeEarned": "Tổng đã kiếm",
+        "lifetimeSpent": "Tổng đã chi",
+        "pending": "Phần thưởng chờ"
+      },
+      "tabs": {
+        "overview": "Tổng quan",
+        "earn": "Kiếm token",
+        "spend": "Đổi thưởng",
+        "history": "Lịch sử"
+      },
+      "recentTransactions": "Giao dịch gần đây",
+      "quickActions": "Thao tác nhanh",
+      "tokens": "token",
+      "tokensPerAction": "token/lần",
+      "redeem": "Đổi ngay",
+      "locked": "Chưa đủ điều kiện",
+      "earn": {
+        "lesson": "Hoàn thành bài học",
+        "exam": "Vượt qua bài thi",
+        "streak7": "Chuỗi 7 ngày",
+        "streak30": "Chuỗi 30 ngày",
+        "review": "Viết đánh giá hữu ích",
+        "referral": "Mời bạn bè tham gia"
+      },
+      "earnDesc": {
+        "lessonDesc": "Mỗi bài học hoàn thành",
+        "examDesc": "Mỗi bài thi đạt yêu cầu",
+        "streak7Desc": "Học liên tục 7 ngày",
+        "streak30Desc": "Học liên tục 30 ngày",
+        "reviewDesc": "Mỗi đánh giá được đánh dấu hữu ích",
+        "referralDesc": "Mỗi bạn bè đăng ký qua link giới thiệu"
+      },
+      "spend": {
+        "premiumCourse": "Khóa học Premium",
+        "premiumCourseDesc": "Mở khóa một khóa học bất kỳ trong thư viện Premium",
+        "physicalCert": "Khung chứng chỉ vật lý",
+        "physicalCertDesc": "In và đóng khung chứng chỉ hoàn thành khóa học",
+        "mentorSession": "Phiên mentoring 1:1",
+        "mentorSessionDesc": "30 phút tư vấn với mentor cấp cao",
+        "profileFrame": "Khung hồ sơ độc quyền",
+        "profileFrameDesc": "Trang trí avatar với khung viền đặc biệt",
+        "featuredWeek": "Hiển thị nổi bật 1 tuần",
+        "featuredWeekDesc": "Đẩy hồ sơ lên đầu bảng xếp hạng tuần",
+        "donateOSS": "Ủng hộ Open Source",
+        "donateOSSDesc": "Đóng góp cho các dự án mã nguồn mở"
+      },
+      "spendCategory": {
+        "course": "Khóa học",
+        "cosmetic": "Trang trí",
+        "certificate": "Chứng chỉ",
+        "donation": "Quyên góp"
+      },
+      "category": {
+        "lesson": "Bài học",
+        "exam": "Bài thi",
+        "streak": "Chuỗi ngày",
+        "review": "Đánh giá",
+        "course": "Khóa học",
+        "certificate": "Chứng chỉ",
+        "avatar": "Hồ sơ",
+        "donation": "Quyên góp",
+        "bonus": "Thưởng",
+        "referral": "Giới thiệu"
+      },
+      "type": {
+        "earn": "Nhận",
+        "spend": "Chi"
+      },
+      "table": {
+        "date": "Ngày",
+        "type": "Loại",
+        "description": "Mô tả",
+        "amount": "Số lượng",
+        "balance": "Số dư"
+      },
+      "pagination": {
+        "prev": "Trước",
+        "next": "Sau",
+        "range": "Hiển thị {{from}} - {{to}} trong tổng {{total}}",
+        "pageSize": "Hiển thị",
+        "perPage": "mỗi trang"
+      }
+    },
+    "streak": {
+      "title": "Chuỗi học tập",
+      "subtitle": "Theo dõi chuỗi học tập hàng ngày, thành tích và lịch sử hoạt động",
+      "actions": {
+        "useFreeze": "Sử dụng đóng băng"
+      },
+      "currentStreak": "Chuỗi hiện tại",
+      "bestStreak": "Chuỗi tốt nhất",
+      "toNextMilestone": "Đến mốc tiếp theo",
+      "daysInRow": "ngày liên tục",
+      "daysUntil": "ngày nữa để đạt",
+      "personalRecord": "Kỷ lục cá nhân",
+      "allAchieved": "Bạn đã đạt tất cả các mốc!",
+      "freezeTitle": "Đóng băng chuỗi",
+      "freezeDesc": "Bạn có {{count}} lượt đóng băng chuỗi. Dùng khi bạn cần nghỉ một ngày mà không làm đứt chuỗi.",
+      "activityTitle": "Bản đồ hoạt động",
+      "activitySubtitle": "365 ngày qua",
+      "less": "Ít",
+      "more": "Nhiều",
+      "monthJan": "T1",
+      "monthFeb": "T2",
+      "monthMar": "T3",
+      "monthApr": "T4",
+      "monthMay": "T5",
+      "monthJun": "T6",
+      "monthJul": "T7",
+      "monthAug": "T8",
+      "dowMon": "T2",
+      "dowWed": "T4",
+      "dowFri": "T6",
+      "weekMon": "T2",
+      "weekTue": "T3",
+      "weekWed": "T4",
+      "weekThu": "T5",
+      "weekFri": "T6",
+      "weekSat": "T7",
+      "weekSun": "CN",
+      "weeklyTitle": "Biểu đồ tuần",
+      "last7Days": "7 ngày qua",
+      "monthlyTitle": "Tổng quan tháng",
+      "lastYear": "Cả năm qua",
+      "outOf365": "/ 365 ngày",
+      "monthlyStats": {
+        "daysActive": "Ngày hoạt động",
+        "studyTime": "Tổng giờ học",
+        "lessons": "Bài học",
+        "exams": "Bài thi đậu"
+      },
+      "achievementsTitle": "Mốc thành tích",
+      "achieved": "Hoàn thành",
+      "completedAt": "Đã đạt mốc {{count}} ngày",
+      "continueTo": "Tiếp tục đến {{count}} ngày",
+      "m7": "Tuần lễ may mắn",
+      "m30": "Tháng kiên trì",
+      "m100": "100 ngày huyền thoại",
+      "m365": "Năm vàng"
+    },
+    "becomeInstructor": {
+      "title": "Trở thành Giảng viên",
+      "subtitle": "Đăng ký giảng dạy trên IOES và chia sẻ kiến thức của bạn với hàng nghìn người học",
+      "statusPending": "Hồ sơ của bạn đang được xét duyệt",
+      "statusPendingDesc": "Đội ngũ của chúng tôi đang xem xét hồ sơ. Bạn sẽ nhận được phản hồi trong 3-5 ngày làm việc.",
+      "statusRejected": "Hồ sơ trước đó chưa được duyệt",
+      "statusRejectedDesc": "Bạn có thể đăng ký lại với thông tin bổ sung hoặc chứng chỉ cập nhật.",
+      "sectionProfile": "Thông tin cá nhân",
+      "sectionExpertise": "Chuyên môn & Kinh nghiệm",
+      "sectionDocuments": "Hồ sơ & Động lực",
+      "field": {
+        "fullName": "Họ và tên",
+        "email": "Email",
+        "department": "Khoa/Bộ môn",
+        "yearsExp": "Số năm kinh nghiệm",
+        "specializations": "Chuyên môn",
+        "specializationsHint": "Nhấn Enter để thêm tag. Tối đa 8.",
+        "addTagPlaceholder": "Nhập tag và nhấn Enter...",
+        "bio": "Giới thiệu về bạn",
+        "bioHint": "Một đoạn ngắn sẽ hiển thị trên trang giảng viên của bạn.",
+        "bioPlaceholder": "Kể cho người học về nền tảng, phong cách giảng dạy và điều bạn yêu thích ở lĩnh vực của mình...",
+        "cv": "Tải lên CV của bạn",
+        "cvHint": "PDF, DOC hoặc DOCX tối đa 5MB.",
+        "portfolio": "Portfolio / LinkedIn",
+        "portfolioPlaceholder": "https://portfolio-cua-ban.com",
+        "motivation": "Tại sao bạn muốn giảng dạy trên IOES?",
+        "motivationHint": "Vài câu ngắn — chúng tôi sẽ gửi tới hội đồng xét duyệt.",
+        "motivationPlaceholder": "Điều gì khiến bạn hứng thú với việc dạy online? Khóa học lý tưởng của bạn là gì?"
+      },
+      "suggestions": "Gợi ý",
+      "cvDragDrop": "Kéo thả CV vào đây, hoặc nhấp để chọn file",
+      "cvFormats": "PDF, DOC, DOCX — tối đa 5MB",
+      "saveDraft": "Lưu nháp",
+      "submit": "Gửi hồ sơ",
+      "submitting": "Đang gửi...",
+      "modalTitle": "Đã gửi hồ sơ!",
+      "modalDesc": "Cảm ơn bạn đã đăng ký. Hội đồng xét duyệt sẽ phản hồi trong 3-5 ngày làm việc.",
+      "modalTimeline": "Thời gian phản hồi trung bình: 2.8 ngày",
+      "modalClose": "Đã hiểu",
+      "benefitsTitle": "Vì sao nên giảng dạy trên IOES?",
+      "benefitsSubtitle": "Lợi ích thực tế cho giảng viên",
+      "benefit1Title": "Nhận đến 70% doanh thu",
+      "benefit1Desc": "Giữ phần lớn doanh thu từ mỗi lượt đăng ký trả phí, thanh toán minh bạch.",
+      "benefit2Title": "Tiếp cận hàng nghìn người học",
+      "benefit2Desc": "Tham gia cộng đồng hơn 500K+ học viên ở hơn 10 quốc gia.",
+      "benefit3Title": "Cấp chứng chỉ tích hợp",
+      "benefit3Desc": "Tự động phát hành chứng chỉ xác minh trên blockchain cho học viên của bạn.",
+      "benefit4Title": "Phân tích mạnh mẽ",
+      "benefit4Desc": "Theo dõi tương tác, tỷ lệ hoàn thành và doanh thu theo thời gian thực.",
+      "faqTitle": "Câu hỏi thường gặp",
+      "faqSubtitle": "Giải đáp nhanh trước khi đăng ký",
+      "faq1Q": "Quá trình xét duyệt mất bao lâu?",
+      "faq1A": "Đội ngũ chúng tôi thường xét duyệt hồ sơ trong 3-5 ngày làm việc. Bạn sẽ nhận email ngay khi có quyết định.",
+      "faq2Q": "Yêu cầu tối thiểu là gì?",
+      "faq2A": "Bạn cần ít nhất 2 năm kinh nghiệm chuyên môn hoặc giảng dạy, kèm theo minh chứng rõ ràng (portfolio, chứng chỉ hoặc sản phẩm thực tế).",
+      "faq3Q": "Nếu tôi vẫn là sinh viên thì có đăng ký được không?",
+      "faq3A": "Có — sinh viên xuất sắc với portfolio mạnh đều được chào đón. Hãy làm nổi bật hoạt động giảng dạy, mentoring hoặc đóng góp open-source trong hồ sơ."
+    },
+    "ocr": {
+      "title": "Công cụ OCR",
+      "subtitle": "Trích xuất văn bản từ tài liệu, chữ viết tay, hóa đơn và giấy tờ tùy thân bằng AI",
+      "howItWorks": "Cách hoạt động",
+      "upload": "Tải lên",
+      "modeLabel": "Chế độ nhận dạng",
+      "langLabel": "Ngôn ngữ",
+      "modes": {
+        "document": "Tài liệu",
+        "handwriting": "Chữ viết tay",
+        "receipt": "Hóa đơn",
+        "idcard": "CMND / CCCD"
+      },
+      "langs": {
+        "vi": "Tiếng Việt",
+        "en": "Tiếng Anh"
+      },
+      "dropzone": {
+        "title": "Kéo thả tệp vào đây",
+        "desc": "Hỗ trợ JPG, PNG, PDF — tối đa 10MB mỗi tệp. Hệ thống sẽ tự động phát hiện văn bản và trả về kết quả chỉ trong vài giây.",
+        "browse": "Chọn tệp từ máy",
+        "formats": "Định dạng hỗ trợ: JPG, PNG, PDF, TIFF · Tối đa 10MB"
+      },
+      "preview": {
+        "original": "Ảnh gốc",
+        "extracted": "Văn bản trích xuất",
+        "avgConfidence": "Độ chính xác TB {{value}}%"
+      },
+      "actions": {
+        "copy": "Sao chép",
+        "downloadTxt": "Tải TXT",
+        "downloadDocx": "Tải DOCX",
+        "translate": "Dịch",
+        "rescan": "Quét lại"
+      },
+      "confidence": {
+        "high": "Rất cao",
+        "good": "Tốt",
+        "fair": "Trung bình",
+        "low": "Thấp"
+      },
+      "history": {
+        "title": "Lịch sử OCR",
+        "subtitle": "Các lần quét gần đây của bạn",
+        "viewAll": "Xem tất cả",
+        "success": "Thành công",
+        "failed": "Thất bại",
+        "lines": "{{count}} dòng"
+      }
+    },
+    "dashboard": {
+      "title": "Bảng điều khiển",
+      "subtitle": "Chào mừng trở lại, tiếp tục hành trình học tập của bạn",
+      "review": "Ôn tập",
+      "continueLearning": "Tiếp tục học",
+      "welcomeGreeting": "Chào buổi sáng",
+      "welcomeTitle": "Chào buổi chiều",
+      "continueWhereLeft": "Tiếp tục nơi bạn đang học",
+      "viewAll": "Xem tất cả",
+      "noNextLesson": "Chưa có bài học tiếp theo",
+      "lessons": "bài học",
+      "upcomingExams": "Bài thi sắp tới",
+      "weeklyStudy": "Thời gian học tuần này",
+      "achievements": "Thành tích",
+      "stats": {
+        "enrolled": "Khóa học đã đăng ký",
+        "inProgress": "Đang học",
+        "completed": "Đã hoàn thành",
+        "certificates": "Chứng chỉ",
+        "studyHours": "Giờ học"
+      }
+    },
+    "exams": {
+      "title": "Bài thi",
+      "subtitle": "Quản lý các bài thi và lịch thi của bạn",
+      "startBtn": "Bắt đầu",
+      "resumeBtn": "Tiếp tục",
+      "status": {
+        "upcoming": "Sắp tới",
+        "available": "Có thể làm",
+        "in_progress": "Đang làm",
+        "completed": "Hoàn thành",
+        "missed": "Đã bỏ lỡ"
+      },
+      "filter": {
+        "all": "Tất cả",
+        "upcoming": "Sắp tới",
+        "available": "Có thể làm",
+        "completed": "Hoàn thành",
+        "missed": "Đã bỏ lỡ",
+        "in_progress": "Đang làm"
+      },
+      "searchPlaceholder": "Tìm bài thi...",
+      "empty": "Không có bài thi nào.",
+      "duration": "phút",
+      "attempts": "{{done}}/{{max}} lần",
+      "bestScore": "Điểm cao nhất",
+      "viewResult": "Xem kết quả",
+      "pagination": {
+        "range": "{{from}}-{{to}} / {{total}}",
+        "prev": "Trước",
+        "next": "Sau",
+        "pageSize": "Hiển thị",
+        "perPage": "/ trang"
+      },
+      "stats": {
+        "avgScore": "Điểm trung bình",
+        "total": "Tổng bài thi",
+        "upcoming": "Sắp tới",
+        "completed": "Đã hoàn thành"
+      },
+      "sort": {
+        "recent": "Mới nhất",
+        "score": "Điểm cao nhất"
+      },
+      "type": {
+        "midterm": "Giữa kỳ",
+        "final": "Cuối kỳ",
+        "quiz": "Trắc nghiệm",
+        "practice": "Luyện tập"
+      }
+    },
+    "profile": {
+      "title": "Hồ sơ cá nhân",
+      "subtitle": "Quản lý thông tin tài khoản và hoạt động của bạn",
+      "achievements": {
+        "first_course": "Khóa học đầu tiên",
+        "streak_7": "Chuỗi 7 ngày",
+        "streak_30": "Chuỗi 30 ngày",
+        "top_10": "Top 10",
+        "perfect_score": "Điểm tuyệt đối",
+        "fast_learner": "Học nhanh"
+      },
+      "tabs": {
+        "overview": "Tổng quan",
+        "edit": "Chỉnh sửa",
+        "achievements": "Thành tích",
+        "security": "Bảo mật"
+      },
+      "stats": {
+        "courses": "Khóa học",
+        "certificates": "Chứng chỉ",
+        "points": "Điểm",
+        "streak": "Chuỗi ngày"
+      },
+      "fields": {
+        "fullName": "Họ và tên",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "studentId": "Mã sinh viên",
+        "department": "Khoa/Ngành",
+        "bio": "Giới thiệu"
+      },
+      "save": "Lưu thay đổi",
+      "saved": "Đã lưu"
+    },
+    "nav": {
+      "overview": "Tổng quan",
+      "dashboard": "Bảng điều khiển",
+      "myCourses": "Khóa học của tôi",
+      "myExams": "Bài thi của tôi",
+      "learningPath": "Lộ trình học",
+      "community": "Cộng đồng",
+      "leaderboard": "Bảng xếp hạng",
+      "discussions": "Thảo luận",
+      "messages": "Tin nhắn",
+      "practice": "Luyện tập",
+      "practiceQuiz": "Trắc nghiệm",
+      "recommendations": "Gợi ý",
+      "aiAssistant": "Trợ lý AI",
+      "search": "Tìm kiếm",
+      "tools": "Công cụ",
+      "tokenWallet": "Ví token",
+      "ocr": "OCR quét đề",
+      "speechToText": "Speech to Text",
+      "streak": "Streak học tập",
+      "account": "Tài khoản",
+      "certificates": "Chứng chỉ",
+      "notifications": "Thông báo",
+      "profile": "Hồ sơ",
+      "settings": "Cài đặt"
+    },
+    "courses": {
+      "title": "Khóa học",
+      "subtitle": "Khám phá và tiếp tục các khóa học của bạn",
+      "browseAll": "Duyệt tất cả khóa học",
+      "stats": {
+        "total": "Tổng số",
+        "inProgress": "Đang học",
+        "completed": "Đã hoàn thành",
+        "notStarted": "Chưa bắt đầu"
+      },
+      "searchPlaceholder": "Tìm kiếm khóa học...",
+      "sort": {
+        "recent": "Mới nhất",
+        "progress": "Tiến độ",
+        "title": "Tên A-Z"
+      },
+      "filter": {
+        "all": "Tất cả",
+        "in_progress": "Đang học",
+        "completed": "Đã hoàn thành",
+        "not_started": "Chưa bắt đầu"
+      },
+      "empty": "Bạn chưa đăng ký khóa học nào.",
+      "reviewBtn": "Đánh giá",
+      "startBtn": "Bắt đầu học",
+      "continueBtn": "Tiếp tục học",
+      "pagination": {
+        "range": "{{from}}-{{to}} / {{total}}",
+        "prev": "Trước",
+        "next": "Sau",
+        "pageSize": "Hiển thị",
+        "perPage": "/ trang"
+      }
+    },
+    "courseDetail": {
+      "about": "Tổng quan",
+      "curriculum": "Chương trình",
+      "reviews": "Đánh giá",
+      "discussions": "Thảo luận khóa học",
+      "students": "học viên",
+      "continueBtn": "Tiếp tục học",
+      "duration": "Thời lượng",
+      "hours": "giờ",
+      "lessonsCount": "{{count}} bài học",
+      "level": "Trình độ",
+      "language": "Ngôn ngữ",
+      "lastUpdated": "Cập nhật",
+      "instructor": "Giảng viên",
+      "instructorRole": "Giảng viên",
+      "whatYouLearn": "Bạn sẽ học được",
+      "requirements": "Yêu cầu",
+      "section": "Phần",
+      "minutes": "phút",
+      "preview": "Xem trước"
+    },
+    "learn": {
+      "lesson": "Bài học",
+      "of": "trên",
+      "backToCourse": "Quay lại khóa học",
+      "progress": "Tiến độ",
+      "current": "Hiện tại",
+      "videoControls": {
+        "speed": "Tốc độ",
+        "quality": "Chất lượng",
+        "subtitle": "Phụ đề",
+        "subtitleLang": "Ngôn ngữ phụ đề"
+      },
+      "meta": {
+        "views": "lượt xem",
+        "daysAgo": "ngày trước"
+      },
+      "completed": "Đã hoàn thành",
+      "actions": {
+        "markWatched": "Đánh dấu đã xem",
+        "nextLesson": "Bài học tiếp theo"
+      },
+      "transcript": {
+        "title": "Phụ đề & Bản dịch",
+        "tabSubtitle": "Phụ đề",
+        "tabTranscript": "Bản ghi",
+        "tabTranslate": "Dịch"
+      },
+      "aiSummary": {
+        "badge": "AI",
+        "title": "Tóm tắt bằng AI"
+      }
+    },
+    "examTaking": {
+      "examLabel": "Bài thi",
+      "courseName": "Khóa học",
+      "timeLeft": "Thời gian còn",
+      "proctoring": "Đang giám sát",
+      "submit": "Nộp bài",
+      "question": "Câu hỏi",
+      "of": "/",
+      "pointsUnit": "điểm",
+      "prev": "Câu trước",
+      "flag": "Đánh dấu",
+      "next": "Câu tiếp",
+      "cameraTitle": "Camera giám sát",
+      "cameraLive": "TRỰC TIẾP",
+      "cameraRecording": "Đang ghi",
+      "attentionTitle": "Cảnh báo tập trung",
+      "attentionGreat": "Bạn đang tập trung tốt!",
+      "attentionDesc": "Hệ thống ghi nhận bạn đang nhìn vào màn hình.",
+      "attentionAlert": "Cảnh báo: Vui lòng nhìn vào màn hình.",
+      "navigator": "Danh sách câu hỏi",
+      "summaryAnswered": "Đã trả lời",
+      "summaryUnanswered": "Chưa trả lời",
+      "summaryFlagged": "Đã đánh dấu",
+      "rulesTitle": "Quy tắc làm bài",
+      "submitConfirmTitle": "Xác nhận nộp bài",
+      "submitConfirmDesc": "Bạn có chắc muốn nộp bài? Sau khi nộp không thể thay đổi.",
+      "answeredStat": "đã trả lời",
+      "unansweredStat": "chưa trả lời",
+      "flaggedStat": "đã đánh dấu",
+      "warning": "{{count}} cảnh báo",
+      "submitContinue": "Tiếp tục làm",
+      "submitFinal": "Nộp bài",
+      "noLooking": "Không nhìn ra ngoài",
+      "noPhone": "Không sử dụng điện thoại",
+      "noMultiple": "Một người một thiết bị",
+      "rule1": "Luôn nhìn vào màn hình làm bài",
+      "rule2": "Đảm bảo ánh sáng phòng đủ",
+      "rule3": "Không thoát ra khỏi trang thi",
+      "rule4": "Không trao đổi với người khác"
+    },
+    "results": {
+      "title": "Kết quả bài thi",
+      "subtitle": "Xem chi tiết kết quả và phản hồi",
+      "submitted": "Đã nộp lúc",
+      "passed": "ĐẬU",
+      "failed": "CHƯA ĐẠT",
+      "outOf": "/{{total}} điểm",
+      "score": "Điểm số",
+      "rank": "Xếp hạng",
+      "timeUsed": "Thời gian làm bài",
+      "backToExams": "Quay lại danh sách bài thi",
+      "reviewAnswers": "Xem lại đáp án",
+      "share": "Chia sẻ",
+      "retakeExam": "Làm lại",
+      "breakdown": "Phân tích chi tiết",
+      "feedback": "Phản hồi từ giảng viên",
+      "previousResults": "Lần thi trước"
+    },
+    "practice": {
+      "title": "Luyện tập",
+      "subtitle": "Câu hỏi trắc nghiệm ngẫu nhiên",
+      "points": "điểm",
+      "question": "Câu hỏi",
+      "of": "/",
+      "questionType": "Loại",
+      "flagToggle": "Đánh dấu xem lại",
+      "showExplanation": "Xem giải thích",
+      "correctAnswer": "Đáp án đúng",
+      "prev": "Câu trước",
+      "next": "Câu tiếp",
+      "submitAll": "Nộp bài",
+      "nav": "Điều hướng",
+      "summary": "Tổng quan",
+      "answered": "Đã trả lời",
+      "unanswered": "Chưa trả lời",
+      "flagged": "Đã đánh dấu",
+      "correctCount": "Đúng",
+      "tipsTitle": "Mẹo luyện tập",
+      "tip1": "Đọc kỹ câu hỏi trước khi chọn",
+      "tip2": "Đánh dấu câu khó để xem lại",
+      "tip3": "Luyện đều đặn mỗi ngày",
+      "confirmSubmit": "Xác nhận nộp bài?",
+      "confirmNo": "Tiếp tục làm",
+      "confirmYes": "Nộp ngay",
+      "results": {
+        "excellent": "Xuất sắc",
+        "good": "Tốt",
+        "needsWork": "Cần cố gắng",
+        "completed": "Hoàn thành",
+        "review": "Xem lại",
+        "yourScore": "Điểm của bạn",
+        "continueLearning": "Tiếp tục học"
+      },
+      "restart": "Làm lại",
+      "easy": "Dễ",
+      "medium": "Trung bình",
+      "hard": "Khó"
+    },
+    "learningPath": {
+      "title": "Lộ trình học tập",
+      "subtitle": "Các bước để đạt mục tiêu của bạn",
+      "done": "Đã hoàn thành",
+      "locked": "Đã khóa",
+      "current": "Đang học",
+      "estimated": "Thời gian ước tính",
+      "hours": "giờ",
+      "continuePath": "Tiếp tục",
+      "review": "Xem lại",
+      "not_started": "Chưa bắt đầu",
+      "in_progress": "Đang học",
+      "completed": "Hoàn thành"
+    },
+    "certificates": {
+      "title": "Chứng chỉ của tôi",
+      "subtitle": "Xem và quản lý các chứng chỉ bạn đã đạt được",
+      "serial": "Mã chứng chỉ",
+      "issued": "Ngày cấp",
+      "download": "Tải về",
+      "share": "Chia sẻ",
+      "pagination": {
+        "range": "{{from}}-{{to}} / {{total}}",
+        "prev": "Trước",
+        "next": "Sau",
+        "pageSize": "Hiển thị",
+        "perPage": "/ trang"
+      }
+    },
+    "messages": {
+      "title": "Tin nhắn",
+      "subtitle": "Trò chuyện với giảng viên và bạn học",
+      "search": "Tìm hội thoại...",
+      "online": "Đang hoạt động",
+      "offline": "Ngoại tuyến",
+      "typeMessage": "Nhập tin nhắn...",
+      "send": "Gửi",
+      "selectConversation": "Chọn hội thoại để bắt đầu"
+    },
+    "notifications": {
+      "title": "Thông báo",
+      "subtitle": "Cập nhật mới nhất về hoạt động của bạn",
+      "markAllRead": "Đánh dấu tất cả đã đọc",
+      "filter": {
+        "all": "Tất cả",
+        "unread": "Chưa đọc",
+        "course": "Khóa học",
+        "exam": "Bài thi",
+        "system": "Hệ thống",
+        "achievement": "Thành tích",
+        "message": "Tin nhắn"
+      },
+      "empty": "Không có thông báo."
+    },
+    "settings": {
+      "title": "Cài đặt",
+      "subtitle": "Tùy chỉnh các tùy chọn cho tài khoản của bạn",
+      "themeAuto": "Theo hệ thống",
+      "tabs": {
+        "general": "Chung",
+        "notifications": "Thông báo",
+        "privacy": "Riêng tư",
+        "language": "Ngôn ngữ"
+      },
+      "theme": "Giao diện",
+      "themeLight": "Sáng",
+      "themeDark": "Tối",
+      "themeSystem": "Theo hệ thống",
+      "emailNotif": "Thông báo qua email",
+      "pushNotif": "Thông báo đẩy",
+      "courseUpdates": "Cập nhật khóa học",
+      "examReminders": "Nhắc nhở bài thi",
+      "weeklyReport": "Báo cáo tuần",
+      "promotions": "Khuyến mãi",
+      "language": "Ngôn ngữ",
+      "languageVI": "Tiếng Việt",
+      "languageEN": "English"
+    },
+    "search": {
+      "title": "Tìm kiếm",
+      "subtitle": "Tìm khóa học, bài thi, giảng viên và nhiều hơn nữa",
+      "placeholder": "Tìm khóa học, bài thi, giảng viên...",
+      "recentSearches": "Tìm gần đây",
+      "popularTopics": "Chủ đề phổ biến",
+      "results": "Kết quả",
+      "empty": "Không tìm thấy kết quả",
+      "filter": {
+        "all": "Tất cả",
+        "course": "Khóa học",
+        "exam": "Bài thi",
+        "instructor": "Giảng viên"
+      },
+      "type": {
+        "course": "Khóa học",
+        "exam": "Bài thi",
+        "instructor": "Giảng viên"
+      }
+    },
+    "reviews": {
+      "basedOn": "Dựa trên {{count}} đánh giá",
+      "writeReview": "Viết đánh giá",
+      "helpful": "Hữu ích",
+      "filter": {
+        "all": "Tất cả",
+        "positive": "Tích cực",
+        "critical": "Phê bình",
+        "withComment": "Có bình luận"
+      }
+    },
+    "enrollment": {
+      "title": "Đăng ký của tôi",
+      "subtitle": "Quản lý các khóa học đã đăng ký",
+      "course": "Khóa học",
+      "enrolledAt": "Ngày đăng ký",
+      "expiresAt": "Ngày hết hạn",
+      "noExpiry": "Vĩnh viễn",
+      "payment": "Thanh toán",
+      "status": "Trạng thái",
+      "filter": {
+        "all": "Tất cả",
+        "active": "Đang hoạt động",
+        "expired": "Hết hạn",
+        "cancelled": "Đã hủy"
+      },
+      "paymentFree": "Miễn phí",
+      "paymentPaid": "Đã thanh toán",
+      "paymentPending": "Đang chờ",
+      "statusActive": "Đang hoạt động",
+      "statusExpired": "Hết hạn",
+      "statusCancelled": "Đã hủy"
+    },
+    "leaderboard": {
+      "title": "Bảng xếp hạng",
+      "subtitle": "Cạnh tranh cùng cộng đồng người học",
+      "allTime": "Mọi thời đại",
+      "points_unit": "điểm",
+      "rank": "Hạng",
+      "name": "Học viên",
+      "points": "Điểm",
+      "courses": "Khóa học",
+      "streak": "Chuỗi",
+      "days": "ngày",
+      "yourRank": "Hạng của bạn",
+      "all": "Tất cả",
+      "weekly": "Tuần",
+      "monthly": "Tháng",
+      "yearly": "Năm"
+    },
+    "courseDiscussion": {
+      "title": "Thảo luận khóa học",
+      "subtitle": "Đặt câu hỏi và thảo luận với cộng đồng",
+      "status": {
+        "completed": "Đã hoàn thành",
+        "inProgress": "Đang thực hiện"
+      },
+      "role": {
+        "instructor": "Giảng viên",
+        "student": "Học viên"
+      },
+      "defaultTitle": "Câu hỏi mới",
+      "backToList": "Quay lại danh sách",
+      "modules": "Học phần",
+      "lessons": "Bài học",
+      "qaTitle": "Hỏi & Đáp",
+      "qaSubtitle": "Câu hỏi về {{course}}",
+      "saved": "Đã lưu",
+      "askQuestion": "Đặt câu hỏi",
+      "tab": {
+        "all": "Tất cả",
+        "unanswered": "Chưa trả lời",
+        "resolved": "Đã giải quyết",
+        "mine": "Của tôi"
+      },
+      "search": "Tìm câu hỏi...",
+      "sort": {
+        "newest": "Mới nhất",
+        "mostLiked": "Nhiều lượt thích",
+        "unanswered": "Chưa trả lời"
+      },
+      "empty": "Chưa có thảo luận nào.",
+      "badge": {
+        "pinned": "Ghim",
+        "unanswered": "Chưa TL",
+        "resolved": "Đã giải quyết",
+        "exam": "Bài thi"
+      },
+      "reply": "Trả lời",
+      "replies": "phản hồi",
+      "askModal": {
+        "title": "Đặt câu hỏi mới",
+        "titleLabel": "Tiêu đề",
+        "titlePlaceholder": "Tóm tắt câu hỏi của bạn",
+        "topicLabel": "Chủ đề",
+        "selectTopic": "Chọn chủ đề",
+        "bodyLabel": "Nội dung",
+        "bodyPlaceholder": "Mô tả chi tiết câu hỏi của bạn",
+        "attachmentLabel": "Đính kèm",
+        "attachmentHint": "Hỗ trợ ảnh, PDF, tối đa 10MB",
+        "cancel": "Hủy",
+        "submit": "Đăng"
+      },
+      "listTitle": "Diễn đàn thảo luận",
+      "listSubtitle": "Các câu hỏi và thảo luận mới nhất",
+      "stats": {
+        "courses": "khóa học",
+        "threads": "chủ đề",
+        "unanswered": "chưa trả lời"
+      },
+      "listSearch": "Tìm trong tất cả khóa học...",
+      "filter": {
+        "all": "Tất cả",
+        "unanswered": "Chưa trả lời",
+        "pinned": "Đã ghim"
+      },
+      "emptyCourses": "Chưa có diễn đàn nào.",
+      "threads": "chủ đề",
+      "pagination": {
+        "range": "{{from}}-{{to}} / {{total}}",
+        "prev": "Trước",
+        "next": "Sau",
+        "pageSize": "Hiển thị",
+        "perPage": "/ trang"
+      }
+    },
+    "discussion": {
+      "placeholder": "Viết bình luận...",
+      "post": "Đăng",
+      "instructorBadge": "Giảng viên"
+    },
+    "recommendations": {
+      "title": "Gợi ý cho bạn",
+      "subtitle": "Các khóa học được đề xuất dựa trên sở thích của bạn",
+      "refresh": "Làm mới gợi ý",
+      "enroll": "Đăng ký ngay",
+      "viewDetail": "Xem chi tiết",
+      "reason": {
+        "basedOnHistory": "Dựa trên lịch sử học tập của bạn",
+        "similarStudents": "Học viên tương tự cũng thích khóa học này",
+        "newRelease": "Khóa học mới ra mắt",
+        "similar": "Tương tự khóa học bạn đã học",
+        "trending": "Đang được quan tâm",
+        "skill": "Phù hợp kỹ năng của bạn",
+        "instructor": "Giảng viên bạn yêu thích"
+      },
+      "pagination": {
+        "range": "{{from}}-{{to}} / {{total}}",
+        "prev": "Trước",
+        "next": "Sau",
+        "pageSize": "Hiển thị",
+        "perPage": "/ trang"
+      }
+    },
+    "speechToText": {
+      "stats": {
+        "accuracy": "Độ chính xác",
+        "sentences": "Câu",
+        "words": "Từ",
+        "confidence": "Tin cậy"
+      },
+      "history": "Lịch sử",
+      "practiceNew": "Luyện mới",
+      "filter": {
+        "language": "Ngôn ngữ",
+        "mode": "Chế độ"
+      },
+      "mode": {
+        "conversation": "Hội thoại",
+        "pronunciation": "Phát âm",
+        "dictation": "Đọc chính tả",
+        "transcription": "Phiên âm"
+      },
+      "lang": {
+        "vi": "Tiếng Việt",
+        "en": "Tiếng Anh",
+        "ja": "Tiếng Nhật",
+        "ko": "Tiếng Hàn",
+        "zh": "Tiếng Trung"
+      },
+      "title": "Luyện nói & Nhận dạng giọng",
+      "subtitle": "Luyện phát âm, chính tả và hội thoại với phân tích AI chi tiết",
+      "transcript": {
+        "title": "Bản ghi âm",
+        "subtitle": "Văn bản được nhận dạng"
+      },
+      "recording": "Đang ghi âm",
+      "tapToRecord": "Nhấn để ghi âm",
+      "action": {
+        "play": "Phát",
+        "download": "Tải về",
+        "save": "Lưu",
+        "share": "Chia sẻ"
+      },
+      "waveform": {
+        "title": "Sóng âm",
+        "subtitle": "Biểu đồ âm thanh"
+      },
+      "phonemes": {
+        "title": "Âm vị",
+        "subtitle": "Chi tiết phát âm"
+      },
+      "words": {
+        "title": "Từ vựng",
+        "subtitle": "Phân tích từng từ",
+        "matched": "Khớp",
+        "mispronounced": "Phát âm sai",
+        "missing": "Thiếu"
+      }
+    },
+    "aiAssistant": {
+      "title": "Trợ lý AI",
+      "thisWeek": "Tuần này",
+      "greeting": "Xin chào! Tôi có thể giúp gì cho bạn?",
+      "defaultThreads": {
+        "machineLearning": "Machine Learning",
+        "pythonPath": "Lộ trình Python",
+        "essayGrade": "Chấm bài luận",
+        "blockchainExam": "Ôn thi Blockchain"
+      },
+      "newChat": "Cuộc trò chuyện mới",
+      "empty": "Bắt đầu cuộc trò chuyện mới",
+      "deleteConfirm": "Xóa cuộc trò chuyện này?",
+      "tip": {
+        "title": "Mẹo",
+        "desc": "Đặt câu hỏi cụ thể để nhận câu trả lời tốt hơn"
+      },
+      "headerSubtitle": "Trợ lý AI cho việc học của bạn",
+      "online": "Trực tuyến",
+      "clearChat": "Xóa cuộc trò chuyện",
+      "subtitle": "Đặt câu hỏi cho AI",
+      "inputPlaceholder": "Nhập câu hỏi của bạn...",
+      "disclaimer": "AI có thể mắc sai sót. Hãy kiểm tra thông tin quan trọng.",
+      "today": "Hôm nay",
+      "yesterday": "Hôm qua"
+    },
+    "reports": {
+      "title": "Báo cáo học tập",
+      "subtitle": "Phân tích tiến độ và kết quả học tập của bạn",
+      "tabs": {
+        "study": "Thời gian học",
+        "exam": "Bài thi",
+        "achievement": "Thành tích",
+        "engagement": "Tương tác"
+      },
+      "range": {
+        "7d": "7 ngày",
+        "30d": "30 ngày",
+        "90d": "90 ngày",
+        "ytd": "Cả năm"
+      },
+      "export": "Xuất báo cáo"
+    }
+  },
+  "instructor": {
+    "dashboard": {
+      "title": "Dashboard Giảng viên",
+      "subtitle": "Tổng quan hoạt động giảng dạy của bạn",
+      "welcomeGreeting": "Chào buổi sáng",
+      "welcomeTitle": "Chào mừng",
+      "stats": {
+        "courses": "Khóa học",
+        "students": "Học viên",
+        "exams": "Bài thi",
+        "rating": "Đánh giá TB"
+      },
+      "myCourses": "Khóa học của tôi",
+      "upcomingExams": "Bài thi sắp tới & Cần chấm",
+      "quickActions": "Thao tác nhanh",
+      "topStudents": "Top học viên",
+      "recentActivity": "Hoạt động gần đây",
+      "viewAll": "Xem tất cả",
+      "monitors": "Giám sát",
+      "results": "Kết quả",
+      "gradeNow": "Chấm điểm",
+      "expiringSoon": "Hết hạn",
+      "pendingGrading": "Chờ chấm",
+      "waiting": "Đang chờ",
+      "courseUnit": "bài học",
+      "studentsUnit": "học viên",
+      "score": "điểm",
+      "ago": "trước",
+      "created": "Tạo mới",
+      "export": "Xuất báo cáo",
+      "aiQuestion": "Tạo câu hỏi AI",
+      "aiAssistant": "AI Assistant"
+    },
+    "nav": {
+      "overview": "Tổng quan",
+      "community": "Cộng đồng",
+      "create": "Tạo mới",
+      "analytics": "Phân tích",
+      "aiTools": "AI Tools",
+      "account": "Tài khoản",
+      "dashboard": "Dashboard",
+      "myCourses": "Khóa học của tôi",
+      "exams": "Bài thi",
+      "students": "Học viên",
+      "createCourse": "Tạo khóa học",
+      "createExam": "Tạo đề thi",
+      "stats": "Thống kê",
+      "reports": "Báo cáo",
+      "grading": "Chấm điểm",
+      "discussions": "Thảo luận",
+      "messages": "Tin nhắn",
+      "aiQuestion": "Tạo câu hỏi AI",
+      "aiAssistant": "AI Assistant",
+      "copyright": "Bản quyền",
+      "profile": "Hồ sơ",
+      "settings": "Cài đặt"
+    },
+    "discussion": {
+      "title": "Thảo luận khóa học",
+      "subtitle": "Quản lý thảo luận với học viên trong các khóa học của bạn",
+      "filter": {
+        "all": "Tất cả",
+        "questions": "Câu hỏi",
+        "announcements": "Thông báo"
+      },
+      "placeholder": "Đăng thông báo hoặc trả lời học viên...",
+      "post": "Đăng bài",
+      "helper": "Tip: Bài viết của bạn sẽ hiển thị với huy hiệu Giảng viên",
+      "instructorBadge": "Giảng viên",
+      "like": "Thích",
+      "reply": "Trả lời",
+      "replyAction": "↩ Trả lời"
+    },
+    "messages": {
+      "title": "Tin nhắn",
+      "subtitle": "Trò chuyện với học viên và giảng viên khác",
+      "search": "Tìm kiếm...",
+      "placeholder": "Nhập tin nhắn...",
+      "send": "Gửi",
+      "online": "Đang online",
+      "offline": "Offline",
+      "empty": "Chọn một cuộc trò chuyện"
+    },
+    "course": {
+      "create": "Tạo khóa học mới",
+      "edit": "Sửa khóa học",
+      "subtitle": "Điền thông tin để tạo khóa học mới",
+      "saveDraft": "Lưu nháp",
+      "publish": "Xuất bản",
+      "steps": {
+        "basic": "Thông tin cơ bản",
+        "content": "Nội dung",
+        "pricing": "Giá & Pricing",
+        "review": "Review"
+      },
+      "info": {
+        "title": "Thông tin khóa học",
+        "courseTitle": "Tiêu đề khóa học",
+        "courseTitlePlaceholder": "VD: Full-Stack Web Development Bootcamp 2026",
+        "shortDesc": "Mô tả ngắn",
+        "shortDescPlaceholder": "Mô tả ngắn về khóa học (tối đa 200 ký tự)",
+        "fullDesc": "Mô tả chi tiết",
+        "fullDescPlaceholder": "Mô tả chi tiết về khóa học, nội dung, kết quả học tập...",
+        "category": "Danh mục",
+        "selectCategory": "Chọn danh mục",
+        "level": "Cấp độ",
+        "selectLevel": "Chọn cấp độ",
+        "thumbnail": "Thumbnail",
+        "uploadHint": "Kéo thả file hoặc",
+        "uploadClick": "click để upload",
+        "uploadSpec": "PNG, JPG (tối đa 5MB) - Khuyến nghị: 1280x720px"
+      },
+      "tags": {
+        "title": "Tags",
+        "hint": "Nhấn Enter để thêm tag. Tối đa 5 tags.",
+        "placeholder": "Thêm tag..."
+      },
+      "curriculum": {
+        "title": "Cấu trúc khóa học",
+        "addLesson": "Thêm bài học",
+        "addChapter": "Thêm chương mới",
+        "chapterPlaceholder": "Tên chương, VD: Giới thiệu HTML",
+        "lessonPlaceholder": "Tên bài học",
+        "durationPlaceholder": "30 phút"
+      },
+      "pricing": {
+        "title": "Pricing",
+        "free": "Miễn phí",
+        "freeDesc": "Khóa học miễn phí cho tất cả",
+        "paid": "Trả phí",
+        "paidDesc": "Đặt giá cho khóa học",
+        "subscription": "Subscription",
+        "subscriptionDesc": "Yêu cầu đăng ký premium"
+      },
+      "levelOptions": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
+      "lessonTypes": {
+        "video": "Video",
+        "document": "Tài liệu",
+        "quiz": "Quiz"
+      }
+    },
+    "exam": {
+      "create": "Tạo bài thi mới",
+      "preview": "Preview",
+      "saveDraft": "Lưu nháp",
+      "publish": "Xuất bản",
+      "info": {
+        "title": "Thông tin bài thi",
+        "name": "Tên bài thi",
+        "namePlaceholder": "VD: JavaScript Fundamentals Quiz",
+        "course": "Khóa học",
+        "selectCourse": "Chọn khóa học",
+        "duration": "Thời gian thi",
+        "description": "Mô tả",
+        "descriptionPlaceholder": "Mô tả ngắn về bài thi...",
+        "options": {
+          "proctoring": "Bật Proctoring (Giám sát qua webcam)",
+          "randomize": "Random câu hỏi",
+          "showResults": "Cho phép xem đáp án sau khi thi",
+          "autoGrade": "Tự động chấm điểm"
+        }
+      },
+      "timerOptions": {
+        "15": "15 phút",
+        "30": "30 phút",
+        "60": "60 phút",
+        "90": "90 phút",
+        "120": "120 phút"
+      },
+      "questionTypes": {
+        "title": "Loại câu hỏi",
+        "mc": "Multiple Choice",
+        "essay": "Essay",
+        "coding": "Coding",
+        "tf": "True/False"
+      },
+      "questions": {
+        "title": "Danh sách câu hỏi",
+        "addNew": "Thêm câu hỏi mới",
+        "placeholder": "Nhập nội dung câu hỏi...",
+        "points": "Điểm:",
+        "addOption": "Thêm đáp án",
+        "optionPlaceholder": "Đáp án"
+      }
+    },
+    "grading": {
+      "title": "Chấm điểm",
+      "subtitle": "Danh sách bài thi cần chấm và đã chấm",
+      "export": "Export Report",
+      "stats": {
+        "total": "Tổng phiên thi",
+        "clean": "Bình thường",
+        "warning": "Cảnh báo",
+        "flagged": "Gian lận",
+        "attention": "Avg Attention"
+      },
+      "filters": {
+        "all": "Tất cả",
+        "clean": "Bình thường",
+        "warning": "Cảnh báo",
+        "flagged": "Gian lận"
+      },
+      "table": {
+        "student": "Học viên",
+        "time": "Thời gian",
+        "attention": "Attention",
+        "violations": "Vi phạm",
+        "status": "Trạng thái",
+        "actions": "Hành động"
+      },
+      "status": {
+        "clean": "Clean",
+        "warning": "Warning",
+        "flagged": "Flagged"
+      },
+      "view": "View",
+      "sessionList": "Danh sách phiên thi",
+      "empty": "Không có phiên thi nào"
+    },
+    "courses": {
+      "title": "Khóa học của tôi",
+      "subtitle": "Quản lý tất cả khóa học bạn đã tạo",
+      "createNew": "Tạo khóa học",
+      "stats": {
+        "total": "Tổng khóa học",
+        "published": "Đã xuất bản",
+        "drafts": "Bản nháp",
+        "students": "Tổng học viên"
+      },
+      "filter": {
+        "all": "Tất cả",
+        "published": "Đã xuất bản",
+        "draft": "Bản nháp",
+        "archived": "Đã lưu trữ"
+      },
+      "status": {
+        "draft": "Bản nháp",
+        "published": "Đã xuất bản",
+        "archived": "Đã lưu trữ"
+      },
+      "searchPlaceholder": "Tìm theo tên hoặc danh mục...",
+      "sort": {
+        "recent": "Mới cập nhật",
+        "enrollments": "Nhiều học viên",
+        "title": "Theo tên"
+      },
+      "lessons": "bài học",
+      "studentsUnit": "học viên",
+      "updated": "Cập nhật",
+      "edit": "Sửa",
+      "viewStats": "Xem thống kê",
+      "empty": "Chưa có khóa học nào. Hãy tạo khóa học đầu tiên!",
+      "pagination": {
+        "range": "Hiển thị {{from}}–{{to}} trong tổng {{total}}",
+        "prev": "Trước",
+        "next": "Sau",
+        "pageSize": "Hiển thị",
+        "perPage": "/ trang"
+      }
+    },
+    "exams": {
+      "title": "Bài thi",
+      "subtitle": "Quản lý tất cả bài thi trên các khóa học",
+      "createNew": "Tạo đề thi",
+      "stats": {
+        "total": "Tổng bài thi",
+        "active": "Đang diễn ra",
+        "pendingGrading": "Chờ chấm",
+        "participants": "Lượt thi"
+      },
+      "filter": {
+        "all": "Tất cả",
+        "active": "Đang diễn ra",
+        "scheduled": "Đã lên lịch",
+        "completed": "Đã kết thúc",
+        "draft": "Bản nháp"
+      },
+      "status": {
+        "active": "Đang diễn ra",
+        "scheduled": "Đã lên lịch",
+        "completed": "Đã kết thúc",
+        "draft": "Bản nháp"
+      },
+      "searchPlaceholder": "Tìm theo tên hoặc khóa học...",
+      "table": {
+        "exam": "Bài thi",
+        "course": "Khóa học",
+        "participants": "Thí sinh",
+        "pending": "Chờ chấm",
+        "expires": "Hết hạn",
+        "status": "Trạng thái",
+        "actions": "Hành động"
+      },
+      "gradeNow": "Chấm ngay",
+      "empty": "Chưa có bài thi nào.",
+      "pagination": {
+        "range": "Hiển thị {{from}}–{{to}} trong tổng {{total}}",
+        "prev": "Trước",
+        "next": "Sau",
+        "pageSize": "Hiển thị",
+        "perPage": "/ trang"
+      }
+    },
+    "students": {
+      "title": "Học viên",
+      "subtitle": "Danh sách học viên đã đăng ký khóa học của bạn",
+      "export": "Xuất danh sách",
+      "stats": {
+        "total": "Tổng học viên",
+        "active": "Đang học tích cực",
+        "atRisk": "Cần hỗ trợ",
+        "avgScore": "Điểm TB"
+      },
+      "filter": {
+        "all": "Tất cả",
+        "active": "Đang hoạt động",
+        "at_risk": "Cần hỗ trợ",
+        "inactive": "Không hoạt động"
+      },
+      "status": {
+        "active": "Hoạt động",
+        "at_risk": "Cần hỗ trợ",
+        "inactive": "Không hoạt động"
+      },
+      "searchPlaceholder": "Tìm theo tên hoặc email...",
+      "sort": {
+        "recent": "Mới hoạt động",
+        "score": "Điểm cao nhất",
+        "name": "Theo tên"
+      },
+      "table": {
+        "student": "Học viên",
+        "courses": "Khóa học",
+        "lessons": "Bài hoàn thành",
+        "avgScore": "Điểm TB",
+        "lastActive": "Hoạt động cuối",
+        "status": "Trạng thái"
+      },
+      "empty": "Chưa có học viên nào.",
+      "pagination": {
+        "range": "Hiển thị {{from}}–{{to}} trong tổng {{total}}",
+        "prev": "Trước",
+        "next": "Sau",
+        "pageSize": "Hiển thị",
+        "perPage": "/ trang"
+      }
+    },
+    "reports": {
+      "title": "Báo cáo",
+      "subtitle": "Phân tích chi tiết hiệu quả giảng dạy và doanh thu",
+      "exportPdf": "Xuất PDF",
+      "kpi": {
+        "totalEnrollments": "Lượt đăng ký",
+        "completionRate": "Tỉ lệ hoàn thành",
+        "revenue": "Doanh thu",
+        "avgWatchTime": "Thời gian xem TB"
+      },
+      "minutes": "phút",
+      "tab": {
+        "enrollment": "Đăng ký",
+        "completion": "Hoàn thành",
+        "revenue": "Doanh thu",
+        "engagement": "Tương tác"
+      },
+      "range": {
+        "7d": "7 ngày",
+        "30d": "30 ngày",
+        "90d": "90 ngày",
+        "ytd": "Năm nay"
+      },
+      "breakdown": "So sánh với kỳ trước",
+      "table": {
+        "metric": "Chỉ số",
+        "current": "Hiện tại",
+        "previous": "Kỳ trước",
+        "delta": "Thay đổi"
+      }
+    },
+    "aiQuestion": {
+      "title": "Tạo câu hỏi AI",
+      "subtitle": "Tự động tạo câu hỏi chất lượng cao bằng trí tuệ nhân tạo",
+      "config": {
+        "title": "Cấu hình",
+        "subtitle": "Thiết lập yêu cầu cho AI",
+        "topic": "Chủ đề",
+        "topicPlaceholder": "VD: Lập trình React.js cơ bản",
+        "type": "Loại câu hỏi",
+        "difficulty": "Độ khó",
+        "count": "Số lượng",
+        "language": "Ngôn ngữ",
+        "extra": "Yêu cầu thêm (tùy chọn)",
+        "extraPlaceholder": "VD: Tập trung vào phần Hooks, có ví dụ code..."
+      },
+      "types": {
+        "multiple_choice": "Trắc nghiệm",
+        "true_false": "Đúng/Sai",
+        "short_answer": "Trả lời ngắn",
+        "essay": "Tự luận"
+      },
+      "difficulty": {
+        "easy": "Dễ",
+        "medium": "Trung bình",
+        "hard": "Khó"
+      },
+      "generate": "Tạo câu hỏi",
+      "generating": "Đang tạo...",
+      "questionsReady": "câu hỏi đã sẵn sàng",
+      "copy": "Sao chép",
+      "saveToBank": "Lưu vào ngân hàng",
+      "regenerate": "Tạo lại",
+      "showAnswer": "Xem đáp án & giải thích",
+      "answer": "Đáp án",
+      "explanation": "Giải thích",
+      "empty": {
+        "title": "Chưa có câu hỏi nào",
+        "desc": "Nhập chủ đề và bấm \"Tạo câu hỏi\" để AI sinh câu hỏi cho bạn."
+      }
+    },
+    "aiAssistant": {
+      "title": "AI Assistant",
+      "subtitle": "Trợ lý AI giúp bạn giảng dạy hiệu quả hơn",
+      "headerTitle": "Trợ lý giảng dạy",
+      "headerSubtitle": "Powered by Agentic RAG",
+      "online": "Đang hoạt động",
+      "clearChat": "Xóa hội thoại",
+      "newChat": "Cuộc trò chuyện mới",
+      "suggestions": "Gợi ý nhanh",
+      "history": "Lịch sử",
+      "today": "Hôm nay",
+      "yesterday": "Hôm qua",
+      "thisWeek": "Tuần này",
+      "older": "Trước đó",
+      "empty": "Chưa có cuộc trò chuyện nào",
+      "deleteConfirm": "Xóa cuộc trò chuyện này?",
+      "prompt": {
+        "courseIdea": "Gợi ý cấu trúc khóa học mới",
+        "lessonPlan": "Soạn giáo án cho bài học",
+        "studentFeedback": "Cách đưa phản hồi cho học viên",
+        "examTips": "Mẹo tạo đề thi hiệu quả",
+        "teachingTips": "Cải thiện phong cách giảng dạy",
+        "translate": "Dịch nội dung sang tiếng Anh"
+      },
+      "tip": {
+        "title": "Mẹo",
+        "desc": "Hãy mô tả rõ ràng ngữ cảnh để AI đưa câu trả lời hữu ích hơn."
+      },
+      "inputPlaceholder": "Hỏi AI bất cứ điều gì...",
+      "disclaimer": "AI có thể mắc lỗi. Hãy kiểm tra thông tin quan trọng.",
+      "greeting": "Xin chào! Tôi là trợ lý AI của bạn. Tôi có thể giúp gì cho việc giảng dạy hôm nay?",
+      "defaultThreads": {
+        "machineLearning": "Giải thích về Machine Learning",
+        "pythonPath": "Tạo lộ trình học Python",
+        "essayGrade": "Chấm điểm bài essay của tôi",
+        "blockchainExam": "Hỏi về blockchain exam"
+      }
+    },
+    "profile": {
+      "title": "Hồ sơ cá nhân",
+      "subtitle": "Quản lý thông tin cá nhân và tài khoản của bạn",
+      "unknownUser": "Người dùng",
+      "active": "Đang hoạt động",
+      "editProfile": "Chỉnh sửa hồ sơ",
+      "stats": {
+        "courses": "Khóa học",
+        "students": "Học viên",
+        "exams": "Bài thi",
+        "rating": "Đánh giá"
+      },
+      "tab": {
+        "overview": "Tổng quan",
+        "edit": "Chỉnh sửa",
+        "security": "Bảo mật",
+        "notifications": "Thông báo"
+      },
+      "about": {
+        "title": "Giới thiệu",
+        "placeholder": "Hãy chia sẻ về bản thân, kinh nghiệm giảng dạy và chuyên môn của bạn..."
+      },
+      "recent": {
+        "title": "Hoạt động gần đây",
+        "item": "Hoạt động mẫu {{i}}: bạn đã cập nhật nội dung khóa học"
+      },
+      "field": {
+        "fullName": "Họ và tên",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "title": "Chức danh",
+        "location": "Địa điểm",
+        "website": "Website",
+        "bio": "Giới thiệu"
+      },
+      "save": "Lưu thay đổi",
+      "cancel": "Hủy",
+      "security": {
+        "password": {
+          "title": "Mật khẩu",
+          "desc": "Đổi mật khẩu định kỳ để bảo vệ tài khoản.",
+          "change": "Đổi mật khẩu"
+        },
+        "2fa": {
+          "title": "Xác thực 2 yếu tố",
+          "desc": "Thêm lớp bảo mật với Google Authenticator."
+        }
+      },
+      "notif": {
+        "enrollment": {
+          "title": "Đăng ký mới",
+          "desc": "Thông báo khi có học viên đăng ký"
+        },
+        "submission": {
+          "title": "Bài nộp mới",
+          "desc": "Thông báo khi học viên nộp bài"
+        },
+        "review": {
+          "title": "Đánh giá mới",
+          "desc": "Thông báo khi có đánh giá/review"
+        },
+        "system": {
+          "title": "Thông báo hệ thống",
+          "desc": "Cập nhật & bảo trì hệ thống"
+        }
+      }
+    },
+    "settings": {
+      "title": "Cài đặt",
+      "subtitle": "Tùy chỉnh các tuỳ chọn cho tài khoản giảng viên",
+      "section": {
+        "general": "Chung",
+        "teaching": "Giảng dạy",
+        "notifications": "Thông báo",
+        "integrations": "Tích hợp",
+        "billing": "Thanh toán"
+      },
+      "saved": "Đã lưu thay đổi",
+      "save": "Lưu thay đổi",
+      "connect": "Kết nối",
+      "connected": "Đã kết nối",
+      "general": {
+        "title": "Cài đặt chung",
+        "desc": "Ngôn ngữ, múi giờ và định dạng hiển thị",
+        "language": "Ngôn ngữ",
+        "timezone": "Múi giờ"
+      },
+      "teaching": {
+        "title": "Cài đặt giảng dạy",
+        "desc": "Cấu hình mặc định cho khóa học và bài thi",
+        "autoGrade": "Tự động chấm điểm",
+        "autoGradeDesc": "AI tự chấm câu hỏi trắc nghiệm và trả lời ngắn",
+        "plagiarism": "Kiểm tra đạo văn",
+        "plagiarismDesc": "So sánh bài nộp với ngân hàng để phát hiện sao chép",
+        "proctoring": "Giám sát thi trực tuyến",
+        "proctoringDesc": "Bật AI giám sát qua webcam trong các bài thi",
+        "passScore": "Điểm đạt tối thiểu"
+      },
+      "notifications": {
+        "title": "Cài đặt thông báo",
+        "desc": "Chọn kênh nhận thông báo cho từng sự kiện",
+        "event": "Sự kiện",
+        "enrollment": "Đăng ký",
+        "submission": "Nộp bài",
+        "review": "Đánh giá",
+        "system": "Hệ thống",
+        "email": "Email",
+        "inApp": "In-app",
+        "push": "Push"
+      },
+      "integrations": {
+        "title": "Tích hợp bên thứ ba",
+        "desc": "Kết nối với các công cụ bạn đang sử dụng",
+        "zoomDesc": "Tạo phòng học trực tuyến tự động",
+        "meetDesc": "Lên lịch Google Meet cho buổi học",
+        "slackDesc": "Nhận thông báo qua Slack workspace",
+        "driveDesc": "Đồng bộ tài liệu khóa học"
+      },
+      "billing": {
+        "title": "Gói dịch vụ & thanh toán",
+        "desc": "Quản lý gói Pro và lịch sử thanh toán",
+        "pro": "PRO",
+        "proPlan": "Gói Giảng viên Pro",
+        "renewsAt": "Gia hạn ngày {{date}}",
+        "perMonth": "/ tháng",
+        "tokensUsed": "Tokens đã dùng",
+        "aiCalls": "Lượt gọi AI",
+        "storage": "Dung lượng",
+        "ofLimit": "/ {{limit}}",
+        "thisMonth": "tháng này",
+        "manage": "Quản lý gói",
+        "invoices": "Hóa đơn"
+      }
+    },
+    "analytics": {
+      "title": "Phân tích",
+      "subtitle": "Thống kê và phân tích hiệu quả giảng dạy",
+      "kpi": {
+        "students": "Học viên",
+        "courses": "Khóa học",
+        "exams": "Bài thi",
+        "completion": "Tỉ lệ hoàn thành",
+        "avgScore": "Điểm TB",
+        "rating": "Đánh giá"
+      },
+      "charts": {
+        "enrollmentTrend": "Xu hướng ghi danh",
+        "examScores": "Phân bổ điểm thi",
+        "topCourses": "Khóa học hàng đầu"
+      },
+      "table": {
+        "course": "Khóa học",
+        "enrollments": "Ghi danh",
+        "completion": "Hoàn thành",
+        "rating": "Đánh giá",
+        "revenue": "Doanh thu"
+      },
+      "filters": {
+        "range": "Khoảng thời gian",
+        "ranges": {
+          "7d": "7 ngày qua",
+          "30d": "30 ngày qua",
+          "90d": "90 ngày qua",
+          "ytd": "Từ đầu năm"
+        }
+      }
+    },
+    "copyright": {
+      "title": "Quản lý Bản quyền IP",
+      "subtitle": "Đăng ký, bảo vệ và cấp phép tài sản trí tuệ của bạn",
+      "exportCert": "Xuất giấy chứng nhận",
+      "registerNew": "Đăng ký IP mới",
+      "stats": {
+        "total": "Tổng IP đã đăng ký",
+        "pending": "Đang chờ duyệt",
+        "verified": "Đã xác minh",
+        "revenue": "Doanh thu từ cấp phép"
+      },
+      "tabs": {
+        "myIps": "IP của tôi",
+        "register": "Đăng ký mới",
+        "licensing": "Cấp phép",
+        "disputes": "Tranh chấp"
+      },
+      "table": {
+        "title": "Tiêu đề",
+        "type": "Loại",
+        "hash": "Hash",
+        "registered": "Ngày đăng ký",
+        "status": "Trạng thái",
+        "actions": "Hành động"
+      },
+      "type": {
+        "course": "Khóa học",
+        "video": "Video",
+        "exam": "Bài thi",
+        "content": "Nội dung"
+      },
+      "status": {
+        "verified": "Đã xác minh",
+        "pending": "Đang chờ",
+        "rejected": "Bị từ chối"
+      },
+      "action": {
+        "view": "Xem"
+      },
+      "ips": {
+        "ip001": "Advanced React Patterns 2024",
+        "ip002": "TypeScript Deep Dive Lecture Series",
+        "ip003": "Frontend Engineer Mock Exam Q3",
+        "ip004": "JavaScript Cheatsheet Vol.2",
+        "ip005": "Node.js Microservices Bootcamp",
+        "ip006": "CSS Grid Masterclass Workshop",
+        "ip007": "System Design Interview Bank",
+        "ip008": "Vue 3 Composition API Guide"
+      },
+      "licensees": {
+        "lic001": "TechEdu Vietnam",
+        "lic002": "CodeAcademy Asia",
+        "lic003": "LearnHub Global"
+      },
+      "disputesData": {
+        "dsp001": {
+          "title": "Yêu cầu tương đồng về khóa học React Patterns",
+          "claimant": "WebDev Academy"
+        }
+      },
+      "form": {
+        "type": "Loại IP",
+        "title": "Tiêu đề",
+        "titlePlaceholder": "Ví dụ: Khóa học React nâng cao",
+        "description": "Mô tả",
+        "descPlaceholder": "Mô tả chi tiết về nội dung IP...",
+        "file": "Tệp nguồn",
+        "dropFile": "Nhấp hoặc kéo thả tệp vào đây",
+        "hash": "SHA-256 Hash",
+        "generateHash": "Tự sinh hash",
+        "network": "Mạng Blockchain",
+        "reset": "Đặt lại",
+        "submit": "Gửi đăng ký",
+        "submitting": "Đang gửi..."
+      },
+      "network": {
+        "polygon": "Polygon",
+        "ethereum": "Ethereum",
+        "binance": "Binance Smart Chain"
+      },
+      "licensing": {
+        "totalIncome": "Tổng thu nhập",
+        "last30d": "30 ngày gần nhất",
+        "activeLicensees": "Đối tác đang cấp phép",
+        "renewingSoon": "Sắp gia hạn: 1",
+        "totalDeals": "Tổng hợp đồng",
+        "sinceLaunch": "Kể từ khi ra mắt",
+        "licensee": "Đối tác",
+        "duration": "Thời hạn",
+        "royalty": "Tiền bản quyền",
+        "active": "Đang hoạt động",
+        "expired": "Hết hạn",
+        "pending": "Chờ xử lý"
+      },
+      "disputes": {
+        "empty": "Hiện không có tranh chấp nào.",
+        "claimant": "Người khiếu nại",
+        "filed": "Ngày nộp",
+        "view": "Xem chi tiết",
+        "respond": "Phản hồi",
+        "status": {
+          "open": "Mở",
+          "reviewing": "Đang xem xét",
+          "resolved": "Đã giải quyết"
+        }
+      }
+    }
+  },
+  "shared": {
+    "all": "Tất cả",
+    "none": "—",
+    "justNow": "vừa xong",
+    "minutesAgo": "{n} phút trước",
+    "hoursAgo": "{n} giờ trước",
+    "daysAgo": "{n} ngày trước",
+    "on": "Bật",
+    "off": "Tắt",
+    "sent": "Đã gửi!",
+    "menu": "Mở menu",
+    "viewAll": "Xem tất cả",
+    "tokenSymbol": "IOES",
+    "view": "Xem",
+    "edit": "Sửa",
+    "export": "Xuất",
+    "block": "Chặn",
+    "investigate": "Điều tra",
+    "dismiss": "Bỏ qua",
+    "markRead": "Đánh dấu đã đọc",
+    "save": "Lưu",
+    "runBackup": "Chạy sao lưu",
+    "send": "Gửi",
+    "toggle": "Chuyển đổi",
+    "durationUnit": "phút",
+    "vsLastPeriod": "so với kỳ trước",
+    "month": "tháng",
+    "total": "Tổng",
+    "time": {
+      "12months": "12 tháng"
+    },
+    "timezone": {
+      "hn": "GMT+7 (Hà Nội)",
+      "bkk": "GMT+7 (Bangkok)",
+      "sg": "GMT+8 (Singapore)",
+      "utc": "UTC"
+    },
+    "storage": {
+      "s3": "AWS S3 (ioes-prod)",
+      "gcs": "Google Cloud Storage",
+      "azure": "Azure Blob",
+      "nas": "Local NAS"
+    },
+    "language": {
+      "vi": "Tiếng Việt",
+      "en": "English"
+    },
+    "channels": {
+      "inApp": "Trong ứng dụng",
+      "email": "Email",
+      "push": "Push"
+    },
+    "channelShort": {
+      "inApp": "In-App",
+      "email": "Email",
+      "push": "Push"
+    }
+  },
+  "admin": {
+    "wallet": {
+      "title": "Ví Multi-sig",
+      "subtitle": "Quản lý treasury, người ký và các giao dịch đa chữ ký",
+      "actions": {
+        "exportHistory": "Xuất lịch sử",
+        "propose": "Đề xuất giao dịch"
+      },
+      "treasuryBalance": "Số dư Treasury",
+      "signers": "Người ký",
+      "activeSigners": "Đang hoạt động",
+      "multisig": "Cấu hình Multi-sig",
+      "thresholdRequired": "Số chữ ký yêu cầu",
+      "of": "trên",
+      "multisigConfig": "Thiết lập Multi-sig",
+      "editConfig": "Chỉnh sửa",
+      "config": {
+        "threshold": "Ngưỡng chữ ký",
+        "dailyLimit": "Hạn mức ngày",
+        "timeLock": "Khóa thời gian",
+        "chain": "Blockchain"
+      },
+      "recentTx": "Giao dịch gần đây",
+      "activitySummary": "Tổng quan hoạt động",
+      "summary": {
+        "confirmed": "Đã xác nhận",
+        "pending": "Đang chờ",
+        "outgoing": "Tổng chi",
+        "incoming": "Tổng thu"
+      },
+      "tabs": {
+        "overview": "Tổng quan",
+        "transactions": "Giao dịch",
+        "signers": "Người ký",
+        "pending_one": "Đang chờ duyệt",
+        "pending_other": "Đang chờ duyệt ({{count}})"
+      },
+      "table": {
+        "hash": "Hash",
+        "from": "Từ",
+        "to": "Đến",
+        "amount": "Số lượng",
+        "signatures": "Chữ ký",
+        "status": "Trạng thái",
+        "time": "Thời gian"
+      },
+      "status": {
+        "confirmed": "Đã xác nhận",
+        "pending": "Đang chờ",
+        "rejected": "Bị từ chối"
+      },
+      "signerStatus": {
+        "active": "Hoạt động",
+        "inactive": "Tạm khóa"
+      },
+      "signerAddress": "Địa chỉ ví",
+      "votingPower": "Quyền biểu quyết",
+      "remove": "Gỡ bỏ",
+      "noPending": "Không có yêu cầu nào đang chờ",
+      "proposer": "Người đề xuất",
+      "signatureProgress": "Tiến độ ký",
+      "approve": "Phê duyệt",
+      "reject": "Từ chối",
+      "viewDetails": "Chi tiết",
+      "pagination": {
+        "prev": "Trước",
+        "next": "Sau",
+        "range": "Hiển thị {{from}} - {{to}} trong tổng {{total}}",
+        "pageSize": "Hiển thị",
+        "perPage": "mỗi trang"
+      }
+    },
+    "heatmaps": {
+      "title": "Heatmaps",
+      "subtitle": "Phân tích heatmap click & scroll trên các trang",
+      "export": "Export",
+      "refresh": "Làm mới",
+      "filter": {
+        "page": "Trang",
+        "last7d": "7 ngày gần đây",
+        "last30d": "30 ngày gần đây",
+        "last90d": "90 ngày gần đây",
+        "deviceAll": "Tất cả thiết bị",
+        "desktop": "Desktop",
+        "mobile": "Mobile",
+        "tablet": "Tablet"
+      },
+      "page": {
+        "homepage": "Trang chủ",
+        "courseList": "Danh sách khóa học",
+        "checkout": "Thanh toán",
+        "dashboard": "Dashboard"
+      },
+      "stats": {
+        "totalClicks": "Tổng số click",
+        "uniqueClickers": "Người dùng click",
+        "avgClicks": "Click / phiên (TB)",
+        "hottestArea": "Vùng hot nhất",
+        "heroBanner": "Hero Banner"
+      },
+      "click": {
+        "title": "Click Heatmap",
+        "subtitle": "Mật độ click trên các vùng trong trang"
+      },
+      "scroll": {
+        "title": "Scroll Depth Heatmap",
+        "subtitle": "Tỷ lệ người dùng cuộn tới từng phần của trang"
+      },
+      "legend": {
+        "high": "Click cao",
+        "medium": "Trung bình",
+        "low": "Thấp",
+        "reachHigh": "Tiếp cận cao",
+        "reachLow": "Tiếp cận thấp"
+      },
+      "hotspots": {
+        "title": "Top 5 Hotspots",
+        "subtitle": "Các element có lượng click nổi bật nhất",
+        "element": "Element",
+        "clicks": "Lượt click",
+        "ctr": "CTR",
+        "heatBar": "Mức độ",
+        "data": {
+          "ctaEnroll": "Nút CTA \"Đăng ký ngay\"",
+          "courseCard1": "Thẻ khóa học #1",
+          "searchBar": "Thanh tìm kiếm",
+          "heroBanner": "Banner chính",
+          "loginLink": "Liên kết Đăng nhập",
+          "courseCard3": "Thẻ khóa học #3",
+          "pricingToggle": "Chuyển đổi giá",
+          "filterSidebar": "Sidebar bộ lọc",
+          "footerAbout": "Footer - Giới thiệu",
+          "languageSwitcher": "Chuyển ngôn ngữ",
+          "courseCard2": "Thẻ khóa học #2",
+          "helpCenter": "Trung tâm hỗ trợ"
+        }
+      }
+    },
+    "funnels": {
+      "title": "Funnels",
+      "subtitle": "Phân tích tỷ lệ chuyển đổi qua từng bước",
+      "export": "Export",
+      "compare": "So sánh",
+      "selector": {
+        "signup": "Signup Funnel",
+        "enrollment": "Course Enrollment",
+        "exam": "Exam Completion",
+        "checkout": "Checkout"
+      },
+      "stats": {
+        "entries": "Lượt vào",
+        "completions": "Hoàn thành",
+        "conversion": "Tỷ lệ chuyển đổi",
+        "biggestDropoff": "Bước rớt nhiều nhất"
+      },
+      "viz": {
+        "title": "Funnel Visualization",
+        "subtitle": "Các bước trong hành trình người dùng"
+      },
+      "step": {
+        "conv": "Chuyển đổi: {{value}}%"
+      },
+      "steps": {
+        "signup": {
+          "visit": "Truy cập trang",
+          "form": "Điền form đăng ký",
+          "verify": "Xác minh email",
+          "profile": "Hoàn thiện hồ sơ",
+          "done": "Hoàn tất đăng ký"
+        },
+        "enrollment": {
+          "browse": "Xem danh sách khóa học",
+          "view": "Xem chi tiết khóa học",
+          "cart": "Thêm vào giỏ",
+          "pay": "Thanh toán",
+          "done": "Hoàn tất ghi danh"
+        },
+        "exam": {
+          "start": "Bắt đầu bài thi",
+          "q1": "Hoàn thành câu 1",
+          "mid": "Qua 50% bài thi",
+          "submit": "Nộp bài",
+          "grade": "Chấm điểm xong",
+          "cert": "Nhận chứng chỉ"
+        },
+        "checkout": {
+          "cart": "Vào giỏ hàng",
+          "info": "Nhập thông tin",
+          "ship": "Chọn vận chuyển",
+          "pay": "Thanh toán",
+          "done": "Hoàn tất đơn hàng"
+        }
+      },
+      "cohort": {
+        "title": "Cohort Analysis",
+        "subtitle": "Retention theo tuần đăng ký",
+        "week": "Cohort"
+      },
+      "recs": {
+        "title": "AI Recommendations",
+        "subtitle": "Gợi ý cải thiện dựa trên bước rớt lớn nhất",
+        "applyAll": "Áp dụng tất cả",
+        "impact": {
+          "high": "Tác động cao",
+          "medium": "Trung bình",
+          "low": "Thấp"
+        },
+        "checkout": {
+          "title": "Đơn giản hóa Checkout",
+          "desc": "Thu hẹp từ 5 bước còn 3 bước và thêm ví điện tử giúp tăng ~18% chuyển đổi."
+        },
+        "exam": {
+          "title": "Gợi ý ôn tập thông minh",
+          "desc": "Phát bộ câu hỏi ôn luyện cho học viên rớt ở bước giữa kỳ thi."
+        },
+        "signup": {
+          "title": "Social Login",
+          "desc": "Bật đăng nhập bằng Google/Apple giúp giảm thời gian đăng ký ~40%."
+        }
+      }
+    },
+    "dashboard": {
+      "title": "Bảng điều khiển Admin",
+      "subtitle": "Tổng quan toàn hệ thống và các chỉ số quan trọng",
+      "recentUsers": "Người dùng mới",
+      "viewAll": "Xem tất cả",
+      "quickActions": "Hành động nhanh",
+      "recentActivity": "Hoạt động gần đây",
+      "systemStatus": "Trạng thái hệ thống"
+    },
+    "status": {
+      "active": "Đang hoạt động",
+      "pending": "Chờ duyệt",
+      "suspended": "Tạm khóa",
+      "deleted": "Đã xóa",
+      "healthy": "Khỏe mạnh",
+      "highLoad": "Tải cao",
+      "rejected": "Bị từ chối"
+    },
+    "quick": {
+      "addUser": "Thêm người dùng",
+      "createCourse": "Duyệt khóa học",
+      "createExam": "Duyệt bài thi",
+      "deployToken": "Triển khai Token"
+    },
+    "role": {
+      "superAdmin": "Super Admin",
+      "admin": "Quản trị viên",
+      "instructor": "Giảng viên",
+      "student": "Học viên",
+      "guest": "Khách"
+    },
+    "nav": {
+      "overview": "Tổng quan",
+      "dashboard": "Bảng điều khiển",
+      "analytics": "Phân tích",
+      "management": "Quản lý",
+      "users": "Người dùng",
+      "courses": "Khóa học",
+      "instructorApproval": "Phê duyệt GV",
+      "exams": "Bài thi",
+      "discussions": "Thảo luận",
+      "blockchain": "Blockchain",
+      "tenantsSection": "Tổ chức",
+      "tenants": "Danh sách tổ chức",
+      "system": "Hệ thống",
+      "security": "Bảo mật",
+      "auditLog": "Nhật ký",
+      "notifications": "Thông báo",
+      "settings": "Cài đặt",
+      "heatmaps": "Heatmaps",
+      "funnels": "Funnels",
+      "wallet": "Ví token"
+    },
+    "users": {
+      "title": "Quản lý người dùng",
+      "subtitle": "Quản lý tất cả người dùng trong hệ thống",
+      "export": "Xuất dữ liệu",
+      "addUser": "Thêm người dùng",
+      "selected": "đã chọn",
+      "changeRole": "Đổi vai trò",
+      "lock": "Khóa",
+      "delete": "Xóa",
+      "unlock": "Mở khóa",
+      "searchPlaceholder": "Tìm theo tên, email...",
+      "allRoles": "Tất cả vai trò",
+      "allStatus": "Tất cả trạng thái",
+      "newest": "Mới nhất",
+      "nameAZ": "Tên A-Z",
+      "noResults": "Không tìm thấy người dùng",
+      "showing": "Hiển thị",
+      "of": "trong",
+      "users": "người dùng",
+      "addNew": "Thêm người dùng mới",
+      "fullName": "Họ và tên",
+      "email": "Email",
+      "chooseRole": "Chọn vai trò",
+      "chooseDept": "Chọn phòng ban"
+    },
+    "table": {
+      "user": "Người dùng",
+      "role": "Vai trò",
+      "status": "Trạng thái",
+      "joined": "Ngày tham gia",
+      "department": "Phòng ban",
+      "actions": "Hành động"
+    },
+    "instructorApproval": {
+      "title": "Phê duyệt giảng viên",
+      "subtitle": "Xét duyệt đơn đăng ký giảng viên mới",
+      "export": "Xuất dữ liệu",
+      "searchPlaceholder": "Tìm theo tên, email...",
+      "noResults": "Không có đơn đăng ký nào",
+      "stats": {
+        "total": "Tổng đơn",
+        "pending": "Chờ duyệt",
+        "approved": "Đã duyệt",
+        "rejected": "Bị từ chối"
+      },
+      "yearsExp": "năm kinh nghiệm",
+      "email": "Email",
+      "phone": "Điện thoại",
+      "expertise": "Chuyên môn",
+      "submitted": "Ngày gửi",
+      "bio": "Giới thiệu",
+      "downloadCV": "Tải CV",
+      "viewPortfolio": "Xem portfolio",
+      "rejectionReason": "Lý do từ chối",
+      "reasonLabel": "Lý do từ chối",
+      "reasonPlaceholder": "Nhập lý do từ chối...",
+      "reject": "Từ chối",
+      "approve": "Phê duyệt",
+      "preview": "Xem trước",
+      "viewDetail": "Xem chi tiết"
+    },
+    "adminTenant": {
+      "title": "Tổ chức",
+      "subtitle": "Quản lý các tổ chức sử dụng nền tảng IOES",
+      "noResults": "Không tìm thấy tổ chức",
+      "pagination": {
+        "range": "{{from}}-{{to}} / {{total}}",
+        "prev": "Trước",
+        "next": "Sau",
+        "pageSize": "Hiển thị",
+        "perPage": "/ trang"
+      },
+      "stats": {
+        "total": "Tổng",
+        "active": "Đang hoạt động",
+        "trial": "Dùng thử",
+        "enterprise": "Enterprise",
+        "suspended": "Tạm khóa"
+      },
+      "actions": {
+        "export": "Xuất",
+        "add": "Thêm",
+        "reactivate": "Kích hoạt lại",
+        "upgrade": "Nâng cấp",
+        "manage": "Quản lý",
+        "dashboard": "Dashboard"
+      },
+      "filters": {
+        "searchPlaceholder": "Tìm tổ chức...",
+        "allStatuses": "Tất cả trạng thái",
+        "allPlans": "Tất cả gói"
+      },
+      "metrics": {
+        "users": "Người dùng",
+        "courses": "Khóa học",
+        "exams": "Bài thi"
+      },
+      "detail": {
+        "title": "Chi tiết tổ chức",
+        "manageOrg": "Quản lý tổ chức",
+        "editBranding": "Chỉnh thương hiệu",
+        "settings": "Cài đặt",
+        "loginsThisYear": "Lượt đăng nhập năm nay",
+        "peak": "Cao điểm",
+        "recentUsers": "Người dùng gần đây",
+        "addUser": "Thêm người dùng",
+        "noUsers": "Chưa có người dùng",
+        "colUser": "Người dùng",
+        "colRole": "Vai trò",
+        "colDept": "Phòng ban",
+        "colStatus": "Trạng thái",
+        "colAction": "Hành động",
+        "detail": "Chi tiết",
+        "quickActions": "Hành động nhanh",
+        "qaAddUser": "Thêm người dùng",
+        "qaCreateCourse": "Tạo khóa học",
+        "qaCreateExam": "Tạo bài thi",
+        "qaImportData": "Import dữ liệu",
+        "departments": "Phòng ban",
+        "addDept": "Thêm phòng ban",
+        "noDepartments": "Chưa có phòng ban",
+        "usageTitle": "Sử dụng nền tảng",
+        "usageDesc": "Theo dõi mức sử dụng trong 30 ngày qua",
+        "recentActivity": "Hoạt động gần đây",
+        "backToList": "Quay lại danh sách"
+      }
+    },
+    "approval": {
+      "title": "Phê duyệt khóa học",
+      "subtitle": "Xét duyệt các khóa học được gửi lên",
+      "export": "Xuất dữ liệu",
+      "searchPlaceholder": "Tìm khóa học...",
+      "noResults": "Không có khóa học nào",
+      "lessons": "bài học",
+      "students": "học viên",
+      "submitted": "Ngày gửi",
+      "rejectionReason": "Lý do từ chối",
+      "reasonLabel": "Lý do từ chối",
+      "reasonPlaceholder": "Nhập lý do từ chối...",
+      "reject": "Từ chối",
+      "approve": "Phê duyệt",
+      "preview": "Xem trước",
+      "viewDetail": "Xem chi tiết"
+    },
+    "discussion": {
+      "title": "Quản lý thảo luận",
+      "subtitle": "Theo dõi và xử lý các thảo luận trong hệ thống",
+      "total": "Tổng",
+      "activeCount": "Đang hoạt động",
+      "reportedCount": "Bị báo cáo",
+      "hiddenCount": "Đã ẩn",
+      "search": "Tìm kiếm...",
+      "filter": {
+        "all": "Tất cả",
+        "active": "Đang hoạt động",
+        "reported": "Bị báo cáo",
+        "hidden": "Đã ẩn"
+      },
+      "reported": "bị báo cáo",
+      "hidden": "Đã ẩn",
+      "hide": "Ẩn",
+      "restore": "Khôi phục",
+      "delete": "Xóa"
+    },
+    "auditLog": {
+      "title": "Audit log",
+      "subtitle": "Theo dõi mọi thao tác của người dùng trong hệ thống",
+      "export": "Xuất",
+      "advancedFilter": "Bộ lọc nâng cao",
+      "noResults": "Không có bản ghi nào",
+      "stats": {
+        "totalEvents": "Tổng sự kiện",
+        "criticalEvents": "Sự kiện nghiêm trọng",
+        "loginFailures": "Đăng nhập thất bại",
+        "logStorage": "Dung lượng log",
+        "retention": "Lưu trữ 90 ngày",
+        "pagination": {
+          "range": "{{from}}-{{to}} / {{total}}",
+          "prev": "Trước",
+          "next": "Sau",
+          "pageSize": "Hiển thị",
+          "perPage": "/ trang"
+        }
+      },
+      "filters": {
+        "searchPlaceholder": "Tìm theo ID, người dùng...",
+        "allTypes": "Tất cả loại",
+        "allSeverities": "Tất cả mức độ",
+        "today": "Hôm nay",
+        "custom": "Tùy chỉnh"
+      },
+      "type": {
+        "create": "Tạo",
+        "update": "Cập nhật",
+        "delete": "Xóa",
+        "auth": "Xác thực",
+        "login": "Đăng nhập",
+        "error": "Lỗi"
+      },
+      "severity": {
+        "critical": "Nghiêm trọng",
+        "high": "Cao",
+        "medium": "Trung bình",
+        "low": "Thấp"
+      },
+      "table": {
+        "timestamp": "Thời gian",
+        "user": "Người dùng",
+        "action": "Hành động",
+        "resource": "Tài nguyên",
+        "ip": "IP",
+        "severity": "Mức độ",
+        "viewDetail": "Xem chi tiết"
+      },
+      "userCell": {
+        "automated": "Hệ thống"
+      },
+      "detail": {
+        "title": "Chi tiết sự kiện",
+        "id": "ID",
+        "actor": "Người thực hiện",
+        "action": "Hành động",
+        "resource": "Tài nguyên",
+        "ip": "Địa chỉ IP",
+        "timestamp": "Thời gian",
+        "severity": "Mức độ",
+        "changes": "Thay đổi"
+      }
+    },
+    "stats": {
+      "users": "Người dùng",
+      "courses": "Khóa học",
+      "exams": "Bài thi",
+      "tokens": "Token đã phát hành",
+      "uptime": "Uptime",
+      "allUsers": "Tổng người dùng",
+      "allCourses": "Tổng khóa học",
+      "students": "Học viên",
+      "instructors": "Giảng viên",
+      "admins": "Quản trị viên",
+      "suspended": "Tạm khóa",
+      "pendingApproval": "Chờ duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Bị từ chối"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Phân tích dữ liệu hệ thống IOES",
+    "filters": {
+      "range": "Khoảng thời gian",
+      "ranges": {
+        "7d": "7 ngày qua",
+        "30d": "30 ngày qua",
+        "90d": "90 ngày qua",
+        "ytd": "Từ đầu năm"
+      },
+      "granularity": "Đơn vị",
+      "granularities": {
+        "day": "Ngày",
+        "week": "Tuần",
+        "month": "Tháng"
+      }
+    },
+    "kpi": {
+      "activeUsers": "Người dùng hoạt động",
+      "newSignups": "Đăng ký mới",
+      "courseEnrolls": "Lượt ghi danh",
+      "examSubmits": "Bài thi nộp",
+      "tokensIssued": "Token đã phát hành",
+      "avgSession": "Phiên TB (phút)"
+    },
+    "charts": {
+      "usersGrowth": "Tăng trưởng người dùng",
+      "enrollments": "Ghi danh khóa học",
+      "examCompletion": "Tỉ lệ hoàn thành bài thi",
+      "passRate": "Tỉ lệ đậu theo tháng",
+      "topCourses": "Top khóa học hot",
+      "roleDistribution": "Phân bổ vai trò"
+    },
+    "table": {
+      "course": "Khóa học",
+      "enrollments": "Ghi danh",
+      "completion": "Hoàn thành",
+      "rating": "Đánh giá"
+    }
+  },
+  "systemConfig": {
+    "title": "Cấu hình hệ thống",
+    "subtitle": "Thiết lập các tham số vận hành của nền tảng IOES",
+    "savedAt": "Đã lưu lúc {time}",
+    "sections": {
+      "general": "Tổng quan",
+      "security": "Bảo mật & xác thực",
+      "exam": "Thi & chống gian lận",
+      "notification": "Thông báo",
+      "blockchain": "Blockchain & Token",
+      "backup": "Sao lưu & vận hành"
+    },
+    "general": {
+      "platformName": "Tên nền tảng",
+      "tagline": "Khẩu hiệu",
+      "supportEmail": "Email hỗ trợ",
+      "defaultLang": "Ngôn ngữ mặc định",
+      "timezone": "Múi giờ",
+      "maintenance": "Chế độ bảo trì"
+    },
+    "security": {
+      "passwordPolicy": "Chính sách mật khẩu",
+      "minLength": "Độ dài tối thiểu",
+      "requireUppercase": "Bắt buộc chữ hoa",
+      "requireNumber": "Bắt buộc số",
+      "requireSpecial": "Bắt buộc ký tự đặc biệt",
+      "sessionTimeout": "Hết phiên (phút)",
+      "mfaRequired": "Bắt buộc 2FA cho Admin",
+      "loginThrottle": "Giới hạn đăng nhập / 5 phút"
+    },
+    "exam": {
+      "defaultDuration": "Thời gian thi mặc định (phút)",
+      "maxQuestions": "Số câu hỏi tối đa",
+      "enableProctoring": "Bật giám sát webcam",
+      "shuffleQuestions": "Xáo trộn câu hỏi",
+      "antiCheat": "Chống gian lận (copy/paste)",
+      "gradingScale": "Thang điểm (%)"
+    },
+    "notification": {
+      "emailChannel": "Kênh Email",
+      "pushChannel": "Push Notification",
+      "smsChannel": "Kênh SMS",
+      "newUserAlert": "Thông báo user mới",
+      "courseSubmittedAlert": "Thông báo khóa học chờ duyệt",
+      "examGradedAlert": "Thông báo đã chấm bài"
+    },
+    "blockchain": {
+      "network": "Mạng",
+      "contracts": "Địa chỉ contract",
+      "tokenSymbol": "Ký hiệu token",
+      "mintPerExam": "Mint / bài thi đậu"
+    },
+    "backup": {
+      "autoBackup": "Sao lưu tự động",
+      "retentionDays": "Lưu trữ (ngày)",
+      "targetStorage": "Bộ nhớ đích",
+      "runBackupNow": "Chạy sao lưu ngay"
+    }
+  },
+  "examAdmin": {
+    "title": "Quản lý bài thi",
+    "subtitle": "Theo dõi và giám sát các bài thi trong hệ thống",
+    "stats": {
+      "total": "Tổng bài thi",
+      "active": "Đang diễn ra",
+      "completed": "Hoàn thành",
+      "avgScore": "Điểm TB",
+      "passRate": "Tỉ lệ đậu",
+      "flagged": "Đáng ngờ"
+    },
+    "filters": {
+      "searchPlaceholder": "Tìm bài thi, khóa học, giảng viên...",
+      "allStatus": "Tất cả trạng thái",
+      "allCourses": "Tất cả khóa học"
+    },
+    "table": {
+      "exam": "Bài thi",
+      "course": "Khóa học",
+      "instructor": "Giảng viên",
+      "duration": "Thời lượng",
+      "participants": "Thí sinh",
+      "avgScore": "Điểm TB",
+      "status": "Trạng thái",
+      "actions": "Thao tác"
+    },
+    "status": {
+      "draft": "Nháp",
+      "scheduled": "Đã lên lịch",
+      "active": "Đang thi",
+      "completed": "Hoàn thành",
+      "cancelled": "Đã hủy"
+    },
+    "actions": {
+      "view": "Xem chi tiết",
+      "edit": "Chỉnh sửa",
+      "extend": "Gia hạn",
+      "cancel": "Hủy bài thi",
+      "export": "Xuất kết quả"
+    },
+    "empty": "Không có bài thi nào"
+  },
+  "blockchain": {
+    "title": "Blockchain & Token",
+    "subtitle": "Quản lý smart contract, token rewards và giao dịch on-chain",
+    "stats": {
+      "totalSupply": "Tổng cung",
+      "circulating": "Đang lưu thông",
+      "minted": "Đã mint",
+      "burned": "Đã burn",
+      "holders": "Người nắm giữ",
+      "tx24h": "Giao dịch 24h"
+    },
+    "contract": {
+      "title": "Smart Contract",
+      "address": "Địa chỉ",
+      "network": "Mạng",
+      "deployBlock": "Block triển khai",
+      "version": "Phiên bản",
+      "verify": "Đã xác minh",
+      "explorer": "Mở Explorer"
+    },
+    "transactions": "Giao dịch gần đây",
+    "rewards": "Token Rewards tuần này",
+    "table": {
+      "tx": "TxHash",
+      "type": "Loại",
+      "from": "Từ",
+      "to": "Đến",
+      "amount": "Số lượng",
+      "time": "Thời gian",
+      "status": "Trạng thái"
+    },
+    "txType": {
+      "mint": "Mint",
+      "burn": "Burn",
+      "transfer": "Transfer",
+      "reward": "Reward"
+    },
+    "txStatus": {
+      "confirmed": "Đã xác nhận",
+      "pending": "Đang chờ",
+      "failed": "Thất bại"
+    }
+  },
+  "security": {
+    "title": "Bảo mật",
+    "subtitle": "Giám sát sự kiện bảo mật, audit log và cấu hình tường lửa",
+    "stats": {
+      "threats": "Mối đe dọa hôm nay",
+      "blockedIPs": "IP bị chặn",
+      "failedLogins": "Đăng nhập thất bại",
+      "activeSessions": "Phiên hoạt động"
+    },
+    "events": {
+      "title": "Sự kiện bảo mật",
+      "severity": "Mức độ",
+      "type": "Loại",
+      "source": "Nguồn",
+      "user": "User",
+      "time": "Thời gian",
+      "actions": "Thao tác"
+    },
+    "severity": {
+      "critical": "Nghiêm trọng",
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp",
+      "info": "Thông tin"
+    },
+    "eventType": {
+      "login_failed": "Đăng nhập thất bại",
+      "brute_force": "Brute force",
+      "suspicious_ip": "IP đáng ngờ",
+      "mfa_disabled": "Tắt MFA",
+      "permission_escalation": "Leo thang quyền",
+      "data_export": "Xuất dữ liệu",
+      "rate_limit": "Rate limit"
+    },
+    "actions": {
+      "block": "Chặn IP",
+      "investigate": "Điều tra",
+      "dismiss": "Bỏ qua"
+    },
+    "audit": {
+      "title": "Audit log gần đây",
+      "actor": "Người thực hiện",
+      "action": "Hành động",
+      "target": "Đối tượng",
+      "ip": "IP"
+    }
+  },
+  "notificationsAdmin": {
+    "title": "Thông báo hệ thống",
+    "subtitle": "Quản lý thông báo nội bộ, broadcast và template",
+    "stats": {
+      "sent24h": "Đã gửi 24h",
+      "unread": "Chưa đọc",
+      "templates": "Templates",
+      "subscribers": "Subscribers"
+    },
+    "inbox": {
+      "title": "Inbox thông báo",
+      "markAllRead": "Đánh dấu tất cả đã đọc",
+      "filter": "Lọc",
+      "filters": {
+        "all": "Tất cả",
+        "unread": "Chưa đọc",
+        "system": "Hệ thống",
+        "user": "Người dùng",
+        "course": "Khóa học",
+        "exam": "Bài thi"
+      }
+    },
+    "broadcast": {
+      "title": "Gửi thông báo broadcast",
+      "audience": "Đối tượng",
+      "audiences": {
+        "all": "Tất cả user",
+        "students": "Students",
+        "instructors": "Instructors",
+        "admins": "Admins"
+      },
+      "channel": "Kênh",
+      "channels": {
+        "inApp": "In-App",
+        "email": "Email",
+        "push": "Push"
+      },
+      "title_placeholder": "Tiêu đề thông báo",
+      "message": "Nội dung",
+      "message_placeholder": "Nhập nội dung thông báo...",
+      "send": "Gửi ngay",
+      "preview": "Xem trước"
+    },
+    "templates": {
+      "title": "Templates",
+      "name": "Tên template",
+      "trigger": "Trigger",
+      "channel": "Kênh",
+      "active": "Hoạt động",
+      "edit": "Sửa"
+    }
+  },
+  "aria": {
+    "view": "Xem chi tiết",
+    "edit": "Chỉnh sửa",
+    "extend": "Gia hạn",
+    "export": "Xuất kết quả",
+    "cancelExam": "Hủy bài thi",
+    "markRead": "Đánh dấu đã đọc",
+    "blockIp": "Chặn IP",
+    "investigate": "Điều tra",
+    "dismiss": "Bỏ qua",
+    "saveConfig": "Lưu cấu hình",
+    "runBackup": "Chạy sao lưu ngay",
+    "sendBroadcast": "Gửi thông báo broadcast",
+    "selectAudience": "Chọn đối tượng",
+    "selectChannel": "Chọn kênh",
+    "searchExam": "Tìm bài thi",
+    "filterSeverity": "Lọc theo mức độ",
+    "filterCategory": "Lọc theo danh mục",
+    "filterStatus": "Lọc theo trạng thái",
+    "selectRange": "Chọn khoảng thời gian",
+    "selectLanguage": "Chọn ngôn ngữ",
+    "selectTimezone": "Chọn múi giờ",
+    "selectStorage": "Chọn bộ nhớ",
+    "enterTitle": "Nhập tiêu đề",
+    "enterMessage": "Nhập nội dung"
+  },
+  "public": {
+    "userProfile": {
+      "verified": "Đã xác minh",
+      "role": {
+        "instructor": "Giảng viên",
+        "student": "Học viên"
+      },
+      "joined": "Tham gia từ",
+      "follow": "Theo dõi",
+      "following": "Đang theo dõi",
+      "share": "Chia sẻ",
+      "sendMessage": "Gửi tin nhắn",
+      "stats": {
+        "followers": "Người theo dõi",
+        "following": "Đang theo dõi",
+        "courses": "Khóa học",
+        "enrolled": "Khóa đã đăng ký",
+        "certificates": "Chứng chỉ",
+        "ratingLabel": "Đánh giá"
+      },
+      "tabs": {
+        "overview": "Tổng quan",
+        "courses": "Khóa học",
+        "reviews": "Đánh giá",
+        "achievements": "Thành tích"
+      },
+      "about": "Giới thiệu",
+      "skills": "Kỹ năng",
+      "goals": "Mục tiêu",
+      "socialLinks": "Mạng xã hội",
+      "coursesCreated": "Khóa học đã tạo",
+      "enrolledCourses": "Khóa học đã đăng ký",
+      "coursesCount": "khóa học",
+      "students": "học viên",
+      "reviewsLeft": "Đánh giá đã viết",
+      "badgesTitle": "Huy hiệu",
+      "unlocked": "Đã mở khóa"
+    },
+    "verifyCertificate": {
+      "heroBadge": "Xác minh chứng chỉ công khai",
+      "heroTitle": "Xác minh mọi chứng chỉ IOES",
+      "heroSubtitle": "Nhập mã chứng chỉ hoặc hash để xác nhận tính xác thực ngay trên blockchain.",
+      "inputPlaceholder": "Nhập mã chứng chỉ hoặc hash (vd: CERT-2026-A12F4B)",
+      "verifyBtn": "Xác minh",
+      "verifying": "Đang xác minh...",
+      "tryPreset": "Thử mẫu:",
+      "empty": {
+        "title": "Sẵn sàng xác minh",
+        "desc": "Nhập mã chứng chỉ ở trên, hoặc chọn một trong các mẫu dưới đây để thử."
+      },
+      "searchingDesc": "Đang tra cứu chứng chỉ trên blockchain...",
+      "notFound": {
+        "title": "Không tìm thấy chứng chỉ",
+        "desc": "Chúng tôi không tìm thấy chứng chỉ nào khớp với mã này. Vui lòng kiểm tra lại chính tả hoặc liên hệ nơi cấp."
+      },
+      "verified": "Chứng chỉ hợp lệ",
+      "invalid": "Không hợp lệ hoặc đã thu hồi",
+      "fields": {
+        "student": "Học viên",
+        "course": "Khóa học",
+        "completion": "Ngày hoàn thành",
+        "score": "Điểm",
+        "issuedBy": "Cấp bởi",
+        "hash": "Hash chứng chỉ (SHA-256)",
+        "txHash": "Giao dịch Blockchain"
+      },
+      "footerNote": "Chữ ký được lưu trữ vĩnh viễn trên Polygon.",
+      "viewOnPolygon": "Xem trên PolygonScan",
+      "qrTitle": "Quét để xác minh ngay",
+      "qrDesc": "Mỗi chứng chỉ IOES đều có một mã QR duy nhất để xác minh trên điện thoại.",
+      "qrPoint1": "Quét bằng bất kỳ camera điện thoại nào",
+      "qrPoint2": "Liên kết sâu mở đúng trang này",
+      "qrPoint3": "Cùng hash, cùng kết quả — luôn luôn",
+      "howTitle": "Cách xác minh",
+      "howSubtitle": "3 bước đơn giản",
+      "step1Title": "Lấy mã",
+      "step1Desc": "Hỏi ứng viên mã chứng chỉ ở góc trên bên phải PDF, hoặc quét mã QR của họ.",
+      "step2Title": "Nhập & xác minh",
+      "step2Desc": "Dán mã hoặc hash vào ô phía trên rồi nhấn Xác minh.",
+      "step3Title": "Kiểm tra kết quả",
+      "step3Desc": "Chúng tôi sẽ hiển thị tên, khóa học, điểm và bằng chứng blockchain có thể kiểm toán.",
+      "ctaTitle": "Cần hỗ trợ?",
+      "ctaDesc": "Liên hệ đội ngũ trust & safety cho mọi câu hỏi xác minh."
+    },
+    "helpCenter": {
+      "hero": {
+        "badge": "Trung tâm hỗ trợ",
+        "title": "Chúng tôi có thể giúp gì cho bạn?",
+        "desc": "Tìm kiếm trong kho bài viết, hướng dẫn và câu trả lời cho những câu hỏi thường gặp.",
+        "searchPlaceholder": "Tìm bài viết, hướng dẫn, câu hỏi...",
+        "suggestionLabel": "Phổ biến:"
+      },
+      "categories": {
+        "gettingStarted": {
+          "title": "Bắt đầu",
+          "desc": "Hướng dẫn cho người mới",
+          "count": 24
+        },
+        "account": {
+          "title": "Tài khoản",
+          "desc": "Đăng ký, đăng nhập, bảo mật",
+          "count": 18
+        },
+        "courses": {
+          "title": "Khóa học",
+          "desc": "Đăng ký, học tập, chứng chỉ",
+          "count": 32
+        },
+        "exams": {
+          "title": "Bài thi",
+          "desc": "Lịch thi, quy chế, chấm điểm",
+          "count": 27
+        },
+        "payments": {
+          "title": "Thanh toán",
+          "desc": "Hóa đơn, hoàn tiền, ưu đãi",
+          "count": 15
+        },
+        "technical": {
+          "title": "Kỹ thuật",
+          "desc": "Lỗi, trình duyệt, cấu hình",
+          "count": 21
+        }
+      },
+      "articleCount": "{{count}} bài viết",
+      "popular": {
+        "title": "Bài viết phổ biến",
+        "subtitle": "Được đọc nhiều nhất trong tuần qua",
+        "viewAll": "Xem tất cả",
+        "empty": "Không tìm thấy bài viết nào phù hợp",
+        "tags": {
+          "tagGettingStarted": "Bắt đầu",
+          "tagAccount": "Tài khoản",
+          "tagCourses": "Khóa học",
+          "tagExams": "Bài thi",
+          "tagPayments": "Thanh toán",
+          "tagTechnical": "Kỹ thuật"
+        },
+        "readTime": {
+          "a1": "5 phút",
+          "a2": "7 phút",
+          "a3": "8 phút",
+          "a4": "4 phút",
+          "a5": "6 phút",
+          "a6": "10 phút",
+          "a7": "5 phút",
+          "a8": "9 phút"
+        }
+      },
+      "articles": {
+        "a1": {
+          "title": "Hướng dẫn đăng ký tài khoản IOES trong 2 phút",
+          "desc": "Các bước chi tiết để tạo tài khoản học viên mới, xác thực email và thiết lập hồ sơ cá nhân."
+        },
+        "a2": {
+          "title": "Cách đăng ký khóa học và thanh toán an toàn",
+          "desc": "Tìm hiểu về các phương thức thanh toán được hỗ trợ, áp dụng mã giảm giá và nhận hóa đơn điện tử."
+        },
+        "a3": {
+          "title": "Quy chế thi trực tuyến — Những điều cần biết",
+          "desc": "Các quy định về giám sát thi, xử lý vi phạm và quyền phúc khảo dành cho học viên."
+        },
+        "a4": {
+          "title": "Bảo mật tài khoản với xác thực hai yếu tố (2FA)",
+          "desc": "Kích hoạt 2FA qua ứng dụng Authenticator hoặc SMS để bảo vệ tài khoản của bạn."
+        },
+        "a5": {
+          "title": "Chính sách hoàn tiền và hủy đăng ký",
+          "desc": "Điều kiện, thời hạn và quy trình hoàn tiền khi hủy khóa học hoặc gói đăng ký."
+        },
+        "a6": {
+          "title": "Khắc phục lỗi webcam không hoạt động khi thi",
+          "desc": "Hướng dẫn kiểm tra quyền truy cập camera, cập nhật driver và các cài đặt trình duyệt cần thiết."
+        },
+        "a7": {
+          "title": "Cách xem lại đáp án sau khi hoàn thành bài thi",
+          "desc": "Truy cập bảng phân tích chi tiết từng câu hỏi, đáp án đúng và giải thích từ giảng viên."
+        },
+        "a8": {
+          "title": "Tải chứng chỉ Blockchain và chia sẻ lên LinkedIn",
+          "desc": "Hướng dẫn tải chứng chỉ đã được xác thực bằng blockchain và chia sẻ thành tích lên mạng xã hội."
+        }
+      },
+      "faq": {
+        "title": "Câu hỏi thường gặp",
+        "subtitle": "Câu trả lời nhanh cho những thắc mắc phổ biến nhất",
+        "q1": {
+          "question": "Làm thế nào để bắt đầu với IOES?",
+          "answer": "Sau khi đăng ký tài khoản, bạn có thể khám phá các khóa học miễn phí trong mục \"Khóa học\". Khi sẵn sàng, chọn khóa học phù hợp và nhấn \"Đăng ký\" để bắt đầu hành trình học tập của bạn."
+        },
+        "q2": {
+          "question": "Tôi có thể học thử miễn phí trước khi đăng ký không?",
+          "answer": "Có. Hầu hết các khóa học đều có 2-3 bài học đầu tiên miễn phí. Bạn cũng có thể tham gia các khóa học \"Open\" do giảng viên mở công khai mà không cần đăng ký."
+        },
+        "q3": {
+          "question": "Chứng chỉ IOES có giá trị như thế nào?",
+          "answer": "Chứng chỉ của chúng tôi được xác thực bằng công nghệ Blockchain và có thể xác minh công khai. Nhiều đối tác doanh nghiệp của IOES công nhận các chứng chỉ này trong quá trình tuyển dụng và đánh giá nhân viên."
+        },
+        "q4": {
+          "question": "Tôi quên mật khẩu, phải làm sao?",
+          "answer": "Nhấn vào liên kết \"Quên mật khẩu\" tại trang đăng nhập và làm theo hướng dẫn. Một email khôi phục sẽ được gửi đến địa chỉ đã đăng ký trong vòng 1-2 phút."
+        },
+        "q5": {
+          "question": "Thanh toán có an toàn không?",
+          "answer": "Mọi giao dịch đều được xử lý qua các cổng thanh toán được chứng nhận PCI-DSS. IOES không lưu trữ thông tin thẻ của bạn. Chúng tôi hỗ trợ VNPay, MoMo, thẻ quốc tế và chuyển khoản ngân hàng."
+        },
+        "q6": {
+          "question": "Tôi có thể học trên điện thoại di động không?",
+          "answer": "Có. Giao diện web của IOES tương thích với mọi thiết bị. Bạn cũng có thể cài đặt ứng dụng PWA để có trải nghiệm mượt mà hơn và học offline."
+        },
+        "q7": {
+          "question": "Tôi muốn trở thành giảng viên, cần điều kiện gì?",
+          "answer": "Bạn cần có ít nhất 3 năm kinh nghiệm chuyên môn hoặc bằng cấp phù hợp, đồng thời hoàn thành khóa \"Train the Trainer\" của IOES. Sau khi gửi hồ sơ, đội ngũ sẽ phản hồi trong 5-7 ngày làm việc."
+        },
+        "q8": {
+          "question": "Hệ thống giám sát thi hoạt động ra sao?",
+          "answer": "Chúng tôi sử dụng AI Computer Vision kết hợp với giám sát viên con người. Mọi hành vi bất thường đều được ghi nhận và báo cáo. Học viên vi phạm sẽ bị cảnh cáo hoặc hủy kết quả thi theo quy chế."
+        },
+        "q9": {
+          "question": "Tôi có thể yêu cầu xuất hóa đơn VAT không?",
+          "answer": "Có. Sau khi thanh toán thành công, vào mục \"Lịch sử thanh toán\" và chọn \"Yêu cầu hóa đơn\". Vui lòng cung cấp đầy đủ thông tin công ty và mã số thuế. Hóa đơn sẽ được gửi qua email trong 24 giờ."
+        },
+        "q10": {
+          "question": "Làm sao để liên hệ hỗ trợ kỹ thuật?",
+          "answer": "Bạn có thể gửi email tới support@ioes.edu.vn, gọi hotline 1900 5678 (24/7), hoặc sử dụng khung chat ở góc phải màn hình. Đội ngũ kỹ thuật của chúng tôi luôn sẵn sàng hỗ trợ bạn."
+        }
+      },
+      "contact": {
+        "title": "Liên hệ với chúng tôi",
+        "subtitle": "Chọn kênh liên hệ phù hợp nhất với bạn",
+        "email": {
+          "title": "Email hỗ trợ",
+          "desc": "Phản hồi trong 4 giờ làm việc",
+          "value": "support@ioes.edu.vn"
+        },
+        "liveChat": {
+          "title": "Trò chuyện trực tiếp",
+          "desc": "Hỗ trợ tức thì 8:00 - 22:00",
+          "value": "Bắt đầu chat"
+        },
+        "phone": {
+          "title": "Hotline",
+          "desc": "Gọi miễn phí trong nước",
+          "value": "1900 5678"
+        },
+        "community": {
+          "title": "Diễn đàn cộng đồng",
+          "desc": "Trao đổi với 50.000+ học viên",
+          "value": "Tham gia cộng đồng"
+        }
+      },
+      "cta": {
+        "title": "Vẫn cần hỗ trợ thêm?",
+        "desc": "Đội ngũ hỗ trợ của IOES luôn sẵn sàng giúp bạn 24/7. Hãy liên hệ ngay để được tư vấn và giải đáp mọi thắc mắc.",
+        "contactSupport": "Liên hệ hỗ trợ",
+        "submitTicket": "Gửi yêu cầu"
+      }
+    },
+    "legal": {
+      "header": {
+        "badge": "Pháp lý & Tuân thủ",
+        "lastUpdated": "Cập nhật lần cuối: 25/07/2026"
+      },
+      "tabs": {
+        "privacy": "Chính sách bảo mật",
+        "terms": "Điều khoản sử dụng"
+      },
+      "toc": {
+        "title": "Mục lục"
+      },
+      "relatedDocs": {
+        "title": "Tài liệu liên quan",
+        "cookies": "Chính sách Cookie",
+        "dpa": "Thỏa thuận xử lý dữ liệu (DPA)",
+        "imprint": "Thông tin xuất bản"
+      },
+      "contactBox": {
+        "title": "Liên hệ DPO",
+        "desc": "Mọi câu hỏi liên quan đến quyền riêng tư hoặc yêu cầu về dữ liệu cá nhân, vui lòng liên hệ đội ngũ Bảo vệ Dữ liệu (DPO) của chúng tôi."
+      },
+      "privacy": {
+        "title": "Chính sách bảo mật",
+        "intro": "Chúng tôi cam kết bảo vệ quyền riêng tư và dữ liệu cá nhân của bạn theo GDPR, PDPA Việt Nam và các tiêu chuẩn quốc tế.",
+        "s1": {
+          "number": "1",
+          "heading": "Thông tin chúng tôi thu thập",
+          "body1": "Chúng tôi thu thập thông tin bạn cung cấp trực tiếp khi đăng ký tài khoản, đăng ký khóa học hoặc sử dụng các dịch vụ của IOES, bao gồm: họ tên, địa chỉ email, số điện thoại, ngày sinh, ảnh đại diện, thông tin tổ chức (nếu có) và nội dung bài thi.",
+          "body2": "Ngoài ra, chúng tôi tự động thu thập dữ liệu kỹ thuật như địa chỉ IP, loại trình duyệt, thiết bị, hệ điều hành và nhật ký hoạt động (logs) nhằm đảm bảo an ninh và cải thiện chất lượng dịch vụ. Cookie và công nghệ tương tự được sử dụng theo Chính sách Cookie riêng."
+        },
+        "s2": {
+          "number": "2",
+          "heading": "Cách chúng tôi sử dụng thông tin",
+          "body1": "Thông tin của bạn được sử dụng để cung cấp và vận hành nền tảng, xử lý đăng ký và thanh toán, chấm điểm tự động, hỗ trợ kỹ thuật, gửi thông báo quan trọng và cải thiện trải nghiệm người dùng thông qua phân tích ẩn danh.",
+          "body2": "Chúng tôi KHÔNG bán dữ liệu cá nhân của bạn cho bên thứ ba dưới bất kỳ hình thức nào. Mọi hoạt động xử lý dữ liệu đều có cơ sở pháp lý rõ ràng theo Điều 6 GDPR và Điều 11 PDPA Việt Nam."
+        },
+        "s3": {
+          "number": "3",
+          "heading": "Chia sẻ dữ liệu với bên thứ ba",
+          "body1": "Chúng tôi chỉ chia sẻ dữ liệu với các đối tác đáng tin cậy trong phạm vi cần thiết, bao gồm: cổng thanh toán (VNPay, MoMo, Stripe), nhà cung cấp dịch vụ lưu trữ đám mây (AWS Singapore), và các công cụ phân tích (Google Analytics ở chế độ ẩn danh).",
+          "body2": "Tất cả các đối tác đều ký Thỏa thuận Xử lý Dữ liệu (DPA) tuân thủ GDPR. Danh sách đối tác hiện tại được công bố tại trang \"Trust Center\" và cập nhật định kỳ mỗi quý."
+        },
+        "s4": {
+          "number": "4",
+          "heading": "Quyền của người dùng tại EU (GDPR)",
+          "body1": "Nếu bạn ở Khu vực Kinh tế châu Âu (EEA), bạn có các quyền sau theo GDPR: Quyền truy cập (Art. 15), Quyền sửa (Art. 16), Quyền xóa (Art. 17), Quyền hạn chế xử lý (Art. 18), Quyền chuyển dữ liệu (Art. 20) và Quyền phản đối (Art. 21).",
+          "body2": "Để thực hiện các quyền này, vui lòng gửi yêu cầu qua email privacy@ioes.edu.vn. Chúng tôi sẽ phản hồi trong vòng 30 ngày. Bạn cũng có quyền khiếu nại lên cơ quan bảo vệ dữ liệu quốc gia."
+        },
+        "s5": {
+          "number": "5",
+          "heading": "Quyền của người dùng tại Việt Nam (PDPA)",
+          "body1": "Theo Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân, người dùng tại Việt Nam có quyền được biết, quyền đồng ý, quyền truy cập, quyền xóa hoặc hạn chế xử lý dữ liệu, và quyền khiếu nại.",
+          "body2": "Bạn có thể yêu cầu rà soát, cập nhật hoặc xóa dữ liệu cá nhân bất cứ lúc nào qua Cài đặt tài khoản hoặc bằng cách liên hệ DPO. Chúng tôi tôn trọng quyền của bạn và sẽ xử lý yêu cầu trong vòng 72 giờ."
+        },
+        "s6": {
+          "number": "6",
+          "heading": "Cookie và công nghệ theo dõi",
+          "body1": "IOES sử dụng cookie thiết yếu (để duy trì phiên đăng nhập), cookie hiệu suất (phân tích ẩn danh) và cookie chức năng (lưu tùy chọn ngôn ngữ, giao diện). Chúng tôi KHÔNG sử dụng cookie quảng cáo của bên thứ ba.",
+          "body2": "Bạn có thể quản lý cookie trong Cài đặt > Quyền riêng tư hoặc thông qua cài đặt trình duyệt. Việc tắt một số cookie có thể ảnh hưởng đến trải nghiệm sử dụng nền tảng."
+        },
+        "s7": {
+          "number": "7",
+          "heading": "Lưu trữ và xóa dữ liệu",
+          "body1": "Dữ liệu tài khoản được lưu trữ trong suốt thời gian bạn sử dụng dịch vụ và tối đa 24 tháng sau lần hoạt động cuối cùng. Dữ liệu bài thi và chứng chỉ được lưu trữ vĩnh viễn trên blockchain để đảm bảo khả năng xác minh công khai.",
+          "body2": "Sau khi tài khoản bị xóa, dữ liệu cá nhân sẽ được xóa khỏi hệ thống trong vòng 30 ngày, ngoại trừ các bản ghi bắt buộc theo quy định pháp luật (thuế, kế toán) được lưu trữ theo thời hạn pháp luật quy định."
+        },
+        "s8": {
+          "number": "8",
+          "heading": "Liên hệ DPO",
+          "body1": "Data Protection Officer của IOES có thể được liên hệ qua email dpo@ioes.edu.vn hoặc qua đường bưu điện tại địa chỉ: Tầng 15, Tòa nhà ABC Tower, 123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh, Việt Nam.",
+          "body2": "Chúng tôi khuyến khích bạn liên hệ DPO trước khi gửi khiếu nại chính thức. Trong hầu hết trường hợp, chúng tôi có thể giải quyết vấn đề trong vòng 7 ngày làm việc."
+        }
+      },
+      "terms": {
+        "title": "Điều khoản sử dụng",
+        "intro": "Bằng việc truy cập và sử dụng nền tảng IOES, bạn đồng ý tuân thủ các điều khoản dưới đây. Vui lòng đọc kỹ trước khi sử dụng dịch vụ.",
+        "s1": {
+          "number": "1",
+          "heading": "Chấp nhận điều khoản",
+          "body1": "Khi tạo tài khoản hoặc sử dụng bất kỳ dịch vụ nào của IOES, bạn xác nhận đã đọc, hiểu và đồng ý bị ràng buộc bởi các Điều khoản này, cùng với Chính sách Bảo mật và mọi điều khoản bổ sung được áp dụng cho từng dịch vụ cụ thể.",
+          "body2": "Nếu bạn không đồng ý với bất kỳ điều khoản nào, vui lòng ngừng sử dụng dịch vụ ngay lập tức. Chúng tôi có quyền từ chối cung cấp dịch vụ cho bất kỳ cá nhân hoặc tổ chức nào vi phạm các điều khoản này."
+        },
+        "s2": {
+          "number": "2",
+          "heading": "Trách nhiệm tài khoản",
+          "body1": "Bạn chịu hoàn toàn trách nhiệm bảo mật thông tin đăng nhập và mọi hoạt động diễn ra dưới tài khoản của bạn. Vui lòng thông báo cho chúng tôi ngay khi phát hiện truy cập trái phép. IOES không chịu trách nhiệm cho tổn thất phát sinh từ việc sử dụng trái phép tài khoản của bạn.",
+          "body2": "Bạn phải cung cấp thông tin chính xác, đầy đủ và cập nhật khi đăng ký. Mọi hành vi giả mạo danh tính, tạo nhiều tài khoản hoặc lạm dụng chương trình khuyến mãi đều bị coi là vi phạm nghiêm trọng."
+        },
+        "s3": {
+          "number": "3",
+          "heading": "Quyền truy cập khóa học",
+          "body1": "Sau khi thanh toán thành công, bạn được cấp quyền truy cập không độc quyền, không chuyển nhượng vào nội dung khóa học trong thời hạn ghi trên đơn đăng ký. Quyền truy cập chỉ dành cho cá nhân bạn và không được chia sẻ dưới mọi hình thức.",
+          "body2": "Một số khóa học có thể có giới hạn thời gian truy cập hoặc yêu cầu điều kiện tiên quyết. Việc sử dụng tài khoản để đăng nhập đồng thời từ nhiều thiết bị có thể bị giới hạn theo chính sách chống gian lận."
+        },
+        "s4": {
+          "number": "4",
+          "heading": "Thanh toán và hoàn tiền",
+          "body1": "Tất cả giá khóa học đã bao gồm VAT (nếu có). Chúng tôi chấp nhận thanh toán qua VNPay, MoMo, thẻ tín dụng quốc tế và chuyển khoản ngân hàng. Yêu cầu hoàn tiền phải được gửi trong vòng 7 ngày kể từ ngày đăng ký và chưa hoàn thành quá 20% nội dung khóa học.",
+          "body2": "Trong trường hợp IOES hủy khóa học vì lý do kỹ thuật hoặc nội dung, chúng tôi cam kết hoàn 100% học phí trong vòng 14 ngày làm việc. Các gói đăng ký định kỳ có thể hủy bất cứ lúc nào và có hiệu lực đến hết chu kỳ đã thanh toán."
+        },
+        "s5": {
+          "number": "5",
+          "heading": "Hành vi bị cấm",
+          "body1": "Bạn không được phép: sao chép, phân phối hoặc tái sử dụng nội dung khóa học cho mục đích thương mại; sử dụng công cụ tự động (bot, script) để gian lận trong thi; chia sẻ tài khoản cho người khác; đăng tải nội dung vi phạm pháp luật, xâm phạm quyền của bên thứ ba hoặc có tính chất lừa đảo.",
+          "body2": "Vi phạm các hành vi bị cấm có thể dẫn đến đình chỉ tài khoản ngay lập tức, hủy kết quả học tập, và trong trường hợp nghiêm trọng có thể bị truy cứu trách nhiệm pháp lý. Chúng tôi bảo lưu quyền khởi kiện đối với các hành vi gian lận."
+        },
+        "s6": {
+          "number": "6",
+          "heading": "Quyền sở hữu trí tuệ",
+          "body1": "Toàn bộ nội dung trên IOES — bao gồm nhưng không giới hạn ở văn bản, hình ảnh, video, âm thanh, mã nguồn và thiết kế — đều thuộc quyền sở hữu của IOES hoặc các giảng viên/đối tác được cấp phép. Mọi hành vi sao chép trái phép đều bị xử lý theo Luật Sở hữu Trí tuệ Việt Nam và các điều ước quốc tế.",
+          "body2": "Bạn giữ quyền sở hữu đối với nội dung do bạn tạo ra (bài làm, bài thi, thảo luận). Tuy nhiên, bạn cấp cho IOES giấy phép không độc quyền, miễn phí bản quyền để sử dụng nội dung đó cho mục đích vận hành và cải thiện dịch vụ."
+        },
+        "s7": {
+          "number": "7",
+          "heading": "Miễn trừ trách nhiệm",
+          "body1": "IOES cung cấp dịch vụ trên cơ sở \"nguyên trạng\" (as-is) và không đảm bảo rằng dịch vụ sẽ hoạt động không bị gián đoạn hoặc hoàn toàn không có lỗi. Chúng tôi nỗ lực đảm bảo uptime 99.5% nhưng không chịu trách nhiệm cho sự gián đoạn do sự kiện bất khả kháng.",
+          "body2": "Chứng chỉ IOES được cấp dựa trên kết quả học tập và thi. Chúng tôi không đảm bảo rằng chứng chỉ sẽ được công nhận bởi mọi tổ chức hoặc nhà tuyển dụng. Người dùng tự chịu trách nhiệm tìm hiểu trước khi đăng ký khóa học."
+        },
+        "s8": {
+          "number": "8",
+          "heading": "Giới hạn trách nhiệm pháp lý",
+          "body1": "Trong phạm vi tối đa được pháp luật cho phép, tổng trách nhiệm pháp lý của IOES đối với bạn cho mọi khiếu nại phát sinh từ việc sử dụng dịch vụ sẽ không vượt quá số tiền bạn đã thanh toán cho IOES trong 12 tháng gần nhất.",
+          "body2": "IOES không chịu trách nhiệm cho bất kỳ thiệt hại gián tiếp, ngẫu nhiên, đặc biệt hoặc do hậu quả nào, bao gồm nhưng không giới hạn ở mất lợi nhuận, mất dữ liệu hoặc gián đoạn kinh doanh, ngay cả khi chúng tôi đã được thông báo về khả năng xảy ra các thiệt hại đó."
+        },
+        "s9": {
+          "number": "9",
+          "heading": "Luật áp dụng và giải quyết tranh chấp",
+          "body1": "Các Điều khoản này được điều chỉnh bởi pháp luật Việt Nam. Mọi tranh chấp phát sinh sẽ được giải quyết trước hết thông qua thương lượng thiện chí giữa các bên trong vòng 30 ngày.",
+          "body2": "Nếu không đạt được thỏa thuận, tranh chấp sẽ được đưa ra giải quyết tại Trung tâm Trọng tài Quốc tế Việt Nam (VIAC) theo quy tắc tố tụng hiện hành. Phán quyết của Trung tâm là quyết định cuối cùng và có giá trị ràng buộc đối với các bên."
+        },
+        "s10": {
+          "number": "10",
+          "heading": "Liên hệ",
+          "body1": "Mọi câu hỏi, khiếu nại hoặc yêu cầu liên quan đến các Điều khoản này, vui lòng liên hệ qua email legal@ioes.edu.vn hoặc gọi hotline 1900 1234 trong giờ làm việc.",
+          "body2": "Chúng tôi cam kết phản hồi mọi yêu cầu trong vòng 3 ngày làm việc. Nếu bạn cần hỗ trợ khẩn cấp về vấn đề bảo mật tài khoản, vui lòng sử dụng đường dây nóng 1900 9999 hoạt động 24/7."
+        }
+      }
+    }
+  },
+  "streak": {
+    "dowMon": "T2",
+    "dowWed": "T4",
+    "dowFri": "T6",
+    "weekMon": "T2",
+    "weekTue": "T3",
+    "weekWed": "T4",
+    "weekThu": "T5",
+    "weekFri": "T6",
+    "weekSat": "T7",
+    "weekSun": "CN",
+    "m7": "7 ngày",
+    "m30": "30 ngày",
+    "m100": "100 ngày",
+    "m365": "365 ngày",
+    "monthJan": "T1",
+    "monthFeb": "T2",
+    "monthMar": "T3",
+    "monthApr": "T4",
+    "monthMay": "T5",
+    "monthJun": "T6",
+    "monthJul": "T7",
+    "monthAug": "T8",
+    "monthSep": "T9",
+    "monthOct": "T10",
+    "monthNov": "T11",
+    "monthDec": "T12"
+  }
+}
