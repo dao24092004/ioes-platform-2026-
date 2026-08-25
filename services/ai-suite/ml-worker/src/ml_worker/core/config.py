@@ -4,20 +4,15 @@ from functools import lru_cache
 
 from ioes_common.config import BaseServiceSettings
 from pydantic import Field
-from pydantic_settings import SettingsConfigDict
 
 
 class MLSettings(BaseServiceSettings):
     """ml-worker specific config; inherits DB / Kafka / JWT from
     {@link ioes_common.config.BaseServiceSettings}.
-    """
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore",
-    )
+    ADR-008: model_config is inherited on purpose so the settings come from
+    the monorepo root .env, not from whatever directory the worker starts in.
+    """
 
     # Server
     app_host: str = "0.0.0.0"
@@ -35,6 +30,7 @@ class MLSettings(BaseServiceSettings):
     # Vector store
     milvus_host: str = "localhost"
     milvus_port: int = 19530
+    # ADR-008: milvus_user/password — optional trong dev nếu MilIO không set auth
     milvus_user: str = ""
     milvus_password: str = ""
     milvus_database: str = "ioes_ai"
@@ -52,11 +48,12 @@ class MLSettings(BaseServiceSettings):
     # flash-lite rong hon nhieu va du cho khoi luong cua US-017.
     gemini_model: str = "gemini-3.5-flash-lite"
 
-    openai_api_key: str = ""
+    # ADR-008: openai/azure API keys phải load từ env, không default trong code.
+    openai_api_key: str = ""  # set via env OPENAI_API_KEY
     openai_model: str = "gpt-4o"
 
     azure_openai_endpoint: str = ""
-    azure_openai_key: str = ""
+    azure_openai_key: str = ""  # set via env AZURE_OPENAI_KEY
     azure_openai_deployment: str = ""
 
     # RAG

@@ -29,6 +29,16 @@ eureka:
     lease-expiration-duration-in-seconds: 15
 
 # ============================================
+# JWT - PHẢI GIỐNG auth-service
+# ADR-008: KHÔNG có default fallback. Set JWT_SECRET qua env.
+# ============================================
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}
+  issuer: ${JWT_ISSUER:ioes-platform}
+
+# ============================================
 # ROUTES
 # ============================================
 spring.cloud.gateway:
@@ -98,10 +108,6 @@ spring.cloud.gateway:
 # ============================================
 spring.cloud.gateway.default-filters:
   - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
-  - name: CircuitBreaker
-    args:
-      name: default
-      fallbackUri: forward:/fallback
   - name: Retry
     args:
       retries: 3
@@ -110,6 +116,22 @@ spring.cloud.gateway.default-filters:
         firstBackoff: 100ms
         maxBackoff: 500ms
         factor: 2
+
+# ============================================
+# HTTP CLIENT TIMEOUTS (WebFlux/Netty)
+# ============================================
+spring.cloud.gateway.httpclient:
+  # Kết nối TCP đến downstream service
+  connect-timeout: 5000
+  # Thời gian chờ response từ downstream (mặc định = unlimited)
+  response-timeout: 30s
+  # Tắt max-idle (mặc định 0 = infinite idle - giữ connection)
+  max-idle-time: 60s
+
+# ============================================
+# WEBCLIENT TIMEOUTS (cho circuit breaker)
+# ============================================
+spring.codec.max-in-memory-size: 5MB
 
 # ============================================
 # MANAGEMENT

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
+import { JwtPayload } from '../types/jwt-payload.type';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -22,16 +23,27 @@ export class RolesGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    const user = request.user as JwtPayload | undefined;
 
-    if (!user || !user.role) {
-      throw new ForbiddenException('User role not found');
+    if (!user) {
+      throw new ForbiddenException('User not authenticated');
     }
 
-    const hasRole = requiredRoles.includes(user.role);
+    // BUG #110 fix: support cả single role (backward compat) và multi-role array
+    const userRoles: string[] = [];
+    if (user.role) userRoles.push(user.role);
+    if (user.roles && Array.isArray(user.roles)) userRoles.push(...user.roles);
+
+    if (userRoles.length === 0) {
+      throw new ForbiddenException('User has no role assigned');
+    }
+
+    // Check if user has AT LEAST ONE of required roles (OR semantics)
+    const hasRole = requiredRoles.some((r) => userRoles.includes(r));
+
     if (!hasRole) {
       throw new ForbiddenException(
-        `Requires role: ${requiredRoles.join(' or ')}`,
+        `Requires one of roles: ${requiredRoles.join(', ')}`,
       );
     }
 

@@ -549,9 +549,43 @@ services:
     networks:
       - ioes-network
 
-  # ============================================
-  # EMAIL TESTING - MailHog
-  # ============================================
+# ============================================
+# GRAPH DATABASE - Dgraph (Question Bank)
+# Read-side store cho module question-bank trong exam-suite
+# Xem: docs/02-architecture/adr/ADR-001-use-dgraph-for-question-bank.md
+# NOTE: Dgraph v23.3.0 image không tồn tại trên Docker Hub.
+#       Uncomment khi image khả dụng hoặc dùng tag 'latest'.
+# ============================================
+
+# dgraph-zero:
+#   image: dgraph/dgraph:v23.1.0
+#   container_name: ioes-dgraph-zero
+#   restart: unless-stopped
+#   ports:
+#     - "5080:5080"
+#     - "6080:6080"
+#   command: dgraph zero --my=dgraph-zero:5080
+#   networks:
+#     - ioes-network
+
+# dgraph-alpha:
+#   image: dgraph/dgraph:v23.1.0
+#   container_name: ioes-dgraph-alpha
+#   ports:
+#     - "8080:8080"
+#     - "9080:9080"
+#   networks:
+#     - ioes-network
+
+# dgraph-schema-init:
+#   image: curlimages/curl:latest
+#   container_name: ioes-dgraph-schema-init
+#   networks:
+#     - ioes-network
+
+# ============================================
+# EMAIL TESTING - MailHog
+# ============================================
 
   mailhog:
     image: mailhog/mailhog:latest
@@ -583,6 +617,8 @@ volumes:
     driver: local
   etcd_data:
     driver: local
+  # dgraph_data:
+  #   driver: local
   prometheus_data:
     driver: local
   grafana_data:
