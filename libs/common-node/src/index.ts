@@ -68,6 +68,7 @@ export * from './config/setup-jwt';
 export * from './decorators/current-user.decorator';
 export * from './decorators/roles.decorator';
 export * from './decorators/public.decorator';
+export * from './decorators/api-property.decorator';
 export * from './decorators/user-id.decorator';
 export * from './decorators/cache.decorator';
 export * from './decorators/trace-id.decorator';
@@ -80,7 +81,6 @@ export * from './dto/user-principal.dto';
 export * from './exceptions/business.exception';
 
 // Utils
-export * from './utils/logger.util';
 export * from './utils/validator.util';
 export * from './utils/pii-mask.util';
 

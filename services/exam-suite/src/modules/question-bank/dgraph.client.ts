@@ -105,7 +105,7 @@ export class DgraphClient implements OnModuleInit {
         cfg.get<string>('DGRAPH_GRAPHQL_ENDPOINT') ?? '/graphql',
       adminEndpoint:
         cfg.get<string>('DGRAPH_ADMIN_ENDPOINT') ?? '/admin',
-      token: cfg.get<string>('DGRAPH_TOKEN') || undefined,
+      token: cfg.get<string>('DGRAPH_TOKEN') ?? '',
       timeoutMs: parseInt(
         cfg.get<string>('DGRAPH_TIMEOUT_MS') ?? '5000',
         10,

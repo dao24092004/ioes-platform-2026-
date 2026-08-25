@@ -1,7 +1,7 @@
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { QuestionType, Difficulty } from '@ioes/common-node';
-import { CreateQuestionDto, QuestionOptionDto } from '../create-question.dto';
+import { CreateQuestionDto, QuestionOptionDto } from './create-question.dto';
 
 describe('CreateQuestionDto - MCQ Validation (BUG #73 fix)', () => {
   const validDto = () => ({

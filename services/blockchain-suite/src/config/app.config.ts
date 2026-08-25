@@ -105,7 +105,7 @@ function list(key: string, fallback: string[]): string[] {
 /**
  * Helper: resolve key with optional prefix. Ưu tiên PREFIX_KEY, fallback về KEY.
  */
-function prefixed(prefix: string, key: string, fallback?: string): string {
+function prefixed(prefix: string, key: string, fallback = ''): string {
   return process.env[`${prefix}_${key}`] ?? process.env[key] ?? fallback;
 }
 function prefixedInt(prefix: string, key: string, fallback: number): number {

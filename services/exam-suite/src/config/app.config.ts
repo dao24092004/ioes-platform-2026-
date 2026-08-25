@@ -112,7 +112,7 @@ function list(key: string, fallback: string[]): string[] {
  * Helper: resolve key with optional prefix. Ưu tiên PREFIX_KEY, fallback về KEY.
  * Cho phép dùng root .env.example với tên EXAM_*, đồng thời backward compat.
  */
-function prefixed(prefix: string, key: string, fallback?: string): string {
+function prefixed(prefix: string, key: string, fallback = ''): string {
   return process.env[`${prefix}_${key}`] ?? process.env[key] ?? fallback;
 }
 function prefixedInt(prefix: string, key: string, fallback: number): number {

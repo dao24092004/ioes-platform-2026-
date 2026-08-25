@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { StructuredLogger } from '@ioes/common-node';
+import { PaginatedResponse, StructuredLogger } from '@ioes/common-node';
 import { DgraphClient } from './dgraph.client';
 import { SearchQuestionDto } from './dto/search-question.dto';
 import {
@@ -165,12 +165,7 @@ export class QuestionBankService {
     );
     const total = data.aggregateQuestion?.count ?? items.length;
 
-    return {
-      items,
-      total,
-      page,
-      limit,
-    };
+    return PaginatedResponse.create(items, page, limit, total);
   }
 
   /**
@@ -228,7 +223,7 @@ export class QuestionBankService {
         id: q.id,
         questionText: q.questionText,
         difficulty: q.difficulty,
-        order: order[q.difficulty as keyof typeof order] ?? 3,
+        order: order[Number(q.difficulty) as keyof typeof order] ?? 3,
         rationale: q.requiresSkills?.length
           ? `Cần kiến thức: ${q.requiresSkills.map((s) => s.name).join(', ')}`
           : undefined,

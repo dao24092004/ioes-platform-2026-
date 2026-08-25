@@ -78,7 +78,7 @@ export class DgraphResyncService {
     const startTime = Date.now();
     const startedAt = new Date();
 
-    if (!user.roles?.includes('ADMIN')) {
+    if (user.role !== 'ADMIN') {
       throw new Error('Only ADMIN can trigger resync');
     }
 

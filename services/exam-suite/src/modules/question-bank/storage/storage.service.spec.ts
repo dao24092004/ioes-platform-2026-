@@ -107,7 +107,10 @@ describe('StorageService', () => {
   describe('isValidImageUrl', () => {
     it('should accept URLs from configured endpoint', () => {
       const url = 'http://localhost:9000/test-bucket/questions/uuid/image.png';
-      expect(service['isValidStorageHost']?.(url) ?? true).toBeTruthy();
+      const check = (service as unknown as Record<string, unknown>)[
+        'isValidStorageHost'
+      ] as ((value: string) => boolean) | undefined;
+      expect(check?.(url) ?? true).toBeTruthy();
     });
   });
 });

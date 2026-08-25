@@ -273,7 +273,7 @@ export class ExamService {
           q.options = q.options.map((o) => ({
             ...o,
             isCorrect: undefined,
-          })) as typeof q.options;
+          })) as unknown as typeof q.options;
         }
       }
     }

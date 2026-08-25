@@ -115,6 +115,7 @@ describe('ExamEventsPublisher - Outbox pattern', () => {
           breakdown: {
             autoGradedScore: 85,
             autoGradedCount: 20,
+            manualGradedCount: 0,
           },
           finalGrading: true,
         },

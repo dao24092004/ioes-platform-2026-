@@ -63,7 +63,7 @@ export class OutboxEvent {
   attempts!: number;
 
   @Column({ type: 'text', nullable: true })
-  lastError?: string;
+  lastError?: string | null;
 
   @Column({ type: 'timestamptz', nullable: true })
   nextAttemptAt?: Date;

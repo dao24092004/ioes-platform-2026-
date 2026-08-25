@@ -65,7 +65,7 @@ export class BusinessException extends HttpException {
    */
   static rateLimited(retryAfter: number, message = 'Too many requests'): BusinessException {
     return new BusinessException(
-      ERROR_CODES.RATE_LIMITED ?? 'RATE_LIMITED',
+      ERROR_CODES.RATE_LIMIT_EXCEEDED,
       message,
       HttpStatus.TOO_MANY_REQUESTS,
       { retryAfter },

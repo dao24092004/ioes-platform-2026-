@@ -162,22 +162,24 @@ export class OutboxService {
    */
   private async publishEvent(event: OutboxEvent): Promise<void> {
     try {
-      await this.kafkaProducer.send(event.topic, {
-        eventId: event.eventId,
-        eventType: event.eventType,
-        eventVersion: event.eventVersion,
-        occurredAt: event.createdAt.toISOString(),
-        aggregateId: event.aggregateId ?? '',
-        aggregateType: event.aggregateType ?? '',
-        correlationId: event.correlationId ?? '',
-        source: event.source,
-        payload: event.payload,
-        headers: {
+      await this.kafkaProducer.sendEvent(
+        event.topic,
+        {
+          eventId: event.eventId,
+          eventType: event.eventType,
+          eventVersion: event.eventVersion,
+          occurredAt: event.createdAt.toISOString(),
+          aggregateId: event.aggregateId ?? '',
+          aggregateType: event.aggregateType ?? '',
+          correlationId: event.correlationId ?? '',
+          source: event.source,
+          payload: event.payload,
+        },
+        {
           'content-type': 'application/json',
-          'event-version': event.eventVersion,
           ...(event.headers ?? {}),
         },
-      });
+      );
 
       await this.repo.update(
         { id: event.id },

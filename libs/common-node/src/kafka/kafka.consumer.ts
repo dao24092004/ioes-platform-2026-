@@ -164,9 +164,8 @@ export class KafkaConsumer implements OnModuleDestroy {
         groupId,
         sessionTimeout: 30_000,
         heartbeatInterval: 5_000,
-        // BUG #41 fix: manual commit - chỉ commit khi handle thành công
-        // cho phép retry logic work đúng
-        autoCommit: false,
+        // Manual commit duoc dat o consumer.run() ben duoi; ConsumerConfig
+        // cua kafkajs khong nhan autoCommit.
         allowAutoTopicCreation: true,
       });
       await consumer.connect();

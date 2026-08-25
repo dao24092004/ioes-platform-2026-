@@ -4,10 +4,8 @@ import { Repository } from 'typeorm';
 import { StructuredLogger } from '../logger/structured-logger';
 import { ProcessedEvent } from './outbox-event.entity';
 import { EventEnvelope } from './event-envelope';
-import {
-  KafkaConsumer,
-  KafkaMessageContext,
-} from '../kafka/kafka.consumer';
+import type { KafkaMessage } from 'kafkajs';
+import { KafkaConsumer } from '../kafka/kafka.consumer';
 
 /**
  * BaseEventConsumer - generic base cho mọi event consumer.
@@ -47,8 +45,10 @@ export abstract class BaseEventConsumer<T = unknown>
   ) {}
 
   async onModuleInit(): Promise<void> {
-    await this.kafka.subscribe(this.topic, this.groupId, (msg) =>
-      this.processMessage(msg),
+    this.kafka.subscribe<T>(
+      this.topic,
+      (envelope, raw) => this.processMessage(envelope, raw),
+      { groupId: this.groupId },
     );
   }
 
@@ -59,17 +59,10 @@ export abstract class BaseEventConsumer<T = unknown>
   /**
    * Process 1 message - theo atomic claim pattern.
    */
-  private async processMessage(msg: KafkaMessageContext): Promise<void> {
-    let envelope: EventEnvelope<T>;
-    try {
-      envelope = JSON.parse(msg.message.value!.toString()) as EventEnvelope<T>;
-    } catch (err) {
-      this.logger.error(
-        `Failed to parse message from ${this.topic}: ${(err as Error).message}`,
-      );
-      return; // Skip unparseable messages
-    }
-
+  private async processMessage(
+    envelope: EventEnvelope<T>,
+    msg: KafkaMessage,
+  ): Promise<void> {
     // Atomic claim
     const claimed = await this.tryClaim(envelope.eventId, envelope.eventType, envelope.aggregateId, envelope.aggregateType);
     if (!claimed) {
@@ -138,6 +131,6 @@ export abstract class BaseEventConsumer<T = unknown>
    */
   protected abstract handleEvent(
     envelope: EventEnvelope<T>,
-    msg: KafkaMessageContext,
+    msg: KafkaMessage,
   ): Promise<void>;
 }

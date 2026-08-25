@@ -39,6 +39,8 @@ export const RateLimit = (options: RateLimitOptions): MethodDecorator => {
 interface RateLimitStore {
   hit(key: string, windowMs: number): { count: number; resetAt: number };
   reset(key: string): void;
+  /** Tuy chon: ban Redis khong can quet dinh ky vi da co TTL. */
+  cleanup?(): void;
 }
 
 /**

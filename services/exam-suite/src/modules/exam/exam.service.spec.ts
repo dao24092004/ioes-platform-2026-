@@ -170,7 +170,7 @@ describe('ExamService - Start exam flow', () => {
           points: 10,
         } as Question,
       ]);
-      dataSource.transaction.mockImplementation(async (cb) =>
+      dataSource.transaction.mockImplementation(async (cb: any) =>
         cb(emMock as EntityManager),
       );
 
@@ -208,7 +208,7 @@ describe('ExamService - Start exam flow', () => {
         save: jest.fn().mockResolvedValue({ ...attempt, status: AttemptStatus.CANCELLED }),
       };
       attemptRepo.findByIdForUpdate.mockResolvedValue(attempt);
-      dataSource.transaction.mockImplementation(async (cb) =>
+      dataSource.transaction.mockImplementation(async (cb: any) =>
         cb(emMock as EntityManager),
       );
 
@@ -221,7 +221,7 @@ describe('ExamService - Start exam flow', () => {
     it('should_throw_When_notOwner', async () => {
       const attempt = { id: 'att-1', userId: 'other-user' } as ExamAttempt;
       attemptRepo.findByIdForUpdate.mockResolvedValue(attempt);
-      dataSource.transaction.mockImplementation(async (cb) =>
+      dataSource.transaction.mockImplementation(async (cb: any) =>
         cb({ save: jest.fn() } as any),
       );
 

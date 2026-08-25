@@ -1,7 +1,8 @@
 import { Repository } from 'typeorm';
 import { BaseEventConsumer } from './base-event-consumer';
 import { ProcessedEvent } from './outbox-event.entity';
-import { KafkaConsumer, KafkaMessageContext } from '../kafka/kafka.consumer';
+import type { KafkaMessage } from 'kafkajs';
+import { KafkaConsumer } from '../kafka/kafka.consumer';
 import { StructuredLogger } from '../logger/structured-logger';
 import { EventEnvelope } from './event-envelope';
 
@@ -61,8 +62,10 @@ describe('BaseEventConsumer - Atomic claim pattern (ADR-004)', () => {
       };
       processedRepo.createQueryBuilder = jest.fn().mockReturnValue(mockBuilder);
 
-      let capturedHandler: ((msg: KafkaMessageContext) => Promise<void>) | null = null;
-      kafka.subscribe = jest.fn((_topic, _group, handler) => {
+      let capturedHandler:
+        | ((envelope: EventEnvelope<{ userId: string }>, raw: KafkaMessage) => Promise<void>)
+        | null = null;
+      kafka.subscribe = jest.fn((_topic, handler) => {
         capturedHandler = handler;
       }) as any;
 
@@ -81,16 +84,7 @@ describe('BaseEventConsumer - Atomic claim pattern (ADR-004)', () => {
         payload: { userId: 'user-1' },
       };
 
-      await capturedHandler!({
-        topic: 'test.topic',
-        partition: 0,
-        message: {
-          value: Buffer.from(JSON.stringify(envelope)),
-          offset: '0',
-        } as any,
-        heartbeat: jest.fn(),
-        pause: jest.fn(),
-      } as KafkaMessageContext);
+      await capturedHandler!(envelope, { value: Buffer.from(JSON.stringify(envelope)), offset: '0' } as KafkaMessage);
 
       expect(consumer.handleCallCount).toBe(1);
       expect(consumer.lastEnvelope?.eventId).toBe('event-1');
@@ -106,8 +100,10 @@ describe('BaseEventConsumer - Atomic claim pattern (ADR-004)', () => {
       };
       processedRepo.createQueryBuilder = jest.fn().mockReturnValue(mockBuilder);
 
-      let capturedHandler: ((msg: KafkaMessageContext) => Promise<void>) | null = null;
-      kafka.subscribe = jest.fn((_t, _g, handler) => {
+      let capturedHandler:
+        | ((envelope: EventEnvelope<{ userId: string }>, raw: KafkaMessage) => Promise<void>)
+        | null = null;
+      kafka.subscribe = jest.fn((_t, handler) => {
         capturedHandler = handler;
       }) as any;
 
@@ -125,13 +121,7 @@ describe('BaseEventConsumer - Atomic claim pattern (ADR-004)', () => {
         payload: { userId: 'user-1' },
       };
 
-      await capturedHandler!({
-        topic: 'test.topic',
-        partition: 0,
-        message: { value: Buffer.from(JSON.stringify(envelope)), offset: '0' } as any,
-        heartbeat: jest.fn(),
-        pause: jest.fn(),
-      } as KafkaMessageContext);
+      await capturedHandler!(envelope, { value: Buffer.from(JSON.stringify(envelope)), offset: '0' } as KafkaMessage);
 
       expect(consumer.handleCallCount).toBe(0);
     });
@@ -147,8 +137,10 @@ describe('BaseEventConsumer - Atomic claim pattern (ADR-004)', () => {
       processedRepo.createQueryBuilder = jest.fn().mockReturnValue(mockBuilder);
       processedRepo.delete = jest.fn().mockResolvedValue({ affected: 1 });
 
-      let capturedHandler: ((msg: KafkaMessageContext) => Promise<void>) | null = null;
-      kafka.subscribe = jest.fn((_t, _g, handler) => {
+      let capturedHandler:
+        | ((envelope: EventEnvelope<{ userId: string }>, raw: KafkaMessage) => Promise<void>)
+        | null = null;
+      kafka.subscribe = jest.fn((_t, handler) => {
         capturedHandler = handler;
       }) as any;
 
@@ -169,13 +161,7 @@ describe('BaseEventConsumer - Atomic claim pattern (ADR-004)', () => {
       };
 
       await expect(
-        capturedHandler!({
-          topic: 'test.topic',
-          partition: 0,
-          message: { value: Buffer.from(JSON.stringify(envelope)), offset: '0' } as any,
-          heartbeat: jest.fn(),
-          pause: jest.fn(),
-        } as KafkaMessageContext),
+        capturedHandler!(envelope, { value: Buffer.from(JSON.stringify(envelope)), offset: '0' } as KafkaMessage),
       ).rejects.toThrow('boom');
 
       expect(processedRepo.delete).toHaveBeenCalledWith({ eventId: 'fail-1' });

@@ -19,12 +19,15 @@ describe('BulkImportService', () => {
   let writeService: jest.Mocked<QuestionWriteService>;
   let dataSource: jest.Mocked<DataSource>;
 
-  const mockUser: UserPrincipalDto = {
-    userId: 'user-1',
-    email: 'instructor@test.com',
-    roles: ['INSTRUCTOR'],
-    tenantId: 'tenant-1',
-  };
+  const mockUser: UserPrincipalDto = Object.assign(
+    new UserPrincipalDto(),
+    {
+      userId: 'user-1',
+      email: 'instructor@test.com',
+      role: 'INSTRUCTOR',
+      tenantId: 'tenant-1',
+    },
+  );
 
   const validCsv = `question_text,question_type,difficulty,points,topic_id,language,hint,explanation,tags,options,test_cases,status
 "What is 2+2?",multiple_choice,easy,5,00000000-0000-4000-8000-000000000000,,,,"math,basic","4|true,5|false",,

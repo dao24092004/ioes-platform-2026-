@@ -17,7 +17,6 @@ import { ServiceClient } from './service-client.base';
  */
 @Injectable()
 export class AuthClient extends ServiceClient {
-  private readonly logger = new StructuredLogger(AuthClient.name);
   private jwksCache: { keys: JwkKey[]; fetchedAt: number } | null = null;
   private readonly JWKS_TTL_MS = 60 * 60 * 1000; // 1 hour
   private userCache = new Map<string, { payload: JwtPayload; cachedAt: number }>();

@@ -66,7 +66,7 @@ export class ExamAttempt {
   gradedAt?: Date;
 
   @Column({ type: 'int', nullable: true })
-  timeRemainingSeconds?: number;
+  timeRemainingSeconds?: number | null;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   score?: number;

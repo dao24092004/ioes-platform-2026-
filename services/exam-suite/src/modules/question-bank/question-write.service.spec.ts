@@ -29,11 +29,14 @@ describe('QuestionWriteService - Outbox Pattern', () => {
   let outboxInserts: any[] = [];
   let mockManager: any;
 
-  const mockUser: UserPrincipalDto = {
-    userId: 'user-uuid-1',
-    email: 'instructor@example.com',
-    role: 'INSTRUCTOR',
-  };
+  const mockUser: UserPrincipalDto = Object.assign(
+    new UserPrincipalDto(),
+    {
+      userId: 'user-uuid-1',
+      email: 'instructor@example.com',
+      role: 'INSTRUCTOR',
+    },
+  );
 
   const createDto: CreateQuestionDto = {
     questionText: 'What is polymorphism?',

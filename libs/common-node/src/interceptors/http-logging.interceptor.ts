@@ -63,12 +63,12 @@ export class HttpLoggingInterceptor implements NestInterceptor {
     sensitive: boolean,
   ): void {
     const status = res.statusCode;
-    const level =
+    const level: 'error' | 'warn' | 'log' =
       error || status >= 500
         ? 'error'
         : status >= 400
           ? 'warn'
-          : 'info';
+          : 'log';
 
     const logData: Record<string, unknown> = {
       method: req.method,

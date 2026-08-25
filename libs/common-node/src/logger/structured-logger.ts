@@ -61,6 +61,14 @@ export class StructuredLogger implements LoggerService {
     this.writeLog('info', this.toMessage(message), optionalParams);
   }
 
+  /**
+   * Alias cua log(). Nest goi log(), nhung phan lon code trong repo va ca
+   * structured-logger.spec.ts deu goi info() theo thoi quen tu pino/winston.
+   */
+  info(message: any, ...optionalParams: any[]): void {
+    this.log(message, ...optionalParams);
+  }
+
   error(message: any, ...optionalParams: any[]): void {
     this.writeLog('error', this.toMessage(message), optionalParams);
   }

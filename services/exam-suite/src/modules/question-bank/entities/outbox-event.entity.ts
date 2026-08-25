@@ -86,11 +86,11 @@ export class OutboxEvent {
 
   /** Last error message nếu fail */
   @Column({ type: 'text', nullable: true })
-  lastError?: string;
+  lastError?: string | null;
 
   /** Next retry timestamp (exponential backoff) */
   @Column({ type: 'timestamptz', nullable: true })
-  nextAttemptAt?: Date;
+  nextAttemptAt?: Date | null;
 
   @CreateDateColumn()
   createdAt!: Date;

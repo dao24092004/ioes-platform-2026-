@@ -11,19 +11,25 @@ describe('DgraphResyncService', () => {
   let questionRepo: { createQueryBuilder: jest.Mock; findOne: jest.Mock };
   let dataSource: { transaction: jest.Mock };
 
-  const mockAdminUser: UserPrincipalDto = {
-    userId: 'admin-1',
-    email: 'admin@test.com',
-    roles: ['ADMIN'],
-    tenantId: 't-1',
-  };
+  const mockAdminUser: UserPrincipalDto = Object.assign(
+    new UserPrincipalDto(),
+    {
+      userId: 'admin-1',
+      email: 'admin@test.com',
+      role: 'ADMIN',
+      tenantId: 't-1',
+    },
+  );
 
-  const mockInstructor: UserPrincipalDto = {
-    userId: 'instructor-1',
-    email: 'inst@test.com',
-    roles: ['INSTRUCTOR'],
-    tenantId: 't-1',
-  };
+  const mockInstructor: UserPrincipalDto = Object.assign(
+    new UserPrincipalDto(),
+    {
+      userId: 'instructor-1',
+      email: 'inst@test.com',
+      role: 'INSTRUCTOR',
+      tenantId: 't-1',
+    },
+  );
 
   beforeEach(async () => {
     questionRepo = {

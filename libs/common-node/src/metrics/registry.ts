@@ -3,8 +3,9 @@ import { BaseMetric } from './base.metric';
 class MetricsRegistry {
   private metrics: Map<string, BaseMetric> = new Map();
 
-  register(metric: BaseMetric): BaseMetric {
-    if (this.metrics.has(metric['meta'].name)) return this.metrics.get(metric['meta'].name)!;
+  register<T extends BaseMetric>(metric: T): T {
+    const existing = this.metrics.get(metric['meta'].name);
+    if (existing) return existing as T;
     this.metrics.set(metric['meta'].name, metric);
     return metric;
   }

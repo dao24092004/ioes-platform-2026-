@@ -8,12 +8,15 @@ describe('ImageUploadService', () => {
   let service: ImageUploadService;
   let storage: jest.Mocked<StorageService>;
 
-  const mockUser: UserPrincipalDto = {
-    userId: 'user-1',
-    email: 'a@b.com',
-    roles: ['INSTRUCTOR'],
-    tenantId: 't-1',
-  };
+  const mockUser: UserPrincipalDto = Object.assign(
+    new UserPrincipalDto(),
+    {
+      userId: 'user-1',
+      email: 'a@b.com',
+      role: 'INSTRUCTOR',
+      tenantId: 't-1',
+    },
+  );
 
   beforeEach(async () => {
     const storageMock = {

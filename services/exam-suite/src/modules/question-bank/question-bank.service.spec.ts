@@ -1,11 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { QuestionBankService } from './question-bank.service';
 import { DgraphClient } from './dgraph.client';
-import {
-  SearchQuestionDto,
-  QuestionType,
-  Difficulty,
-} from './dto/search-question.dto';
+import { QuestionType, Difficulty } from '@ioes/common-node';
+import { SearchQuestionDto } from './dto/search-question.dto';
 
 describe('QuestionBankService', () => {
   let service: QuestionBankService;
@@ -50,18 +47,18 @@ describe('QuestionBankService', () => {
         aggregateQuestion: { count: 1 },
       } as any);
 
-      const dto: SearchQuestionDto = {
+      const dto: SearchQuestionDto = Object.assign(new SearchQuestionDto(), {
         q: 'polymorphism',
         difficulty: Difficulty.MEDIUM,
         page: 1,
         limit: 20,
-      };
+      });
 
       const result = await service.searchQuestions(dto);
 
-      expect(result.total).toBe(1);
-      expect(result.page).toBe(1);
-      expect(result.limit).toBe(20);
+      expect(result.meta.total).toBe(1);
+      expect(result.meta.page).toBe(1);
+      expect(result.meta.limit).toBe(20);
       expect(result.items).toHaveLength(1);
       expect(result.items[0].id).toBe('0x1');
       expect(result.items[0].questionText).toBe('What is polymorphism?');
@@ -88,7 +85,7 @@ describe('QuestionBankService', () => {
         aggregateQuestion: { count: 0 },
       } as any);
 
-      await service.searchQuestions({ q: 'test', page: 1, limit: 10 });
+      await service.searchQuestions(Object.assign(new SearchQuestionDto(), { q: 'test', page: 1, limit: 10 }));
 
       const variables = dgraph.query.mock.calls[0][1] as any;
       expect(variables.filters).toEqual(
@@ -105,7 +102,7 @@ describe('QuestionBankService', () => {
         aggregateQuestion: { count: 0 },
       } as any);
 
-      await service.searchQuestions({ q: 'test', page: 3, limit: 15 });
+      await service.searchQuestions(Object.assign(new SearchQuestionDto(), { q: 'test', page: 3, limit: 15 }));
 
       expect(dgraph.query).toHaveBeenCalledWith(
         expect.any(String),
@@ -119,7 +116,7 @@ describe('QuestionBankService', () => {
         aggregateQuestion: { count: 0 },
       } as any);
 
-      await service.searchQuestions({});
+      await service.searchQuestions(Object.assign(new SearchQuestionDto(), {}));
 
       expect(dgraph.query).toHaveBeenCalledWith(
         expect.any(String),
@@ -133,7 +130,7 @@ describe('QuestionBankService', () => {
         aggregateQuestion: { count: 0 },
       } as any);
 
-      await service.searchQuestions({ topicId: 'topic-abc' });
+      await service.searchQuestions(Object.assign(new SearchQuestionDto(), { topicId: 'topic-abc' }));
 
       const variables = dgraph.query.mock.calls[0][1] as any;
       expect(variables.filters).toEqual(
@@ -149,7 +146,7 @@ describe('QuestionBankService', () => {
         aggregateQuestion: { count: 0 },
       } as any);
 
-      await service.searchQuestions({ questionType: QuestionType.CODING });
+      await service.searchQuestions(Object.assign(new SearchQuestionDto(), { questionType: QuestionType.CODING }));
 
       const variables = dgraph.query.mock.calls[0][1] as any;
       expect(variables.filters).toEqual(
