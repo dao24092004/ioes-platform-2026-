@@ -73,10 +73,11 @@ export function maskPIIInString(input: string): string {
     (match, local, domain) => maskEmail(match),
   );
 
-  // Phone (basic patterns)
+  // Credit card PHAI chay truoc phone: regex phone khop duoc mot phan
+  // day so the va lam bien dang no, khien regex the khong con nhan ra.
   masked = masked.replace(
-    /(\+?\d{1,3}[\s-]?)?\(?\d{3}\)?[\s-]?\d{3,4}[\s-]?\d{3,4}/g,
-    (match) => maskPhone(match),
+    /\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/g,
+    (match) => maskCreditCard(match),
   );
 
   // JWT
@@ -85,10 +86,10 @@ export function maskPIIInString(input: string): string {
     '[REDACTED-JWT]',
   );
 
-  // Credit card
+  // Phone (basic patterns)
   masked = masked.replace(
-    /\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/g,
-    (match) => maskCreditCard(match),
+    /(\+?\d{1,3}[\s-]?)?\(?\d{3}\)?[\s-]?\d{3,4}[\s-]?\d{3,4}/g,
+    (match) => maskPhone(match),
   );
 
   // Bearer
@@ -114,12 +115,21 @@ export function maskPIIInValue<T>(value: T, maxDepth = 5): T {
     const masked: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(obj)) {
       const lowerKey = k.toLowerCase();
+      // Bi mat thuan khong co dang de nhan ra, maskPIIInString tra ve nguyen
+      // van. Nhung truong nay phai xoa han thay vi che theo mau.
       if (
+        lowerKey.includes('password') ||
+        lowerKey.includes('secret') ||
+        lowerKey.includes('apikey') ||
+        lowerKey.includes('api_key') ||
+        lowerKey.includes('authorization') ||
+        lowerKey.includes('credential')
+      ) {
+        masked[k] = '[REDACTED]';
+      } else if (
         lowerKey.includes('email') ||
         lowerKey.includes('phone') ||
-        lowerKey.includes('token') ||
-        lowerKey.includes('password') ||
-        lowerKey.includes('secret')
+        lowerKey.includes('token')
       ) {
         masked[k] = typeof v === 'string' ? maskPIIInString(v) : '[REDACTED]';
       } else {

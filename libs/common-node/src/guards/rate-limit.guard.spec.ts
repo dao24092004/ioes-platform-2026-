@@ -66,8 +66,8 @@ describe('RateLimitGuard - BUG #67 fix', () => {
     const ctx = createMockContext({ method: 'GET', url: '/x', ip: '1.2.3.4' });
 
     guard.canActivate(ctx);
-    expect((ctx.switchToHttp().getResponse as any).headers['x-ratelimit-limit']).toBe(5);
-    expect((ctx.switchToHttp().getResponse as any).headers['x-ratelimit-remaining']).toBe(4);
+    expect((ctx.switchToHttp().getResponse() as any).headers['x-ratelimit-limit']).toBe(5);
+    expect((ctx.switchToHttp().getResponse() as any).headers['x-ratelimit-remaining']).toBe(4);
   });
 });
 

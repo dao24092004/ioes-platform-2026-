@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { KafkaProducer, KAFKA_CLIENT } from '@ioes/common-node';
-import { EventEnvelope } from '@ioes/common-node';
+import { KafkaProducer } from './kafka.producer';
+import { KAFKA_CLIENT } from './kafka.options';
+import { EventEnvelope } from '../events/event-envelope';
 
 // Mock kafkajs để không thực sự connect Kafka
 jest.mock('kafkajs', () => {

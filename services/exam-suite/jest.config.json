@@ -1,15 +1,28 @@
 {
-  "moduleFileExtensions": ["js", "json", "ts"],
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
   "rootDir": "src",
   "testRegex": ".*\\.spec\\.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
-  "collectCoverageFrom": ["**/*.(t|j)s"],
+  "collectCoverageFrom": [
+    "**/*.(t|j)s"
+  ],
   "coverageDirectory": "./coverage",
   "testEnvironment": "node",
   "moduleNameMapper": {
     "^@ioes/common-node$": "<rootDir>/../../../libs/common-node/src/index.ts",
     "^@ioes/common-node/(.*)$": "<rootDir>/../../../libs/common-node/src/$1"
-  }
+  },
+  "setupFiles": [
+    "<rootDir>/config/test-env.setup.ts"
+  ],
+  "testPathIgnorePatterns": [
+    "/node_modules/",
+    "test-env.setup.ts"
+  ]
 }

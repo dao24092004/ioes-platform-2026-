@@ -45,8 +45,8 @@ describe('BaseEventConsumer - Atomic claim pattern (ADR-004)', () => {
       await consumer.onModuleInit();
       expect(kafka.subscribe).toHaveBeenCalledWith(
         'test.topic',
-        'test-group',
         expect.any(Function),
+        { groupId: 'test-group' },
       );
     });
   });
@@ -144,7 +144,9 @@ describe('BaseEventConsumer - Atomic claim pattern (ADR-004)', () => {
         capturedHandler = handler;
       }) as any;
 
-      consumer.handleEvent = jest.fn().mockRejectedValue(new Error('boom')) as any;
+      (consumer as unknown as Record<string, unknown>).handleEvent = jest
+        .fn()
+        .mockRejectedValue(new Error('boom'));
 
       await consumer.onModuleInit();
 

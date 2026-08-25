@@ -37,7 +37,9 @@ import {
 export class StructuredLogger implements LoggerService {
   private context = 'Application';
   private static readonly JSON_MODE = process.env.LOG_FORMAT !== 'text';
-  private static readonly LOG_LEVEL = (process.env.LOG_LEVEL ?? 'info').toLowerCase();
+  private static get LOG_LEVEL(): string {
+    return (process.env.LOG_LEVEL ?? 'info').toLowerCase();
+  }
 
   /**
    * Constructor — NestJS style compatible.

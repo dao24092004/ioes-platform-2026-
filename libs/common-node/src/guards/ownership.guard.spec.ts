@@ -18,9 +18,9 @@ describe('OwnershipGuard - BUG #112 fix', () => {
 
   it('should_throw_When_userMissing', async () => {
     reflector.getAllAndOverride = jest.fn().mockReturnValue({ resource: 'question', ownerField: 'createdBy' });
-    await expect(
+    expect(() =>
       guard.canActivate(createMockContext({ user: undefined })),
-    ).rejects.toThrow(ForbiddenException);
+    ).toThrow(ForbiddenException);
   });
 
   it('should_bypass_When_admin', async () => {
@@ -32,9 +32,9 @@ describe('OwnershipGuard - BUG #112 fix', () => {
 
   it('should_throw_When_noFetcherRegistered', async () => {
     reflector.getAllAndOverride = jest.fn().mockReturnValue({ resource: 'unknown', ownerField: 'createdBy' });
-    await expect(
+    expect(() =>
       guard.canActivate(createMockContext({ user: { sub: 'u1', role: 'STUDENT' }, params: { id: 'q1' } })),
-    ).rejects.toThrow(ForbiddenException);
+    ).toThrow(ForbiddenException);
   });
 
   it('should_pass_When_ownerMatches', async () => {

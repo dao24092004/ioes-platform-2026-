@@ -1,27 +1,37 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { KafkaConsumer, KAFKA_CLIENT } from '@ioes/common-node';
+import { KafkaConsumer } from './kafka.consumer';
+import { KAFKA_CLIENT } from './kafka.options';
+
+// Phai mock o pham vi module. jest.doMock() trong beforeEach chay sau khi
+// kafka.consumer.ts da import kafkajs that, nen consumer se mo ket noi that
+// va test hong voi KafkaJSConnectionError.
+jest.mock('kafkajs', () => {
+  const mockConsumer = {
+    connect: jest.fn().mockResolvedValue(undefined),
+    disconnect: jest.fn().mockResolvedValue(undefined),
+    subscribe: jest.fn().mockResolvedValue(undefined),
+    run: jest.fn().mockResolvedValue(undefined),
+  };
+  return {
+    __esModule: true,
+    Kafka: jest.fn().mockImplementation(() => ({
+      consumer: () => mockConsumer,
+    })),
+    __mockConsumer: mockConsumer,
+  };
+});
 
 describe('KafkaConsumer', () => {
   let consumer: KafkaConsumer;
   let mockConsumerInstance: any;
-  let kafkaMock: jest.Mock;
 
   beforeEach(async () => {
-    mockConsumerInstance = {
-      connect: jest.fn().mockResolvedValue(undefined),
-      disconnect: jest.fn().mockResolvedValue(undefined),
-      subscribe: jest.fn().mockResolvedValue(undefined),
-      run: jest.fn().mockResolvedValue(undefined),
-    };
-
-    kafkaMock = jest.fn().mockImplementation(() => ({
-      consumer: () => mockConsumerInstance,
-    }));
-
-    jest.doMock('kafkajs', () => ({
-      Kafka: kafkaMock,
-      __esModule: true,
-    }));
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    mockConsumerInstance = require('kafkajs').__mockConsumer;
+    mockConsumerInstance.connect.mockClear();
+    mockConsumerInstance.disconnect.mockClear();
+    mockConsumerInstance.subscribe.mockClear();
+    mockConsumerInstance.run.mockClear();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -42,7 +52,6 @@ describe('KafkaConsumer', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-    jest.resetModules();
   });
 
   it('should_useDefaultGroupId_When_optionsProvided', () => {
