@@ -6,57 +6,42 @@
 spring:
   application:
     name: ${service.name:unknown-service}
-  profiles:
-    active: ${spring.profiles.active:local}
 
-# ============================================
-# SERVER CONFIGURATION
-# ============================================
-server:
-  port: ${SERVER_PORT:8080}
-  shutdown: graceful
-  tomcat:
-    threads:
-      max: 200
-      min-spare: 10
-    connection-timeout: 30000
-    max-connections: 10000
+  # ============================================
+  # DATABASE CONFIGURATION
+  # ============================================
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${AUTH_DB_NAME:ioes_auth}
+    username: ${POSTGRES_USER:ioes}
+    password: ${POSTGRES_PASSWORD:ioes_dev_password}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: ${spring.application.name}-HikariPool
 
-# ============================================
-# DATABASE CONFIGURATION
-# ============================================
-datasource:
-  url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${AUTH_DB_NAME:ioes_auth}
-  username: ${POSTGRES_USER:ioes}
-  password: ${POSTGRES_PASSWORD:ioes_dev_password}
-  hikari:
-    maximum-pool-size: 20
-    minimum-idle: 5
-    connection-timeout: 30000
-    idle-timeout: 600000
-    max-lifetime: 1800000
-    pool-name: ${spring.application.name}-HikariPool
+  # ============================================
+  # REDIS CONFIGURATION
+  # ============================================
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 5000
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 4
+          max-wait: 2000
 
-# ============================================
-# REDIS CONFIGURATION
-# ============================================
-redis:
-  host: ${REDIS_HOST:localhost}
-  port: ${REDIS_PORT:6379}
-  password: ${REDIS_PASSWORD:}
-  database: 0
-  timeout: 5000
-  lettuce:
-    pool:
-      max-active: 16
-      max-idle: 8
-      min-idle: 4
-      max-wait: 2000
-
-# ============================================
-# KAFKA CONFIGURATION
-# ============================================
-spring:
+  # ============================================
+  # KAFKA CONFIGURATION
+  # ============================================
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
     consumer:
@@ -75,6 +60,19 @@ spring:
       properties:
         enable.idempotence: true
         max.in.flight.requests.per.connection: 5
+
+# ============================================
+# SERVER CONFIGURATION
+# ============================================
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    connection-timeout: 30000
+    max-connections: 10000
 
 # ============================================
 # OBSERVABILITY CONFIGURATION
