@@ -553,8 +553,6 @@ services:
 # GRAPH DATABASE - Dgraph (Question Bank)
 # Read-side store cho module question-bank trong exam-suite
 # Xem: docs/02-architecture/adr/ADR-001-use-dgraph-for-question-bank.md
-# NOTE: Dgraph v23.3.0 image không tồn tại trên Docker Hub.
-#       Uncomment khi image khả dụng hoặc dùng tag 'latest'.
 # ============================================
 
   dgraph-zero:
@@ -666,8 +664,8 @@ volumes:
     driver: local
   etcd_data:
     driver: local
-  # dgraph_data:
-  #   driver: local
+  dgraph_data:
+    driver: local
   prometheus_data:
     driver: local
   grafana_data:

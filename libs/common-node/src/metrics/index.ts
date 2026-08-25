@@ -1,5 +1,7 @@
+import { BaseMetric } from './base.metric';
+import { Counter, Gauge, Histogram } from './metric-types';
 export { BaseMetric, MetricType, MetricMeta } from './base.metric';
-export { Counter, Gauge, Histogram } from './metric-types';
+export { Counter, Gauge, Histogram };
 export { registry } from './registry';
 export * from './predefined';
 

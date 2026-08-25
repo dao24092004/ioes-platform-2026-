@@ -3,8 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { DgraphResyncService } from './dgraph-resync.service';
 import { Question } from './entities/question.entity';
-import { OutboxEvent } from './entities/outbox-event.entity';
-import { UserPrincipalDto } from '@ioes/common-node';
+import { UserPrincipalDto, OutboxEvent } from '@ioes/common-node';
 
 describe('DgraphResyncService', () => {
   let service: DgraphResyncService;

@@ -113,7 +113,7 @@ function list(key: string, fallback: string[]): string[] {
  * Cho phép dùng root .env.example với tên EXAM_*, đồng thời backward compat.
  */
 function prefixed(prefix: string, key: string, fallback?: string): string {
-  return process.env[`${prefix}_${key}`] ?? process.env[key] ?? fallback;
+  return (process.env[`${prefix}_${key}`] ?? process.env[key] ?? fallback) as string;
 }
 function prefixedInt(prefix: string, key: string, fallback: number): number {
   const raw = process.env[`${prefix}_${key}`] ?? process.env[key];

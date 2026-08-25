@@ -1,4 +1,4 @@
 export {
   StructuredLogger,
   createLogger,
-} from './logger/structured-logger';
+} from '../logger/structured-logger';

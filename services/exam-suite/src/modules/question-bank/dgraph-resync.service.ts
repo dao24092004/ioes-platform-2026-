@@ -9,9 +9,9 @@ import {
   KAFKA_TOPICS,
   QuestionEventPayload,
   EventEnvelope,
+  OutboxEvent,
 } from '@ioes/common-node';
 import { Question } from './entities/question.entity';
-import { OutboxEvent } from './entities/outbox-event.entity';
 import { DataSource } from 'typeorm';
 
 /**
@@ -78,7 +78,7 @@ export class DgraphResyncService {
     const startTime = Date.now();
     const startedAt = new Date();
 
-    if (!user.roles?.includes('ADMIN')) {
+    if (user.role !== 'ADMIN') {
       throw new Error('Only ADMIN can trigger resync');
     }
 

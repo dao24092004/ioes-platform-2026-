@@ -9,10 +9,10 @@ import {
   EventEnvelope,
   QuestionEventPayload,
   QuestionDeletedPayload,
+  ProcessedEvent,
 } from '@ioes/common-node';
 import { DgraphClient } from './dgraph.client';
 import { DgraphSyncConsumer } from './dgraph-sync.consumer';
-import { ProcessedEvent } from './entities/processed-event.entity';
 
 describe('DgraphSyncConsumer - Atomic Claim (BUG #37 fix)', () => {
   let consumer: DgraphSyncConsumer;

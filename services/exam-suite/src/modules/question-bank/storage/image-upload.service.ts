@@ -125,12 +125,13 @@ export class ImageUploadService {
   isValidImageUrl(url: string): boolean {
     try {
       const parsed = new URL(url);
+      const endpoint = storageConfig.endpoint ?? 'http://localhost:9000';
       const allowed = [
-        new URL(storageConfig.endpoint).host,
+        new URL(endpoint).host,
         storageConfig.cdnBaseUrl
           ? new URL(storageConfig.cdnBaseUrl).host
-          : '',
-      ].filter(Boolean);
+          : null,
+      ].filter((h): h is string => h !== null);
       return allowed.includes(parsed.host);
     } catch {
       return false;

@@ -61,6 +61,11 @@ export class StructuredLogger implements LoggerService {
     this.writeLog('info', this.toMessage(message), optionalParams);
   }
 
+  /** Alias for log() — NestJS conventions allow both log() and info() */
+  info(message: any, ...optionalParams: any[]): void {
+    this.log(message, ...optionalParams);
+  }
+
   error(message: any, ...optionalParams: any[]): void {
     this.writeLog('error', this.toMessage(message), optionalParams);
   }

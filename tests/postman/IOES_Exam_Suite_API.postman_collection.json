@@ -1,0 +1,892 @@
+{
+  "info": {
+    "name": "IOES - Exam Suite API",
+    "description": "Postman collection for testing Exam Suite microservices.\n\n## Setup\n1. Import this collection\n2. Set `BASE_URL` to `http://localhost:9005`\n3. Enable DEV_AUTH_BYPASS in .env for local dev\n4. JWT token in `{{TOKEN}}` variable or use X-Dev-User-Id header",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:9005",
+      "type": "string"
+    },
+    {
+      "key": "TOKEN",
+      "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "type": "string"
+    },
+    {
+      "key": "STUDENT_USER_ID",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "string"
+    },
+    {
+      "key": "INSTRUCTOR_USER_ID",
+      "value": "00000000-0000-4000-8000-000000000002",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{TOKEN}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/health",
+              "host": ["{{BASE_URL}}"],
+              "path": ["health"]
+            },
+            "description": "Basic health check"
+          },
+          "response": []
+        },
+        {
+          "name": "Liveness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/health/live",
+              "host": ["{{BASE_URL}}"],
+              "path": ["health", "live"]
+            },
+            "description": "Liveness probe"
+          },
+          "response": []
+        },
+        {
+          "name": "Readiness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/health/ready",
+              "host": ["{{BASE_URL}}"],
+              "path": ["health", "ready"]
+            },
+            "description": "Readiness probe - checks DB, Redis, Kafka, Dgraph"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Question Bank",
+      "item": [
+        {
+          "name": "Topics",
+          "item": [
+            {
+              "name": "List All Topics",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/topics",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "topics"]
+                },
+                "description": "Get topic tree (2 levels)"
+              },
+              "response": []
+            },
+            {
+              "name": "Get Practice Path",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/topics/:topicId/practice",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "topics", ":topicId", "practice"]
+                },
+                "description": "Get practice path for a topic"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Questions (Read)",
+          "item": [
+            {
+              "name": "Search Questions",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/questions/search?difficulty=medium&limit=10",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "questions", "search"],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "",
+                      "description": "Full-text search query"
+                    },
+                    {
+                      "key": "difficulty",
+                      "value": "medium",
+                      "description": "Filter by difficulty (very_easy, easy, medium, hard, very_hard)"
+                    },
+                    {
+                      "key": "questionType",
+                      "value": "",
+                      "description": "Filter by type (multiple_choice, true_false, etc.)"
+                    },
+                    {
+                      "key": "topicId",
+                      "value": "",
+                      "description": "Filter by topic UUID"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "description": "Max results (default 20)"
+                    },
+                    {
+                      "key": "offset",
+                      "value": "0",
+                      "description": "Pagination offset"
+                    }
+                  ]
+                },
+                "description": "Full-text search + filter questions from Dgraph"
+              },
+              "response": []
+            },
+            {
+              "name": "Get Question By ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/questions/:id",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "questions", ":id"]
+                },
+                "description": "Get question details by UUID"
+              },
+              "response": []
+            },
+            {
+              "name": "Get Similar Questions",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/questions/:id/similar?limit=5",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "questions", ":id", "similar"],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "5",
+                      "description": "Number of similar questions (max 20)"
+                    }
+                  ]
+                },
+                "description": "Find similar questions using vector similarity"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Questions (Write)",
+          "item": [
+            {
+              "name": "Create MCQ Question",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"questionText\": \"What is the capital of France?\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"easy\",\n  \"points\": 10,\n  \"topicId\": \"00000000-0000-4000-8000-000000000001\",\n  \"hint\": \"Think about famous landmarks\",\n  \"explanation\": \"Paris is the capital and largest city of France.\",\n  \"estimatedTimeSeconds\": 60,\n  \"tags\": [\"geography\", \"general-knowledge\"],\n  \"options\": [\n    { \"optionText\": \"London\", \"isCorrect\": false, \"sortOrder\": 1 },\n    { \"optionText\": \"Paris\", \"isCorrect\": true, \"sortOrder\": 2 },\n    { \"optionText\": \"Berlin\", \"isCorrect\": false, \"sortOrder\": 3 },\n    { \"optionText\": \"Madrid\", \"isCorrect\": false, \"sortOrder\": 4 }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/questions",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "questions"]
+                },
+                "description": "Create a new multiple-choice question. Requires INSTRUCTOR or ADMIN role."
+              },
+              "response": []
+            },
+            {
+              "name": "Create True/False Question",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"questionText\": \"The Earth is flat.\",\n  \"questionType\": \"true_false\",\n  \"difficulty\": \"very_easy\",\n  \"points\": 5,\n  \"topicId\": \"00000000-0000-4000-8000-000000000001\",\n  \"options\": [\n    { \"optionText\": \"True\", \"isCorrect\": false },\n    { \"optionText\": \"False\", \"isCorrect\": true }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/questions",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "questions"]
+                },
+                "description": "Create a true/false question"
+              },
+              "response": []
+            },
+            {
+              "name": "Create Coding Question",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"questionText\": \"Write a function that returns the sum of two numbers\",\n  \"questionType\": \"coding\",\n  \"difficulty\": \"easy\",\n  \"points\": 20,\n  \"language\": \"python\",\n  \"topicId\": \"00000000-0000-4000-8000-000000000002\",\n  \"estimatedTimeSeconds\": 300,\n  \"testCases\": [\n    { \"input\": \"1, 2\", \"expectedOutput\": \"3\", \"isSample\": true, \"points\": 5 },\n    { \"input\": \"0, 0\", \"expectedOutput\": \"0\", \"isSample\": false, \"points\": 5 },\n    { \"input\": \"-1, 1\", \"expectedOutput\": \"0\", \"isSample\": false, \"points\": 5 },\n    { \"input\": \"100, 200\", \"expectedOutput\": \"300\", \"isSample\": false, \"points\": 5 }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/questions",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "questions"]
+                },
+                "description": "Create a coding question with test cases"
+              },
+              "response": []
+            },
+            {
+              "name": "Update Question",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "If-Match",
+                    "value": "1",
+                    "description": "Version for optimistic locking"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"questionText\": \"Updated question text\",\n  \"points\": 15\n}"
+                },
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/questions/:id",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "questions", ":id"]
+                },
+                "description": "Update question. Uses optimistic locking via If-Match header."
+              },
+              "response": []
+            },
+            {
+              "name": "Soft Delete Question",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/questions/:id",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "questions", ":id"]
+                },
+                "description": "Soft delete (sets deletedAt, keeps audit trail)"
+              },
+              "response": []
+            },
+            {
+              "name": "Publish Question",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/questions/:id/publish",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "questions", ":id", "publish"]
+                },
+                "description": "Publish question (change status to PUBLISHED + regenerate learning paths)"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Bulk Import",
+          "item": [
+            {
+              "name": "Import Questions from CSV",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "description": "CSV/TSV file (max 50MB, max 5000 rows)"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/bulk-import",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "bulk-import"]
+                },
+                "description": "Bulk import questions from CSV file. Rate limit: 5/hour."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Image Upload",
+          "item": [
+            {
+              "name": "Get Presigned Upload URL",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"filename\": \"diagram.png\",\n  \"contentType\": \"image/png\"\n}"
+                },
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/questions/:id/images/upload-url",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "questions", ":id", "images", "upload-url"]
+                },
+                "description": "Get presigned URL for direct upload to MinIO/S3. Then call confirm."
+              },
+              "response": []
+            },
+            {
+              "name": "Confirm Image Upload",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"imageUrl\": \"https://minio.local:9002/ioes-questions/questions/uuid/image.png\",\n  \"caption\": \"Question diagram\"\n}"
+                },
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/questions/:id/images/confirm",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "questions", ":id", "images", "confirm"]
+                },
+                "description": "Confirm image uploaded successfully and attach to question"
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Image",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/images/:bucket/*",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "images", ":bucket", "*"]
+                },
+                "description": "Delete image from storage. Use wildcard path for object key."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Admin Operations",
+          "item": [
+            {
+              "name": "Force Resync All Questions",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/admin/resync?limit=100&reason=Initial%20sync",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "admin", "resync"],
+                  "query": [
+                    {
+                      "key": "since",
+                      "value": "",
+                      "description": "ISO date - only resync questions updated after"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "",
+                      "description": "Max questions to resync"
+                    },
+                    {
+                      "key": "reason",
+                      "value": "",
+                      "description": "Audit log reason"
+                    }
+                  ]
+                },
+                "description": "Force re-sync all questions to Dgraph. Admin only. Rate limit: 3/hour."
+              },
+              "response": []
+            },
+            {
+              "name": "Resync Single Question",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/admin/resync/:id",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "admin", "resync", ":id"]
+                },
+                "description": "Re-sync single question to Dgraph. Admin only. Rate limit: 30/hour."
+              },
+              "response": []
+            },
+            {
+              "name": "Storage Health Check",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{TOKEN}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{BASE_URL}}/question-bank/admin/storage/health",
+                  "host": ["{{BASE_URL}}"],
+                  "path": ["question-bank", "admin", "storage", "health"]
+                },
+                "description": "Check MinIO/S3 storage health and configuration"
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Exam Session",
+      "item": [
+        {
+          "name": "Start Attempt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "X-Dev-User-Id",
+                "value": "{{STUDENT_USER_ID}}",
+                "description": "Dev-only: override user ID"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"examId\": \"550e8400-e29b-41d4-a716-446655440000\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/exam-attempts",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "exam-attempts"]
+            },
+            "description": "Start a new exam attempt. Returns wsUrl for WebSocket connection and deadline."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Attempt",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "X-Dev-User-Id",
+                "value": "{{STUDENT_USER_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/exam-attempts/:id",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "exam-attempts", ":id"]
+            },
+            "description": "Get attempt details"
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Attempt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "X-Dev-User-Id",
+                "value": "{{STUDENT_USER_ID}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/exam-attempts/:id/submit",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "exam-attempts", ":id", "submit"]
+            },
+            "description": "Manual submit (student-initiated)"
+          },
+          "response": []
+        },
+        {
+          "name": "Save Answer (REST)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "X-Dev-User-Id",
+                "value": "{{STUDENT_USER_ID}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": \"660e8400-e29b-41d4-a716-446655440001\",\n  \"answer\": \"B\",\n  \"clientTs\": 1724409599000\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/exam-attempts/:id/answers",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "exam-attempts", ":id", "answers"]
+            },
+            "description": "Auto-save single answer via REST. Mirror of WebSocket event. Call every 30s (BR-012)."
+          },
+          "response": []
+        },
+        {
+          "name": "List Active Attempts (Instructor)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "X-Dev-User-Id",
+                "value": "{{INSTRUCTOR_USER_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/exam-attempts/instructor/exams/:examId/active-attempts",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "exam-attempts", "instructor", "exams", ":examId", "active-attempts"]
+            },
+            "description": "UC_009: List all IN_PROGRESS attempts for an exam. For instructor live monitoring."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Proctoring Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "X-Dev-User-Id",
+                "value": "{{INSTRUCTOR_USER_ID}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/exam-attempts/:id/proctoring-report",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "exam-attempts", ":id", "proctoring-report"]
+            },
+            "description": "UC_009: Get detailed proctoring report for an attempt"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Exam (CRUD)",
+      "item": [
+        {
+          "name": "List Exams",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/exams?status=PUBLISHED&limit=20",
+              "host": ["{{BASE_URL}}"],
+              "path": ["exams"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PUBLISHED",
+                  "description": "Filter by status"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "List all exams"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Exam",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/exams/:id",
+              "host": ["{{BASE_URL}}"],
+              "path": ["exams", ":id"]
+            },
+            "description": "Get exam by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Start Exam Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/exams/:id/start",
+              "host": ["{{BASE_URL}}"],
+              "path": ["exams", ":id", "start"]
+            },
+            "description": "Start exam session (creates attempt)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Submission & Grading",
+      "item": [
+        {
+          "name": "Submit Exam",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attemptId\": \"770e8400-e29b-41d4-a716-446655440002\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/submissions/:examId",
+              "host": ["{{BASE_URL}}"],
+              "path": ["submissions", ":examId"]
+            },
+            "description": "Submit exam for grading"
+          },
+          "response": []
+        },
+        {
+          "name": "Grade Exam",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"score\": 85.5,\n  \"feedback\": \"Good work!\",\n  \"gradingCompletedAt\": \"2024-08-25T12:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/submissions/:examId/:attemptId/grade",
+              "host": ["{{BASE_URL}}"],
+              "path": ["submissions", ":examId", ":attemptId", "grade"]
+            },
+            "description": "Grade an exam submission (instructor/admin)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

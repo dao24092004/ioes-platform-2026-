@@ -4,10 +4,8 @@ import { Repository } from 'typeorm';
 import { StructuredLogger } from '../logger/structured-logger';
 import { ProcessedEvent } from './outbox-event.entity';
 import { EventEnvelope } from './event-envelope';
-import {
-  KafkaConsumer,
-  KafkaMessageContext,
-} from '../kafka/kafka.consumer';
+import { KafkaConsumer } from '../kafka/kafka.consumer';
+import { KafkaMessage } from 'kafkajs';
 
 /**
  * BaseEventConsumer - generic base cho mọi event consumer.
@@ -47,8 +45,10 @@ export abstract class BaseEventConsumer<T = unknown>
   ) {}
 
   async onModuleInit(): Promise<void> {
-    await this.kafka.subscribe(this.topic, this.groupId, (msg) =>
-      this.processMessage(msg),
+    await this.kafka.subscribe(
+      this.topic,
+      (envelope, raw) => this.processMessage(envelope as EventEnvelope<T>, raw),
+      { groupId: this.groupId },
     );
   }
 
@@ -59,10 +59,10 @@ export abstract class BaseEventConsumer<T = unknown>
   /**
    * Process 1 message - theo atomic claim pattern.
    */
-  private async processMessage(msg: KafkaMessageContext): Promise<void> {
-    let envelope: EventEnvelope<T>;
+  private async processMessage(envelope: EventEnvelope<T>, raw: KafkaMessage): Promise<void> {
+    let parsedEnvelope: EventEnvelope<T>;
     try {
-      envelope = JSON.parse(msg.message.value!.toString()) as EventEnvelope<T>;
+      parsedEnvelope = JSON.parse(raw.value!.toString()) as EventEnvelope<T>;
     } catch (err) {
       this.logger.error(
         `Failed to parse message from ${this.topic}: ${(err as Error).message}`,
@@ -71,22 +71,22 @@ export abstract class BaseEventConsumer<T = unknown>
     }
 
     // Atomic claim
-    const claimed = await this.tryClaim(envelope.eventId, envelope.eventType, envelope.aggregateId, envelope.aggregateType);
+    const claimed = await this.tryClaim(parsedEnvelope.eventId, parsedEnvelope.eventType, parsedEnvelope.aggregateId, parsedEnvelope.aggregateType);
     if (!claimed) {
-      this.logger.debug(`Already processed, skipping: ${envelope.eventId}`);
+      this.logger.debug(`Already processed, skipping: ${parsedEnvelope.eventId}`);
       return;
     }
 
     try {
-      await this.handleEvent(envelope, msg);
+      await this.handleEvent(parsedEnvelope, raw);
       this.logger.debug(
-        `Processed ${envelope.eventType} id=${envelope.eventId}`,
+        `Processed ${parsedEnvelope.eventType} id=${parsedEnvelope.eventId}`,
       );
     } catch (err) {
       // Release claim để retry có thể claim lại
-      await this.releaseClaim(envelope.eventId);
+      await this.releaseClaim(parsedEnvelope.eventId);
       this.logger.error(
-        `Handler failed: ${envelope.eventType} id=${envelope.eventId} error=${(err as Error).message}`,
+        `Handler failed: ${parsedEnvelope.eventType} id=${parsedEnvelope.eventId} error=${(err as Error).message}`,
       );
       throw err; // Re-throw để Kafka retry / DLQ
     }
@@ -138,6 +138,6 @@ export abstract class BaseEventConsumer<T = unknown>
    */
   protected abstract handleEvent(
     envelope: EventEnvelope<T>,
-    msg: KafkaMessageContext,
+    raw: KafkaMessage,
   ): Promise<void>;
 }

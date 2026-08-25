@@ -59,6 +59,15 @@ export class EurekaClient implements OnModuleInit, OnApplicationShutdown {
     this.config = this.buildConfig();
   }
 
+  /**
+   * Eureka URL base - nếu serverUrl đã có /eureka thì giữ nguyên,
+   * nếu chưa có thì append /eureka. Tránh duplicate `/eureka/eureka/...`.
+   */
+  private get eurekaBase(): string {
+    const base = this.config.serverUrl.replace(/\/+$/, '');
+    return base.endsWith('/eureka') ? base : `${base}/eureka`;
+  }
+
   async onModuleInit(): Promise<void> {
     await this.register();
     this.startHeartbeat();
@@ -76,7 +85,7 @@ export class EurekaClient implements OnModuleInit, OnApplicationShutdown {
 
     try {
       const response = await fetch(
-        `${this.config.serverUrl}/eureka/apps/${this.config.appName.toUpperCase()}`,
+        `${this.eurekaBase}/apps/${this.config.appName.toUpperCase()}`,
         {
           method: 'POST',
           headers: {
@@ -116,7 +125,7 @@ export class EurekaClient implements OnModuleInit, OnApplicationShutdown {
     const instanceId = `${this.config.hostName}:${this.config.appName}:${this.config.port}`;
     try {
       const response = await fetch(
-        `${this.config.serverUrl}/eureka/apps/${this.config.appName.toUpperCase()}/${instanceId}`,
+        `${this.eurekaBase}/apps/${this.config.appName.toUpperCase()}/${instanceId}`,
         {
           method: 'PUT',
           headers: { Accept: 'application/json' },
@@ -140,7 +149,7 @@ export class EurekaClient implements OnModuleInit, OnApplicationShutdown {
     const instanceId = `${this.config.hostName}:${this.config.appName}:${this.config.port}`;
     try {
       await fetch(
-        `${this.config.serverUrl}/eureka/apps/${this.config.appName.toUpperCase()}/${instanceId}`,
+        `${this.eurekaBase}/apps/${this.config.appName.toUpperCase()}/${instanceId}`,
         { method: 'DELETE' },
       );
       this.logger.log(`Eureka deregistered: ${instanceId}`);

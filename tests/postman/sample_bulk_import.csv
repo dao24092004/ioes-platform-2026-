@@ -1,0 +1,6 @@
+question_text,question_type,difficulty,points,topic_id,language,hint,explanation,estimated_seconds,tags,options,correct_answers,test_cases,status
+"What is the result of 2 + 2?",multiple_choice,easy,10,00000000-0000-4000-8000-000000000001,,,,,60,"math,arithmetic","Option A|false,Option B|true,Option C|false,Option D|false","",,,"",DRAFT
+"The capital of Vietnam is Hanoi.",true_false,very_easy,5,00000000-0000-4000-8000-000000000001,,,,,30,"geography","True|false,False|true","",,,"",DRAFT
+"Write a function that returns the sum of two numbers.",coding,easy,20,00000000-0000-4000-8000-000000000002,python,,,300,"programming,python","","","input|expected|points|sample;1, 2|3|5|true;0, 0|0|5|false;-1, 1|0|5|false",DRAFT
+"What does HTML stand for?",multiple_choice,medium,15,00000000-0000-4000-8000-000000000003,"","HyperText Markup Language","HTML is the standard language for creating web pages","","web,html","London|false,HyperText Markup Language|true,High Tech Multi Language|false,Home Tool Markup Language|false","",,,"",DRAFT
+"Explain the concept of recursion in programming.",essay,medium,25,00000000-0000-4000-8000-000000000002,,,,,600,"programming","","","","","",DRAFT

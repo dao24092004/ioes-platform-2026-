@@ -126,6 +126,12 @@ export class JwtAuthGuard implements CanActivate, OnModuleInit {
         throw new UnauthorizedException('Invalid token payload');
       }
 
+      // Normalize role sang UPPERCASE để khớp với @Roles('STUDENT', 'INSTRUCTOR', 'ADMIN')
+      payload.role = payload.role.toUpperCase();
+      if (payload.roles && Array.isArray(payload.roles)) {
+        payload.roles = payload.roles.map((r) => r.toUpperCase());
+      }
+
       // Type-safe user object
       (request as any).user = payload;
       (request as any).userId = payload.sub;

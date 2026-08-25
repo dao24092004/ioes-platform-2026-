@@ -162,7 +162,7 @@ export class OutboxService {
    */
   private async publishEvent(event: OutboxEvent): Promise<void> {
     try {
-      await this.kafkaProducer.send(event.topic, {
+      await this.kafkaProducer.send(event.topic, event.aggregateId ?? event.eventId, {
         eventId: event.eventId,
         eventType: event.eventType,
         eventVersion: event.eventVersion,
@@ -184,7 +184,7 @@ export class OutboxService {
         {
           status: 'PUBLISHED',
           processedAt: new Date(),
-          lastError: null,
+          lastError: undefined,
         },
       );
 

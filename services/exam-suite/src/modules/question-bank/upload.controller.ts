@@ -248,7 +248,7 @@ export class UploadController {
   @Roles('ADMIN')
   @ApiOperation({ summary: '[ADMIN] Storage health check' })
   async storageHealth(): Promise<
-    ApiResponse<{ configured: boolean; bucket: string; cdn: string | undefined }>
+    ApiResponse<{ configured: boolean; bucket: string | undefined; cdn: string | undefined }>
   > {
     return ApiResponse.success({
       configured: true,

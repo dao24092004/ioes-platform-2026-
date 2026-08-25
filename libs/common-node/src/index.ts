@@ -71,6 +71,7 @@ export * from './decorators/public.decorator';
 export * from './decorators/user-id.decorator';
 export * from './decorators/cache.decorator';
 export * from './decorators/trace-id.decorator';
+export * from './decorators/api-property.decorator';
 
 // DTOs
 export * from './dto/api-response.dto';
@@ -80,7 +81,6 @@ export * from './dto/user-principal.dto';
 export * from './exceptions/business.exception';
 
 // Utils
-export * from './utils/logger.util';
 export * from './utils/validator.util';
 export * from './utils/pii-mask.util';
 
@@ -94,6 +94,7 @@ export * from './types/jwt-payload.type';
 // Events (shared schemas)
 export * from './events/event-envelope';
 export * from './events/build-event-envelope';
+export * from './events/event-publisher';
 export * from './events/question-event';
 export * from './events/question-types';
 

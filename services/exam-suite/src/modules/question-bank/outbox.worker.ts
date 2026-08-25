@@ -7,12 +7,14 @@ import {
   EventEnvelope,
   StructuredLogger,
   outboxEventsTotal,
+  OutboxEvent,
+  Counter,
 } from '@ioes/common-node';
-import { OutboxEvent } from './entities/outbox-event.entity';
 
 const BATCH_SIZE = 50;
 const POLL_INTERVAL_MS = 1000;
 const MAX_ATTEMPTS = 5;
+const outboxEventsCounter = outboxEventsTotal as Counter;
 
 /**
  * OutboxWorker v2 - **atomic publish** (BUG #25 fix).
@@ -161,8 +163,8 @@ export class OutboxWorker implements OnModuleInit, OnModuleDestroy {
       eventType: event.eventType,
       eventVersion: event.eventVersion,
       occurredAt: event.createdAt.toISOString(),
-      aggregateId: event.aggregateId,
-      aggregateType: event.aggregateType,
+      aggregateId: event.aggregateId ?? '',
+      aggregateType: event.aggregateType ?? '',
       correlationId: event.correlationId ?? `corr-${event.id}`,
       source: event.source,
       payload: event.payload,
@@ -172,7 +174,7 @@ export class OutboxWorker implements OnModuleInit, OnModuleDestroy {
       await this.producer.sendEvent(event.topic, envelope, event.headers ?? {});
 
       // BUG #120 fix: track published event
-      outboxEventsTotal.inc({ status: 'PUBLISHED' });
+      outboxEventsCounter.inc({ status: 'PUBLISHED' });
 
       // Publish OK → atomic update
       await this.dataSource.transaction(async (manager) => {
@@ -183,7 +185,7 @@ export class OutboxWorker implements OnModuleInit, OnModuleDestroy {
             status: 'PUBLISHED',
             processedAt: new Date(),
             attempts: event.attempts + 1,
-            lastError: null,
+            lastError: undefined,
           },
         );
       });
@@ -210,13 +212,13 @@ export class OutboxWorker implements OnModuleInit, OnModuleDestroy {
             status: isFinal ? 'FAILED' : 'PENDING',
             attempts: newAttempts,
             lastError: error.message,
-            nextAttemptAt: isFinal ? null : this.computeBackoff(newAttempts),
+            nextAttemptAt: isFinal ? undefined : this.computeBackoff(newAttempts),
           },
         );
       });
 
       // BUG #120 fix: track failed/retry event
-      outboxEventsTotal.inc({ status: isFinal ? 'FAILED' : 'RETRY' });
+      outboxEventsCounter.inc({ status: isFinal ? 'FAILED' : 'RETRY' });
 
       if (isFinal) {
         await this.sendToDlq(event, error).catch((dlqErr) =>

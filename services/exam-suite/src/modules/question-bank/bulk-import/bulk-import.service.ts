@@ -13,9 +13,9 @@ import {
   QuestionType,
   Difficulty,
   QuestionStatus,
+  OutboxEvent,
 } from '@ioes/common-node';
 import { Question } from '../entities/question.entity';
-import { OutboxEvent } from '../entities/outbox-event.entity';
 import {
   KAFKA_TOPICS,
   EVENT_TYPES,

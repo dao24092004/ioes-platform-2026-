@@ -39,6 +39,7 @@ export const RateLimit = (options: RateLimitOptions): MethodDecorator => {
 interface RateLimitStore {
   hit(key: string, windowMs: number): { count: number; resetAt: number };
   reset(key: string): void;
+  cleanup?(): void;
 }
 
 /**
