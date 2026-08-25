@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ApiResponse, EventPublisher } from '@ioes/common-node';
+import { ApiResponse } from '@ioes/common-node';
 
 @Injectable()
 export class CertificateService {
-  constructor(private readonly eventPublisher: EventPublisher) {}
-
   async issue(userId: string, courseId: string): Promise<ApiResponse<any>> {
     // TODO: sign on chain via ethers.js, persist record
     return ApiResponse.success({ userId, courseId, status: 'issued' });
