@@ -41,6 +41,25 @@ def connection_args() -> dict[str, str]:
     return {"uri": f"http://{settings.milvus_host}:{settings.milvus_port}"}
 
 
+# ef quyết định HNSW duyệt bao nhiêu ứng viên trước khi trả kết quả. Đặt thấp
+# thì không chỉ xếp hạng lệch mà mất hẳn kết quả đúng. Đo trên corpus này với
+# câu "useState trong React dùng để làm gì?": ở ef=512 bài vi-react đứng hạng 1,
+# ở ef=64 nó không nằm trong 20 tài liệu đầu. Mất trắng, không phải tụt hạng.
+#
+# ef còn phải lớn hơn k, nếu không Milvus báo lỗi thẳng:
+#   "ef(64) should be larger than k(100)"
+# nên hàm dưới nâng ef theo k của lời gọi.
+DEFAULT_SEARCH_EF = 256
+
+
+def search_params(k: int | None = None) -> dict:
+    """Tham số tìm kiếm, ef đủ lớn cho k yêu cầu."""
+    ef = DEFAULT_SEARCH_EF
+    if k is not None:
+        ef = max(ef, k * 4)
+    return {"metric_type": METRIC_TYPE, "params": {"ef": ef}}
+
+
 def get_vectorstore(*, auto_id: bool = True) -> Milvus:
     """Trả về vectorstore, tạo collection nếu chưa có.
 
@@ -52,7 +71,7 @@ def get_vectorstore(*, auto_id: bool = True) -> Milvus:
         collection_name=settings.milvus_collection,
         connection_args=connection_args(),
         index_params=INDEX_PARAMS,
-        search_params={"metric_type": METRIC_TYPE, "params": {"ef": 64}},
+        search_params=search_params(),
         auto_id=auto_id,
         drop_old=False,
     )

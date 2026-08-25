@@ -111,6 +111,96 @@ def _extract_usage(message: object) -> TokenUsage:
     )
 
 
+_EXPAND_INSTRUCTION = chr(10).join(
+    [
+        "Bạn chuẩn hoá câu hỏi của học viên để tìm kiếm tài liệu.",
+        "Trả về đúng hai dòng, không thêm gì khác:",
+        "VI: câu hỏi viết lại bằng tiếng Việt CÓ DẤU đầy đủ",
+        (
+            "EN: câu hỏi dịch sang tiếng Anh, giữ nguyên và bổ sung thuật ngữ "
+            "kỹ thuật (ví dụ hỏi về rebase thì viết rõ là git rebase)"
+        ),
+    ]
+)
+
+_EXPAND_PROMPT = ChatPromptTemplate.from_messages(
+    [("system", _EXPAND_INSTRUCTION), ("human", "{question}")]
+)
+
+
+def _parse_expansion(text: str) -> list[str]:
+    out = []
+    for line in text.splitlines():
+        line = line.strip()
+        for tag in ("VI:", "EN:"):
+            if line.upper().startswith(tag):
+                value = line[len(tag) :].strip()
+                if value:
+                    out.append(value)
+    return out
+
+
+def expand_query(question: str) -> list[str]:
+    """Các cách viết lại câu hỏi, dùng để truy xuất thêm.
+
+    Hai việc, gộp trong một lượt gọi mô hình:
+
+    1. Thêm dấu tiếng Việt. Học viên hay gõ không dấu, mà corpus tiếng Việt thì
+       có dấu đầy đủ. Đo trên bộ 20 câu hỏi chuẩn: bỏ dấu làm tỉ lệ có tài liệu
+       đúng trong ngữ cảnh tụt từ 0,900 xuống 0,650 — mất hẳn 7 câu, trong đó
+       có "Rebase khac merge the nao?".
+
+    2. Dịch sang tiếng Anh. Corpus 99,5% là tiếng Anh (1,21 triệu ký tự MDN so
+       với 6 nghìn ký tự viết tay tiếng Việt), mà mô hình nhúng đa ngữ ưu tiên
+       trùng ngôn ngữ hơn trùng chủ đề: hỏi "Hàm trả về giá trị như thế nào?"
+       thì vi-react (0,8281) và vi-rest-api (0,8166) đứng trên chính bài
+       return-values (0,7895).
+
+    Prompt yêu cầu bổ sung thuật ngữ vì bản dịch trần làm hỏng chính câu hỏi
+    git: mô hình dịch "Rebase khac merge the nao?" thành "What is the difference
+    between rebase and merge?" — mất chữ "git", và đó là chữ duy nhất bắc cầu
+    sang bài "Git và GitHub".
+
+    Trả danh sách rỗng khi mô hình lỗi: truy xuất một truy vấn vẫn chạy được.
+    """
+    try:
+        message = (_EXPAND_PROMPT | get_chat_model()).invoke({"question": question})
+    except Exception as exc:  # noqa: BLE001 - hỏng thì lui về một truy vấn
+        logger.warning("query_expansion_failed", error=str(exc))
+        return []
+
+    variants = _parse_expansion(str(getattr(message, "content", "")))
+    variants = [v for v in variants if v.casefold() != question.casefold()]
+    logger.info("query_expanded", original=question, variants=variants)
+    return variants
+
+
+# Trộn kết quả của nhiều truy vấn bằng Reciprocal Rank Fusion. Không cộng điểm
+# vì điểm của hai truy vấn không cùng thang: câu tiếng Việt luôn được cộng thêm
+# nhờ trùng ngôn ngữ với nhóm tài liệu tiếng Việt.
+RRF_K = 60
+
+
+def _fuse(pools: list[list[tuple[Document, float]]], limit: int) -> list[tuple[Document, float]]:
+    """Gộp nhiều danh sách kết quả, xếp lại theo tổng nghịch đảo thứ hạng."""
+    if len(pools) == 1:
+        return pools[0][:limit]
+
+    ranking: dict[str, float] = {}
+    best: dict[str, tuple[Document, float]] = {}
+    for pool in pools:
+        for rank, (doc, score) in enumerate(pool):
+            key = str(doc.metadata.get("chunk_id") or id(doc))
+            ranking[key] = ranking.get(key, 0.0) + 1.0 / (RRF_K + rank + 1)
+            # Giữ điểm tương đồng cao nhất để ngưỡng lọc và phần trích dẫn vẫn
+            # đọc được số có ý nghĩa, thay vì điểm RRF vốn chỉ dùng để xếp hạng.
+            if key not in best or score > best[key][1]:
+                best[key] = (doc, score)
+
+    order = sorted(ranking, key=lambda k: -ranking[k])
+    return [best[key] for key in order[:limit]]
+
+
 def retrieve(question: str, top_k: int | None = None) -> list[tuple[Document, float]]:
     """Lấy các đoạn vượt ngưỡng liên quan.
 
@@ -125,12 +215,22 @@ def retrieve(question: str, top_k: int | None = None) -> list[tuple[Document, fl
         return []
 
     store = milvus.get_vectorstore()
-    hits = store.similarity_search_with_score(question, k=k)
+    queries = [question, *expand_query(question)]
+
+    pools = [store.similarity_search_with_score(q, k=k) for q in queries]
+    # HỢP hai bể chứ không cắt xuống k. Cắt là để hai bể tranh nhau chỗ, mà bể
+    # dịch luôn giành được nửa số chỗ kể cả khi nó không có gì liên quan: hỏi
+    # "Rebase khac merge the nao?" thì không tài liệu tiếng Anh nào nói về git,
+    # nhưng 4 đoạn rác vẫn chiếm chỗ và đẩy bài Git và GitHub ra ngoài — câu này
+    # trước đó trả lời được, sau khi cắt thì bị từ chối.
+    # Hợp lại thì thêm bản dịch chỉ có thể thêm tài liệu, không lấy đi cái nào.
+    hits = _fuse(pools, limit=k * len(pools))
 
     kept = [(doc, score) for doc, score in hits if score >= settings.rag_score_threshold]
     logger.info(
         "rag_retrieved",
         asked=k,
+        queries=len(queries),
         returned=len(hits),
         kept=len(kept),
         threshold=settings.rag_score_threshold,

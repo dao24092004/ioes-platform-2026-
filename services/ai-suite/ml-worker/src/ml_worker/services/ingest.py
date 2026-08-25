@@ -10,6 +10,7 @@ dữ liệu vì mỗi lần chạy sinh khoá mới, khiến kết quả truy xu
 from __future__ import annotations
 
 import re
+import unicodedata
 from pathlib import Path
 
 from ioes_common import get_logger
@@ -54,6 +55,26 @@ def _parse_frontmatter(raw: str, fallback_id: str) -> tuple[dict[str, str], str]
     return meta, raw[match.end() :]
 
 
+def strip_diacritics(text: str) -> str:
+    """Bỏ dấu tiếng Việt, giữ nguyên phần còn lại."""
+    text = text.replace("đ", "d").replace("Đ", "D")
+    decomposed = unicodedata.normalize("NFD", text)
+    return "".join(ch for ch in decomposed if unicodedata.category(ch) != "Mn")
+
+
+def _lang_of(directory: Path) -> str:
+    """Ngôn ngữ của tài liệu, suy ra từ thư mục chứa nó.
+
+    Cần nhãn này vì mô hình nhúng đa ngữ gom cụm theo ngôn ngữ trước, theo chủ
+    đề sau. Đo thực tế: hỏi "Hàm trả về giá trị như thế nào?" thì vi-react đạt
+    0.8281 và vi-rest-api đạt 0.8166, đứng trên chính bài return-values (0.7895)
+    — cả hai chẳng liên quan gì tới câu hỏi, chỉ được lợi vì cùng tiếng Việt.
+    Tách hai bể rồi trộn theo thứ hạng thì tài liệu tiếng Anh không còn phải
+    cạnh tranh với tiếng Việt bằng ngôn ngữ nữa.
+    """
+    return "vi" if directory.name.endswith("-vi") else "en"
+
+
 def load_corpus(corpus_dir: Path | None = None) -> list[Document]:
     """Đọc học liệu.
 
@@ -80,7 +101,11 @@ def load_corpus(corpus_dir: Path | None = None) -> list[Document]:
             documents.append(
                 Document(
                     page_content=body.strip(),
-                    metadata={"doc_id": meta["doc_id"], "title": meta["title"]},
+                    metadata={
+                        "doc_id": meta["doc_id"],
+                        "title": meta["title"],
+                        "lang": _lang_of(directory),
+                    },
                 )
             )
             found += 1
@@ -114,7 +139,46 @@ def split(documents: list[Document]) -> list[Document]:
         counters[doc_id] = index + 1
         chunk.metadata["chunk_id"] = f"{doc_id}#{index}"
 
-    logger.info("corpus_split", chunks=len(chunks))
+    # Gắn tiêu đề tài liệu vào đầu mỗi đoạn trước khi nhúng.
+    #
+    # Đoạn cắt ra từ giữa bài mất hết ngữ cảnh: đoạn nói về "phương thức push,
+    # pop" không hề chứa chữ "Array", nên câu hỏi tiếng Việt "mảng có những
+    # phương thức nào" không bám được vào đâu. Tiêu đề là dòng duy nhất nêu chủ
+    # đề của cả bài, và mô hình đa ngữ khớp được "Arrays" với "mảng" ở mức tiêu
+    # đề dù thân bài toàn tiếng Anh.
+    #
+    # Giữ nguyên phần thân trong metadata để trích dẫn không lặp tiêu đề.
+    for chunk in chunks:
+        title = str(chunk.metadata.get("title", "")).strip()
+        chunk.metadata["body"] = chunk.page_content
+        if title:
+            chunk.page_content = f"{title}\n\n{chunk.page_content}"
+    # Đánh chỉ mục thêm một bản không dấu cho tài liệu tiếng Việt.
+    #
+    # Học viên gõ không dấu rất nhiều, mà corpus tiếng Việt thì có dấu đầy đủ.
+    # Đo trên bộ 20 câu hỏi chuẩn: chỉ bỏ dấu ở câu hỏi đã làm tỉ lệ có tài liệu
+    # đúng trong ngữ cảnh tụt từ 0,900 xuống 0,650 — mất hẳn 7 câu.
+    #
+    # Nhờ mô hình viết lại câu hỏi cũng giải quyết được, nhưng mô hình hosted
+    # không tất định kể cả ở nhiệt độ 0: đo hai lần liên tiếp ra 0,650 và 0,850.
+    # Nhân bản ở phía corpus thì tất định, và chỉ tốn thêm 9 đoạn vì phần tiếng
+    # Việt vỏn vẹn 8 tài liệu.
+    #
+    # Bản sao giữ nguyên doc_id và title để trích dẫn vẫn hiện đúng tên bài;
+    # chunk_id thêm hậu tố để hai bản không đè nhau khi gộp kết quả.
+    stripped = []
+    for chunk in chunks:
+        if chunk.metadata.get("lang") != "vi":
+            continue
+        without = strip_diacritics(chunk.page_content)
+        if without == chunk.page_content:
+            continue
+        meta = dict(chunk.metadata)
+        meta["chunk_id"] = f"{meta['chunk_id']}~nodau"
+        stripped.append(Document(page_content=without, metadata=meta))
+    chunks.extend(stripped)
+
+    logger.info("corpus_split", chunks=len(chunks), khong_dau=len(stripped))
     return chunks
 
 

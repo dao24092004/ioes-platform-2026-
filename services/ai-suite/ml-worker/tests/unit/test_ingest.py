@@ -202,3 +202,54 @@ def test_load_corpus_raises_when_no_directory_exists(
 
     with pytest.raises(FileNotFoundError):
         ingest.load_corpus()
+
+
+def test_vietnamese_chunks_get_a_diacritic_free_copy() -> None:
+    """Tài liệu tiếng Việt được đánh chỉ mục thêm một bản không dấu.
+
+    Học viên gõ không dấu rất nhiều. Nhờ mô hình viết lại câu hỏi cũng xử lý
+    được, nhưng bản sao này tất định nên đường lui vẫn chạy khi hết hạn mức.
+    """
+    document = Document(
+        page_content="Rebase viết lại lịch sử để thành đường thẳng.",
+        metadata={"doc_id": "vi-git", "title": "Git và GitHub", "lang": "vi"},
+    )
+
+    chunks = ingest.split([document])
+
+    stripped = [c for c in chunks if c.metadata["chunk_id"].endswith("~nodau")]
+    assert len(stripped) == 1
+    assert "viet lai lich su" in stripped[0].page_content
+    # Trích dẫn vẫn phải hiện đúng tên bài, không phải bản đã bỏ dấu.
+    assert stripped[0].metadata["title"] == "Git và GitHub"
+
+
+def test_english_chunks_get_no_extra_copy() -> None:
+    """Chỉ nhân bản phần tiếng Việt. Nhân cả 88 bài MDN là gấp đôi chỉ mục vô ích."""
+    document = Document(
+        page_content="The box model has four layers.",
+        metadata={"doc_id": "box-model", "title": "The box model", "lang": "en"},
+    )
+
+    chunks = ingest.split([document])
+
+    assert not [c for c in chunks if c.metadata["chunk_id"].endswith("~nodau")]
+
+
+def test_chunks_carry_the_document_title() -> None:
+    """Đoạn cắt từ giữa bài mất ngữ cảnh, nên gắn tiêu đề vào đầu trước khi nhúng."""
+    document = Document(
+        page_content="push và pop thêm hoặc bớt phần tử cuối mảng.",
+        metadata={"doc_id": "arrays", "title": "Arrays", "lang": "en"},
+    )
+
+    chunk = ingest.split([document])[0]
+
+    assert chunk.page_content.startswith("Arrays")
+    # Phần thân gốc giữ lại để trích dẫn không lặp tiêu đề.
+    assert not chunk.metadata["body"].startswith("Arrays")
+
+
+def test_strip_diacritics_handles_d_with_stroke() -> None:
+    """Chữ đ không phải là d cộng dấu phụ nên NFD không tách được, phải xử riêng."""
+    assert ingest.strip_diacritics("Đường dẫn tuyệt đối") == "Duong dan tuyet doi"
