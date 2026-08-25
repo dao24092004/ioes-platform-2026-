@@ -1,0 +1,4226 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "reset": "Reset to default",
+    "apply": "Apply",
+    "exportCSV": "Export CSV",
+    "exportPNG": "Export PNG",
+    "noData": "No data yet",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "viewAll": "View All",
+    "viewDetail": "View Detail",
+    "and": "and",
+    "register": "Register",
+    "free": "Free",
+    "students": "students",
+    "rating": "rating",
+    "showing": "Showing"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "about": "About",
+    "courses": "Courses",
+    "contact": "Contact",
+    "tenants": "Partners",
+    "verifyCertificate": "Verify Certificate"
+  },
+  "error": {
+    "pageNotFound": "Page Not Found",
+    "pageNotFoundDesc": "The page you are looking for does not exist or has been moved.",
+    "serverError": "Server Error",
+    "serverErrorDesc": "Something went wrong on our end. Please try again later.",
+    "backHome": "Back to Home",
+    "backToLogin": "Back to Login",
+    "tryAgain": "Try Again",
+    "helpText": "Need help? Contact support@ioes.com"
+  },
+  "publicCourseDetail": {
+    "studentsCount": "{{count, number}} students",
+    "ratingReviews": "{{rating}} ({{count, number}} reviews)",
+    "hoursCount": "{{count}} hours",
+    "lessonsCount": "{{count}} lectures",
+    "courseTags": "Course tags",
+    "instructor": "Instructor",
+    "instructorRole": "Instructor",
+    "enrollNow": "Enroll now",
+    "enrollFree": "Enroll for free",
+    "features": {
+      "lifetime": "Lifetime access",
+      "certificate": "Certificate of completion",
+      "aiMentor": "AI Mentor 24/7",
+      "videoLectures": "{{count}} video lectures",
+      "practice": "{{count}} hands-on exercises"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "reviews": "Reviews",
+      "curriculum": "Curriculum",
+      "instructor": "Instructor"
+    },
+    "reviewsTitle": "Reviews from students",
+    "reviewsCount": "{{count, number}} reviews",
+    "filter": {
+      "newest": "Newest",
+      "highest": "Highest",
+      "lowest": "Lowest"
+    },
+    "ratingBars": {
+      "five": "5",
+      "four": "4",
+      "three": "3",
+      "two": "2",
+      "one": "1"
+    },
+    "actions": {
+      "helpful": "Helpful ({{count}})",
+      "reply": "Reply"
+    },
+    "instructorResponse": "Instructor response",
+    "writeReview": {
+      "title": "Write your review",
+      "placeholder": "Share your learning experience...",
+      "submit": "Submit review"
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "notFound": {
+      "title": "Course not found",
+      "desc": "This course does not exist or has been removed.",
+      "back": "Back to courses"
+    }
+  },
+  "publicCheckout": {
+    "secureBadge": "Secure & encrypted checkout",
+    "title": "Payment information",
+    "instructor": "Instructor",
+    "hours": "{{count}} hours",
+    "lessons": "{{count}} lessons",
+    "email": "Email",
+    "phone": "Phone number",
+    "paymentMethod": "Payment method",
+    "method": {
+      "card": {
+        "title": "Visa / Mastercard",
+        "desc": "Secure payment with credit card"
+      },
+      "vnpay": {
+        "title": "VNPay",
+        "desc": "E-wallet, Internet Banking",
+        "qrNote": "Scan QR code with VNPay app"
+      },
+      "momo": {
+        "title": "MoMo",
+        "desc": "Quick payment via MoMo wallet",
+        "qrNote": "Scan QR code with MoMo app"
+      },
+      "bank": {
+        "title": "Bank transfer",
+        "desc": "ATM / Internet Banking / Counter"
+      }
+    },
+    "card": {
+      "number": "Card number",
+      "expiry": "Expiry date",
+      "cvv": "CVV",
+      "name": "Cardholder name"
+    },
+    "bank": {
+      "info": "Bank transfer information",
+      "bankName": "Bank",
+      "accountNumber": "Account number",
+      "accountName": "Account name",
+      "amount": "Amount",
+      "content": "Transfer content"
+    },
+    "promo": {
+      "label": "Promo code",
+      "placeholder": "Enter promo code",
+      "apply": "Apply",
+      "applied": "{{code}} - {{percent}}% off applied",
+      "remove": "Remove",
+      "emptyError": "Please enter a promo code",
+      "invalidError": "Invalid promo code",
+      "hint": "Try: IOES2026, WELCOME, STUDENT"
+    },
+    "processing": "Processing...",
+    "payNow": "Pay {{amount}}",
+    "sslNote": "Payment information encrypted with SSL 256-bit",
+    "summary": {
+      "title": "Order summary",
+      "originalPrice": "Original price",
+      "saleDiscount": "Sale discount",
+      "promoDiscount": "{{code}} (-{{percent}}%)",
+      "processingFee": "Processing fee",
+      "free": "Free",
+      "total": "Total",
+      "youGet": "You will get",
+      "features": {
+        "lifetime": "Lifetime access to {{count}} lessons",
+        "certificate": "Certificate of completion",
+        "aiMentor": "AI Mentor 24/7 support",
+        "updates": "Free content updates",
+        "materials": "Downloadable materials & code samples"
+      },
+      "commitment": "Our commitment",
+      "trust": {
+        "refund": "30-day refund",
+        "support": "24/7 support",
+        "blockchain": "Blockchain certificate"
+      }
+    },
+    "success": {
+      "title": "Payment successful!",
+      "desc": "You have successfully enrolled in \"{{title}}\". You can start learning right now.",
+      "continue": "Start learning"
+    },
+    "notFound": {
+      "title": "Course not found",
+      "desc": "This course does not exist or has been removed.",
+      "back": "Back to courses"
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "myPage": "My Page",
+    "accountMenu": "Account",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "forgotPasswordError": "Something went wrong. Please try again.",
+    "forgotPasswordTitle": "Forgot password",
+    "forgotPasswordSubtitle": "Enter your email to receive a password reset link",
+    "forgotPasswordHint": "We will send a password reset link to this email",
+    "forgotPasswordSend": "Send reset link",
+    "forgotPasswordSending": "Sending...",
+    "forgotPasswordBackToLogin": "Back to Login",
+    "forgotPasswordSuccess": "Check your email",
+    "forgotPasswordSuccessDesc": "We have sent a password reset link to your email address.",
+    "forgotPasswordSentTo": "Sent to",
+    "forgotPasswordCheckSpam": "Don't see the email? Check your spam folder or try again.",
+    "forgotPasswordTryAnother": "Try another email",
+    "forgotPasswordCountdownLabel": "Link expires in",
+    "forgotPasswordExpired": "Expired",
+    "forgotPasswordResend": "Resend verification email",
+    "forgotPasswordResendCooldown": "Resend in {seconds}s",
+    "forgotPasswordResendSent": "Resent!",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signUpNow": "Sign up now",
+    "signInNow": "Sign in now",
+    "rememberMe": "Remember me",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "agreeTerms": "I agree to the",
+    "terms": "Terms",
+    "privacy": "Privacy Policy",
+    "createAccount": "Create Account",
+    "creatingAccount": "Creating account…",
+    "welcomeBack": "Welcome Back!",
+    "loginSubtitle": "Sign in or create a new account",
+    "registerSubtitle": "Sign up to start learning",
+    "orLoginWith": "or login with",
+    "orRegisterWith": "or register with",
+    "loginWithGoogle": "Login with Google",
+    "loginWithGithub": "Login with GitHub",
+    "registerWithGoogle": "Register with Google",
+    "minChars": "At least 8 characters",
+    "passwordMismatch": "Password mismatch",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "forgotPasswordHeading": "Forgot Password",
+    "forgotPasswordSubheading": "Enter your email to receive a password reset link",
+    "forgotPasswordSendLink": "Send Reset Link",
+    "forgotPasswordSuccessTitle": "Check Your Email",
+    "forgotPasswordSuccessSentTo": "Sent to",
+    "forgotPasswordSuccessCheckSpam": "If you don't see the email, check your spam folder.",
+    "forgotPasswordSuccessBackToLogin": "Back to Login",
+    "forgotPasswordSuccessTryAnother": "Try with another email",
+    "verifyEmail": {
+      "title": "Verify your email",
+      "verifying": "Verifying your email...",
+      "verifyingDesc": "We're confirming your email address. This usually takes just a moment.",
+      "success": "Email verified!",
+      "successDesc": "Your email has been successfully verified. You can now sign in to your account.",
+      "redirecting": "Redirecting to login...",
+      "goToLogin": "Go to login",
+      "error": "Verification failed",
+      "errorExpiredDesc": "This verification link has expired. Please request a new one to verify your email.",
+      "errorAlreadyUsedDesc": "This email has already been verified. Try logging in directly.",
+      "errorInvalidDesc": "The verification link is invalid or malformed. Please double-check the URL or request a new link.",
+      "tokenLabel": "Token",
+      "noToken": "(missing token)",
+      "resend": "Resend verification email",
+      "resending": "Sending...",
+      "resent": "Email resent!",
+      "backToLogin": "Back to login",
+      "needHelp": "Need help?",
+      "checkInbox": "Check your inbox",
+      "checkInboxDesc": "We've sent a verification link to your email. Please open it and click the link to activate your account."
+    },
+    "oauthCallback": {
+      "title": "Completing {{provider}} login",
+      "processing": "Completing login securely...",
+      "success": "Login successful!",
+      "redirecting": "Taking you to your dashboard...",
+      "errorMissingParams": "Required parameters are missing from the callback URL. Please retry the login.",
+      "errorDenied": "You denied access to your account. Please grant permission to continue.",
+      "errorExpired": "The login session has expired. Please try logging in again.",
+      "errorInvalidState": "State token mismatch detected — possible CSRF attempt. Please retry login.",
+      "provider": "Provider",
+      "authCode": "Auth code",
+      "code": "Code",
+      "stateToken": "State token",
+      "debugLabel": "Debug info",
+      "retryLogin": "Retry login",
+      "goHome": "Go to homepage",
+      "secureNote": "Your authentication is encrypted end-to-end."
+    }
+  },
+  "password": {
+    "weak": "Weak",
+    "medium": "Medium",
+    "strong": "Strong",
+    "veryStrong": "Very Strong"
+  },
+  "tenant": {
+    "nav": "Partners",
+    "hero": {
+      "badge": "Multi-Tenant Network",
+      "title": "Organizations on IOES",
+      "subtitle": "Discover the ecosystem of universities, training centers and enterprises that have successfully deployed IOES nationwide.",
+      "ctaExplore": "Browse partners",
+      "ctaBecome": "Become a partner"
+    },
+    "marketing": {
+      "partners": "Partners",
+      "learners": "Learners",
+      "examsMonthly": "Exams/month",
+      "uptime": "Uptime SLA"
+    },
+    "filters": {
+      "searchPlaceholder": "Search by name, domain, region…"
+    },
+    "actions": {
+      "viewDetail": "View details"
+    },
+    "flags": {
+      "featured": "Featured"
+    },
+    "why": {
+      "title": "Why IOES Multi-tenant?",
+      "subtitle": "One platform, hundreds of organizations — with strict data isolation.",
+      "isolation": {
+        "title": "Data isolation",
+        "desc": "Each tenant is an independent data space — no cross-contamination of users, courses or exam results."
+      },
+      "branding": {
+        "title": "Your own brand",
+        "desc": "Each tenant has its own logo, colors, custom domain and SSO — a consistent experience aligned with the organization."
+      },
+      "analytics": {
+        "title": "Separated analytics",
+        "desc": "Per-tenant dashboards plus a super-admin view across the entire network."
+      }
+    },
+    "noResults": "No tenants match the current filters.",
+    "detail": {
+      "contactCta": "Contact sales",
+      "browseCourses": "Browse courses",
+      "about": "About",
+      "partnerSince": "Partner since",
+      "partnerSinceValue": "2022",
+      "plan": "Plan",
+      "expiresAt": "Expires",
+      "departments": "Departments",
+      "students": "students",
+      "instructors": "instructors",
+      "loginsThisYear": "Logins (year)",
+      "peak": "peak {{peak}}",
+      "usageTitle": "Monthly logins",
+      "usageDesc": "Last 12 months",
+      "featuredCourses": "Featured courses",
+      "viewAll": "View all →",
+      "view": "View",
+      "recentActivity": "Recent activity",
+      "suspendedTitle": "This organization is currently suspended",
+      "suspendedDesc": "Services are paused because the plan has expired. Please contact us to reactivate."
+    },
+    "organization": {
+      "headerTitle": "Organization overview",
+      "headerSubtitle": "Manage members, courses, and billing for your organization.",
+      "tabs": {
+        "overview": "Overview",
+        "members": "Members",
+        "courses": "Courses",
+        "billing": "Billing",
+        "settings": "Settings"
+      },
+      "stats": {
+        "members": "Active Members",
+        "activeCourses": "Active Courses",
+        "totalExams": "Total Exams Taken",
+        "mrr": "Monthly Recurring Revenue"
+      },
+      "activityTitle": "Recent activity",
+      "upgradeTitle": "Need more seats?",
+      "upgradeDesc": "Your team has grown — unlock unlimited members and premium features.",
+      "upgradeFeature1": "Unlimited members & courses",
+      "upgradeFeature2": "Dedicated account manager",
+      "upgradeFeature3": "Custom SLA & priority support",
+      "upgradeBtn": "Talk to sales",
+      "searchMember": "Search members by name, email, department...",
+      "searchCourse": "Search courses...",
+      "inviteMember": "Invite Member",
+      "inviteTitle": "Invite a new member",
+      "inviteEmailLabel": "Email address",
+      "inviteRoleLabel": "Assign role",
+      "inviteSend": "Send invitation",
+      "noMembers": "No members match your search.",
+      "colName": "Name",
+      "colEmail": "Email",
+      "colRole": "Role",
+      "colStatus": "Status",
+      "colLastActive": "Last Active",
+      "colActions": "Actions",
+      "colInvoice": "Invoice",
+      "colDate": "Date",
+      "colAmount": "Amount",
+      "ago": "ago",
+      "students": "students",
+      "lessons": "lessons",
+      "newCourse": "New Course",
+      "courseStatus": {
+        "published": "Published",
+        "draft": "Draft",
+        "archived": "Archived"
+      },
+      "currentPlan": "CURRENT PLAN",
+      "billedMonthly": "Billed monthly",
+      "planDesc": "Perfect for growing teams of up to 500 members.",
+      "month": "month",
+      "planFeature1": "Up to 500 active members",
+      "planFeature2": "Unlimited courses and exams",
+      "planFeature3": "SSO, SCORM, custom domain",
+      "managePlan": "Manage plan",
+      "contactSales": "Contact sales",
+      "paymentMethod": "Payment method",
+      "updateCard": "Update card",
+      "invoicesTitle": "Invoices",
+      "invoiceStatus": {
+        "paid": "Paid",
+        "pending": "Pending",
+        "overdue": "Overdue"
+      },
+      "sectionGeneral": "General Information",
+      "sectionBranding": "Branding & Logo",
+      "sectionFaq": "Frequently asked questions",
+      "orgName": "Organization name",
+      "orgDomain": "Custom domain",
+      "orgContactEmail": "Contact email",
+      "orgPhone": "Phone",
+      "orgAddress": "Address",
+      "orgLogo": "Organization logo",
+      "orgLogoHint": "PNG or SVG, square, recommended 256x256.",
+      "uploadLogo": "Upload new",
+      "dangerTitle": "Danger zone",
+      "dangerDesc": "Irreversible and destructive actions. Proceed with caution.",
+      "deleteOrg": "Delete organization",
+      "deleteTitle": "Delete this organization?",
+      "deleteDesc": "This action cannot be undone. All data — members, courses, exams, certificates — will be permanently removed.",
+      "deleteConfirmPlaceholder": "Type \"delete\" to confirm",
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "instructor": "Instructor",
+        "student": "Student"
+      },
+      "statuses": {
+        "active": "Active",
+        "invited": "Invited",
+        "suspended": "Suspended"
+      },
+      "faq1Q": "How do I add a custom domain?",
+      "faq1A": "Go to Settings → Branding, add your CNAME record, and we'll issue a free SSL certificate automatically.",
+      "faq2Q": "Can I export my data?",
+      "faq2A": "Yes — instructors and admins can export all course data, exam results, and certificates from the Reports tab.",
+      "faq3Q": "What happens if my plan expires?",
+      "faq3A": "Your organization enters read-only mode after 7 days, and data is archived after 90 days. You can reactivate anytime by renewing your plan."
+    }
+  },
+  "home": {
+    "hero": {
+      "title": "The Smartest Online",
+      "titleHighlight": "Examination Platform",
+      "subtitle": "IOES integrates advanced AI, Computer Vision proctoring, and Blockchain certification.",
+      "cta": "Get Started Free",
+      "learnMore": "Learn More",
+      "online": "System is running 24/7",
+      "watchDemo": "Watch Demo",
+      "users": "Users",
+      "uptime": "Uptime",
+      "aiProctoring": "AI Proctoring",
+      "autoMonitor": "Auto monitor 24/7",
+      "blockchainVerified": "Blockchain Verified",
+      "certVerified": "100% verified certificates"
+    }
+  },
+  "stats": {
+    "students": "Students",
+    "courses": "Courses",
+    "exams": "Exams Completed",
+    "rating": "Rating",
+    "section": {
+      "activeStudents": "Active Students",
+      "qualityCourses": "Quality Courses",
+      "examsCompleted": "Exams Completed",
+      "avgRating": "Average Rating"
+    }
+  },
+  "features": {
+    "title": "Why Choose IOES?",
+    "subtitle": "Modern online examination platform with advanced technology",
+    "section": {
+      "highlight": "Highlights"
+    },
+    "ai": {
+      "title": "AI Assistant 24/7",
+      "desc": "Intelligent tutoring system supports learning anytime"
+    },
+    "proctoring": {
+      "title": "AI-Powered Proctoring",
+      "desc": "Automatic exam monitoring with computer vision"
+    },
+    "certificate": {
+      "title": "Blockchain Certificate",
+      "desc": "Tamper-proof certificates verified globally"
+    },
+    "analytics": {
+      "title": "Smart Analytics",
+      "desc": "Detailed reports help optimize learning"
+    },
+    "anytime": {
+      "title": "Anytime Anywhere",
+      "desc": "Take exams 24/7 on any device with responsive design"
+    },
+    "security": {
+      "title": "Maximum Security",
+      "desc": "AES-256 encryption, 2FA, anti-cheating measures"
+    },
+    "multilang": {
+      "title": "Multi-language",
+      "desc": "Support Vietnamese, English and 10+ other languages"
+    },
+    "virtualClass": {
+      "title": "Virtual Classroom",
+      "desc": "Create classes, assign tasks, auto-grading in one platform"
+    }
+  },
+  "courses": {
+    "title": "Smart Learning,",
+    "titleHighlight": "Daily Progress",
+    "subtitle": "2000+ high-quality courses from top experts.",
+    "explore": "Explore Courses",
+    "all": "All",
+    "free": "Free",
+    "premium": "Premium",
+    "popular": "Popular",
+    "newest": "Newest",
+    "coursesOf": "courses",
+    "viewDetail": "View Detail",
+    "register": "Register",
+    "section": {
+      "featured": "Featured Courses",
+      "explore": "Explore Popular Courses",
+      "qualityCourses": "Hundreds of high-quality courses from top experts",
+      "viewAll": "View All Courses"
+    },
+    "badge": {
+      "new": "New",
+      "popular": "Popular",
+      "pro": "PRO",
+      "free": "FREE"
+    }
+  },
+  "arena": {
+    "title": "Exam Arena",
+    "subtitle": "Test your knowledge with AI-proctored competitive exams",
+    "competeTitle": "Compete for Top Positions",
+    "competeDesc": "Compete real-time with thousands of candidates, climb rank daily",
+    "joinNow": "Join Arena Now",
+    "leaderboard": "Live Leaderboard",
+    "live": "LIVE",
+    "points": "points",
+    "streak": "streak",
+    "challenges": "Ongoing Challenges",
+    "participants": "participants",
+    "join": "Join",
+    "aiChallenge": "AI Master Challenge",
+    "aiChallengeDesc": "Complete 20 AI questions in the shortest time",
+    "mathChallengeDesc": "Fast math 50 questions, top 10 get rewards",
+    "challengeTime1": "2h 15p left",
+    "challengeTime2": "5h 30p left"
+  },
+  "skillTree": {
+    "title": "Learning Path",
+    "subtitle": "Structured learning path from beginner to expert",
+    "startPath": "Start Your Path",
+    "buildTitle": "Build Skills Like RPG Game",
+    "buildDesc": "Each skill is a \"skill\" you unlock when completing lessons.",
+    "starter": "STARTER",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "locked": "Locked",
+    "expert": "EXPERT",
+    "fullStackMaster": "Full Stack Master",
+    "legendaryTitle": "Legendary Title",
+    "achievements": {
+      "title": "Unlocked Achievements",
+      "firstBlood": "First exam",
+      "streak7": "Learn 7 days",
+      "speedDemon": "Complete under 5min",
+      "perfectScore": "100 points"
+    }
+  },
+  "aiMentor": {
+    "title": "AI Mentor",
+    "subtitle": "Personal AI tutor available 24/7 to answer questions",
+    "chatTitle": "Chat with AI Mentor 24/7",
+    "chatDesc": "Like having a private tutor by your side anytime, instant responses",
+    "online": "Online • Reply in 2s",
+    "welcomeMsg": "Hello! I am Emma, your AI Mentor. Are you struggling with anything today? I can help explain concepts, solve problems, or create quiz practice!",
+    "justNow": "Just now",
+    "userQuestion": "Emma, explain Neural Network in AI for me!",
+    "aiResponse1": "Of course! Neural Network works like the human brain:",
+    "aiResponse2": "Do you want me to create a 5-question quiz to practice?",
+    "typing": "Typing...",
+    "createQuiz": "Create Quiz",
+    "explain": "Explain",
+    "analyze": "Analyze Errors",
+    "review": "Review Topic",
+    "placeholder": "Ask AI Mentor anything...",
+    "send": "Send",
+    "tryNow": "Try AI Mentor Now",
+    "neuron": "Neuron",
+    "neuronDesc": "Each node receives data, processes it",
+    "layers": "Layers",
+    "layersDesc": "Input → Hidden → Output",
+    "weights": "Weights",
+    "weightsDesc": "Connection importance"
+  },
+  "testimonials": {
+    "title": "Testimonials",
+    "heading": "What Our Students Say",
+    "subtitle": "Real experiences from the learning community",
+    "studentRole": "IT Student - University",
+    "studentContent": "\"IOES has completely changed how I approach online learning.\"",
+    "teacherRole": "Lecturer - University",
+    "teacherContent": "\"AI chatbot supports students very effectively.\"",
+    "alumniRole": "Alumni - Economics",
+    "alumniContent": "\"The blockchain certificate gives me more confidence when applying.\""
+  },
+  "cta": {
+    "home": {
+      "title": "Ready to Join IOES?",
+      "subtitle": "Register today and start your learning journey.",
+      "button": "Start Free",
+      "contactSales": "Contact Sales"
+    },
+    "courses": {
+      "title": "Ready to Start Learning?",
+      "subtitle": "Register for free today and get 50% off your first course.",
+      "button": "Register Free"
+    },
+    "about": {
+      "title": "Ready to Join IOES?",
+      "subtitle": "Register today and start your learning journey.",
+      "button": "Start Free"
+    }
+  },
+  "about": {
+    "title": "About Us",
+    "hero": {
+      "title": "Discover the IOES Story",
+      "desc": "We build a smart online examination platform, connecting millions of students and teachers."
+    },
+    "heroTitle": "Discover the IOES Story",
+    "heroDesc": "We build a smart online examination platform.",
+    "storyTitle": "IOES Story",
+    "story": {
+      "title": "IOES Story",
+      "desc1": "IOES - Intelligent Online Examination System was founded in 2020 with the mission of bringing smart online exam solutions to educational organizations.",
+      "desc2": "From a small startup, we have grown into a leading platform with over 500,000 students and 2,000 high-quality courses.",
+      "desc3": "Our team consists of experts in AI, education, and technology, constantly innovating to bring the best experience to users."
+    },
+    "storyDesc1": "IOES was founded in 2020 with the mission of bringing smart online exam solutions.",
+    "storyDesc2": "From a small startup, we have grown into a leading platform.",
+    "storyDesc3": "Our team consists of experts in AI, education, and technology.",
+    "mission": "Mission",
+    "missionLabel": "Mission",
+    "vision": "Vision & Mission",
+    "visionDesc": "We are committed to bringing fair and quality education to everyone.",
+    "values": "Core Values",
+    "valuesTitle": "Our Guiding Values",
+    "valuesSubtitle": "6 core values guide all IOES activities.",
+    "team": "Team",
+    "teamTitle": "Meet the IOES Team",
+    "teamDesc": "Experienced and passionate leadership team in education.",
+    "timelineLabel": "Journey",
+    "timelineTitle": "Development History",
+    "timelineDesc": "Important milestones in building IOES.",
+    "missions": {
+      "global": {
+        "title": "Global Connection",
+        "desc": "Build a borderless learning community."
+      },
+      "innovation": {
+        "title": "Innovation",
+        "desc": "Apply AI and advanced technology."
+      },
+      "quality": {
+        "title": "Quality & Safety",
+        "desc": "Ensure fairness, security, and reliability."
+      }
+    },
+    "valuesData": {
+      "quality": {
+        "title": "Quality",
+        "desc": "Continuously improve product and service quality."
+      },
+      "collaboration": {
+        "title": "Collaboration",
+        "desc": "Build sustainable and reliable partnerships."
+      },
+      "innovation": {
+        "title": "Innovation",
+        "desc": "Always pioneer in applying new technology."
+      },
+      "transparency": {
+        "title": "Transparency",
+        "desc": "Open, honest, and responsible operations."
+      }
+    },
+    "timeline": {
+      "2020": {
+        "title": "IOES Founded",
+        "desc": "Startup launched with 3 members."
+      },
+      "2021": {
+        "title": "First Version Launch",
+        "desc": "Completed MVP and had first 10,000 students."
+      },
+      "2022": {
+        "title": "AI Integration",
+        "desc": "Launched AI auto-grading feature."
+      },
+      "2023": {
+        "title": "International Expansion",
+        "desc": "Started serving students in 5 Southeast Asian countries."
+      },
+      "2024": {
+        "title": "500,000 Students Milestone",
+        "desc": "Became the leading online exam platform."
+      }
+    }
+  },
+  "contact": {
+    "title": "Contact Us",
+    "hero": {
+      "title": "We Are Always Ready to Listen",
+      "desc": "Have questions, feedback, or need support? IOES team is ready to help you 24/7."
+    },
+    "heroTitle": "We Are Always Ready to Listen",
+    "heroDesc": "Have questions, feedback, or need support? IOES team is ready to help you 24/7.",
+    "infoTitle": "Contact Information",
+    "infoDesc": "Contact us through any channel below.",
+    "address": "Office Address",
+    "addressValue": "Floor 15, ABC Tower, 123 Nguyen Hue, District 1, HCMC",
+    "hotline": "Hotline",
+    "hotlineValue": "1900 1234 (8:00 - 22:00)\nTechnical Support: 1900 5678",
+    "email": "Email",
+    "emailValue": "contact@ioes.edu.vn\nsupport@ioes.edu.vn",
+    "hours": "Working Hours",
+    "hoursValue": "Mon - Fri: 8:00 - 18:00\nSaturday: 9:00 - 12:00",
+    "connect": "Connect With Us",
+    "formTitle": "Send Us a Message",
+    "formName": "Full Name *",
+    "formNamePlaceholder": "Enter your full name",
+    "formEmail": "Email *",
+    "formEmailPlaceholder": "email@example.com",
+    "formPhone": "Phone Number",
+    "formPhonePlaceholder": "0912 345 678",
+    "formTopic": "Topic *",
+    "formTopicPlaceholder": "Select a topic",
+    "formTopicSupport": "Technical Support",
+    "formTopicSales": "Service Consultation",
+    "formTopicFeedback": "Product Feedback",
+    "formTopicPartnership": "Business Partnership",
+    "formTopicOther": "Other",
+    "formMessage": "Message Content *",
+    "formMessagePlaceholder": "Describe your issue or question in detail...",
+    "formSubmit": "Send Message",
+    "ctaTitle": "Need Immediate Support?",
+    "ctaDesc": "Call hotline 1900 1234 for free consultation."
+  },
+  "faq": {
+    "support": {
+      "title": "What channels can I contact for support?",
+      "desc": "You can contact via hotline 1900 1234, email support@ioes.edu.vn, or live chat."
+    },
+    "response": {
+      "title": "How long is the response time?",
+      "desc": "We commit to respond to emails within 24 business hours."
+    },
+    "partnership": {
+      "title": "How to become an IOES partner?",
+      "desc": "Send email to partnership@ioes.edu.vn or fill out the contact form."
+    },
+    "technical": {
+      "title": "Where can I report technical errors?",
+      "desc": "You can report via email support@ioes.edu.vn or call technical hotline 1900 5678."
+    }
+  },
+  "footer": {
+    "quickLinks": "Quick Links",
+    "courses": "Courses",
+    "exams": "Exams",
+    "certificates": "Certificates",
+    "verifyCertificate": "Verify Certificate",
+    "pricing": "Pricing",
+    "api": "API",
+    "docs": "Documentation",
+    "support": "Support",
+    "helpCenter": "Help Center",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "community": "Community",
+    "company": "Company",
+    "about": "About Us",
+    "careers": "Careers",
+    "blog": "Blog",
+    "press": "Press",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "cookies": "Cookie Policy",
+    "copyright": "© 2024 IOES. All rights reserved."
+  },
+  "branding": {
+    "login": {
+      "title": "The Smartest Online",
+      "title2": "Examination Platform",
+      "desc": "IOES integrates advanced AI, Computer Vision proctoring, and Blockchain certification.",
+      "feature1": "AI Assistant 24/7 supports learning",
+      "feature2": "Automatic AI exam monitoring",
+      "feature3": "Blockchain-verified certificates",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up now",
+      "testimonial": "\"IOES has made our employee training process much more effective.\"",
+      "testimonialAuthor": "Hoang Trung",
+      "testimonialRole": "HR Director, TechCorp",
+      "backHome": "Back to Home"
+    },
+    "register": {
+      "title": "The Most Advanced Online Examination Platform",
+      "desc": "IOES integrates advanced AI, Computer Vision proctoring, and Blockchain certification.",
+      "feature1": "Access 500+ high-quality courses",
+      "feature2": "Globally valid certificates",
+      "feature3": "Connect with 10,000+ learners",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in now",
+      "testimonial": "\"After registering, I quickly improved my programming skills.\"",
+      "testimonialAuthor": "Minh Linh",
+      "testimonialRole": "Software Engineer, Startup"
+    }
+  },
+  "theme": {
+    "light": "Light mode",
+    "dark": "Dark mode",
+    "system": "System preference"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "myCourses": "My Courses",
+    "myExams": "My Exams",
+    "progress": "Progress",
+    "certificates": "Certificates",
+    "settings": "Settings",
+    "profile": "Profile",
+    "createCourse": "Create Course",
+    "grading": "Grading",
+    "analytics": "Analytics",
+    "users": "Users",
+    "courses": "Courses",
+    "approval": "Course Approval",
+    "role": {
+      "instructor": "Instructor",
+      "student": "Student",
+      "admin": "Administrator",
+      "super_admin": "Super Admin"
+    }
+  },
+  "header": {
+    "search": "Search...",
+    "toggleTheme": "Toggle theme",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "notifications": "Notifications"
+  },
+  "student": {
+    "tokenWallet": {
+      "title": "Token Wallet",
+      "subtitle": "Manage reward tokens, redeem rewards and track your transaction history",
+      "actions": {
+        "transfer": "Transfer tokens",
+        "earnMore": "Ways to earn",
+        "browseMarket": "Reward catalog",
+        "inviteFriends": "Invite friends"
+      },
+      "stats": {
+        "currentBalance": "Current balance",
+        "lifetimeEarned": "Lifetime earned",
+        "lifetimeSpent": "Lifetime spent",
+        "pending": "Pending rewards"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "earn": "Earn",
+        "spend": "Spend",
+        "history": "History"
+      },
+      "recentTransactions": "Recent transactions",
+      "quickActions": "Quick actions",
+      "tokens": "tokens",
+      "tokensPerAction": "tokens/action",
+      "redeem": "Redeem",
+      "locked": "Unavailable",
+      "earn": {
+        "lesson": "Complete a lesson",
+        "exam": "Pass an exam",
+        "streak7": "7-day streak",
+        "streak30": "30-day streak",
+        "review": "Helpful review",
+        "referral": "Refer a friend"
+      },
+      "earnDesc": {
+        "lessonDesc": "Per completed lesson",
+        "examDesc": "Per passed exam",
+        "streak7Desc": "7 consecutive study days",
+        "streak30Desc": "30 consecutive study days",
+        "reviewDesc": "Per review marked helpful",
+        "referralDesc": "Per friend who signs up via your invite"
+      },
+      "spend": {
+        "premiumCourse": "Premium Course",
+        "premiumCourseDesc": "Unlock any course from the Premium library",
+        "physicalCert": "Physical Certificate Framing",
+        "physicalCertDesc": "Print and frame your certificate of completion",
+        "mentorSession": "1:1 Mentor Session",
+        "mentorSessionDesc": "30 minutes of coaching with a senior mentor",
+        "profileFrame": "Exclusive Profile Frame",
+        "profileFrameDesc": "Decorate your avatar with a special border",
+        "featuredWeek": "Featured Spot for 1 Week",
+        "featuredWeekDesc": "Boost your profile to the top of the leaderboard for a week",
+        "donateOSS": "Support Open Source",
+        "donateOSSDesc": "Contribute to open source projects"
+      },
+      "spendCategory": {
+        "course": "Course",
+        "cosmetic": "Cosmetic",
+        "certificate": "Certificate",
+        "donation": "Donation"
+      },
+      "category": {
+        "lesson": "Lesson",
+        "exam": "Exam",
+        "streak": "Streak",
+        "review": "Review",
+        "course": "Course",
+        "certificate": "Certificate",
+        "avatar": "Avatar",
+        "donation": "Donation",
+        "bonus": "Bonus",
+        "referral": "Referral"
+      },
+      "type": {
+        "earn": "Earn",
+        "spend": "Spend"
+      },
+      "table": {
+        "date": "Date",
+        "type": "Type",
+        "description": "Description",
+        "amount": "Amount",
+        "balance": "Balance"
+      },
+      "pagination": {
+        "prev": "Previous",
+        "next": "Next",
+        "range": "Showing {{from}} - {{to}} of {{total}}",
+        "pageSize": "Show",
+        "perPage": "per page"
+      }
+    },
+    "streak": {
+      "title": "Learning Streak",
+      "subtitle": "Track your daily learning streak, milestones and activity history",
+      "actions": {
+        "useFreeze": "Use streak freeze"
+      },
+      "currentStreak": "Current streak",
+      "bestStreak": "Best streak",
+      "toNextMilestone": "To next milestone",
+      "daysInRow": "days in a row",
+      "daysUntil": "more days until",
+      "personalRecord": "Personal record",
+      "allAchieved": "You have unlocked every milestone!",
+      "freezeTitle": "Streak freeze",
+      "freezeDesc": "You have {{count}} streak freezes. Use one when you need a day off without breaking your streak.",
+      "activityTitle": "Activity heatmap",
+      "activitySubtitle": "Past 365 days",
+      "less": "Less",
+      "more": "More",
+      "monthJan": "Jan",
+      "monthFeb": "Feb",
+      "monthMar": "Mar",
+      "monthApr": "Apr",
+      "monthMay": "May",
+      "monthJun": "Jun",
+      "monthJul": "Jul",
+      "monthAug": "Aug",
+      "dowMon": "Mon",
+      "dowWed": "Wed",
+      "dowFri": "Fri",
+      "weekMon": "Mon",
+      "weekTue": "Tue",
+      "weekWed": "Wed",
+      "weekThu": "Thu",
+      "weekFri": "Fri",
+      "weekSat": "Sat",
+      "weekSun": "Sun",
+      "weeklyTitle": "This week",
+      "last7Days": "Last 7 days",
+      "monthlyTitle": "Monthly summary",
+      "lastYear": "Past year",
+      "outOf365": "/ 365 days",
+      "monthlyStats": {
+        "daysActive": "Days active",
+        "studyTime": "Total study time",
+        "lessons": "Lessons",
+        "exams": "Exams passed"
+      },
+      "achievementsTitle": "Milestones",
+      "achieved": "Achieved",
+      "completedAt": "Completed {{count}}-day milestone",
+      "continueTo": "Continue to {{count}} days",
+      "m7": "Lucky Week",
+      "m30": "Persistence Month",
+      "m100": "Legendary 100",
+      "m365": "Golden Year"
+    },
+    "becomeInstructor": {
+      "title": "Become an Instructor",
+      "subtitle": "Apply to teach on IOES and share your expertise with thousands of learners",
+      "statusPending": "Your application is under review",
+      "statusPendingDesc": "Our team is reviewing your profile. You'll hear back within 3-5 business days.",
+      "statusRejected": "Previous application was not approved",
+      "statusRejectedDesc": "You can re-apply with additional information or updated credentials.",
+      "sectionProfile": "Profile Information",
+      "sectionExpertise": "Expertise & Background",
+      "sectionDocuments": "Documents & Motivation",
+      "field": {
+        "fullName": "Full name",
+        "email": "Email",
+        "department": "Department",
+        "yearsExp": "Years of experience",
+        "specializations": "Specializations",
+        "specializationsHint": "Press Enter to add a tag. Up to 8.",
+        "addTagPlaceholder": "Type a tag and press Enter...",
+        "bio": "About you",
+        "bioHint": "A short bio that will appear on your instructor profile.",
+        "bioPlaceholder": "Tell learners about your background, teaching style, and what you love about your subject...",
+        "cv": "Upload your CV",
+        "cvHint": "PDF, DOC or DOCX up to 5MB.",
+        "portfolio": "Portfolio / LinkedIn URL",
+        "portfolioPlaceholder": "https://your-portfolio.com",
+        "motivation": "Why do you want to teach on IOES?",
+        "motivationHint": "A few sentences — we'll show this to our review board.",
+        "motivationPlaceholder": "What excites you about teaching online? What's your ideal course?"
+      },
+      "suggestions": "Suggestions",
+      "cvDragDrop": "Drag & drop your CV here, or click to browse",
+      "cvFormats": "PDF, DOC, DOCX — up to 5MB",
+      "saveDraft": "Save draft",
+      "submit": "Submit application",
+      "submitting": "Submitting...",
+      "modalTitle": "Application submitted!",
+      "modalDesc": "Thanks for applying. Our review board will get back to you within 3-5 business days.",
+      "modalTimeline": "Average response time: 2.8 days",
+      "modalClose": "Got it",
+      "benefitsTitle": "Why teach on IOES?",
+      "benefitsSubtitle": "Real benefits for instructors",
+      "benefit1Title": "Earn up to 70% revenue",
+      "benefit1Desc": "Keep the majority of every paid enrollment with transparent payouts.",
+      "benefit2Title": "Reach thousands of learners",
+      "benefit2Desc": "Tap into our community of 500K+ students across 10+ countries.",
+      "benefit3Title": "Built-in certification",
+      "benefit3Desc": "Issue blockchain-verified certificates to your students automatically.",
+      "benefit4Title": "Powerful analytics",
+      "benefit4Desc": "Track engagement, completion rates, and revenue in real time.",
+      "faqTitle": "Common questions",
+      "faqSubtitle": "Quick answers before you apply",
+      "faq1Q": "How long does the review process take?",
+      "faq1A": "Our team typically reviews applications within 3-5 business days. You'll get an email as soon as a decision is made.",
+      "faq2Q": "What are the minimum requirements?",
+      "faq2A": "You need at least 2 years of professional or teaching experience in your field, plus a clear demo of expertise (portfolio, certifications, or work samples).",
+      "faq3Q": "Can I apply if I'm still a student?",
+      "faq3A": "Yes — exceptional students with strong portfolios are welcome. Highlight any teaching, mentoring, or open-source contributions in your application."
+    },
+    "ocr": {
+      "title": "OCR Tool",
+      "subtitle": "Extract text from documents, handwriting, receipts and ID cards using AI",
+      "howItWorks": "How it works",
+      "upload": "Upload",
+      "modeLabel": "Recognition mode",
+      "langLabel": "Language",
+      "modes": {
+        "document": "Document",
+        "handwriting": "Handwriting",
+        "receipt": "Receipt",
+        "idcard": "ID Card"
+      },
+      "langs": {
+        "vi": "Vietnamese",
+        "en": "English"
+      },
+      "dropzone": {
+        "title": "Drag and drop files here",
+        "desc": "Supports JPG, PNG, PDF — up to 10MB per file. The system automatically detects text and returns results in seconds.",
+        "browse": "Browse files",
+        "formats": "Supported formats: JPG, PNG, PDF, TIFF · Up to 10MB"
+      },
+      "preview": {
+        "original": "Original image",
+        "extracted": "Extracted text",
+        "avgConfidence": "Avg accuracy {{value}}%"
+      },
+      "actions": {
+        "copy": "Copy",
+        "downloadTxt": "Download TXT",
+        "downloadDocx": "Download DOCX",
+        "translate": "Translate",
+        "rescan": "Re-scan"
+      },
+      "confidence": {
+        "high": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "low": "Low"
+      },
+      "history": {
+        "title": "OCR history",
+        "subtitle": "Your recent scan jobs",
+        "viewAll": "View all",
+        "success": "Success",
+        "failed": "Failed",
+        "lines": "{{count}} lines"
+      }
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Welcome back, continue your learning journey",
+      "review": "Review",
+      "continueLearning": "Continue Learning",
+      "welcomeGreeting": "Good morning",
+      "welcomeTitle": "Good afternoon",
+      "continueWhereLeft": "Continue where you left off",
+      "viewAll": "View All",
+      "noNextLesson": "No next lesson",
+      "lessons": "lessons",
+      "upcomingExams": "Upcoming Exams",
+      "weeklyStudy": "Weekly Study Time",
+      "achievements": "Achievements",
+      "stats": {
+        "enrolled": "Enrolled Courses",
+        "inProgress": "In Progress",
+        "completed": "Completed",
+        "certificates": "Certificates",
+        "studyHours": "Study Hours"
+      }
+    },
+    "exams": {
+      "title": "Exams",
+      "subtitle": "Manage your exams and schedules",
+      "startBtn": "Start",
+      "resumeBtn": "Resume",
+      "status": {
+        "upcoming": "Upcoming",
+        "available": "Available",
+        "in_progress": "In Progress",
+        "completed": "Completed",
+        "missed": "Missed"
+      },
+      "filter": {
+        "all": "All",
+        "upcoming": "Upcoming",
+        "available": "Available",
+        "completed": "Completed",
+        "missed": "Missed",
+        "in_progress": "In progress"
+      },
+      "searchPlaceholder": "Search exams...",
+      "empty": "No exams found.",
+      "duration": "min",
+      "attempts": "{{done}}/{{max}} attempts",
+      "bestScore": "Best score",
+      "viewResult": "View result",
+      "pagination": {
+        "range": "{{from}}-{{to}} of {{total}}",
+        "prev": "Prev",
+        "next": "Next",
+        "pageSize": "Show",
+        "perPage": "/ page"
+      },
+      "stats": {
+        "avgScore": "Average score",
+        "total": "Total",
+        "upcoming": "Upcoming",
+        "completed": "Completed"
+      },
+      "sort": {
+        "recent": "Recent",
+        "score": "Highest score"
+      },
+      "type": {
+        "midterm": "Midterm",
+        "final": "Final",
+        "quiz": "Quiz",
+        "practice": "Practice"
+      }
+    },
+    "profile": {
+      "title": "My Profile",
+      "subtitle": "Manage your account info and activity",
+      "achievements": {
+        "first_course": "First Course",
+        "streak_7": "7-Day Streak",
+        "streak_30": "30-Day Streak",
+        "top_10": "Top 10",
+        "perfect_score": "Perfect Score",
+        "fast_learner": "Fast Learner"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "edit": "Edit",
+        "achievements": "Achievements",
+        "security": "Security"
+      },
+      "stats": {
+        "courses": "Courses",
+        "certificates": "Certificates",
+        "points": "Points",
+        "streak": "Streak"
+      },
+      "fields": {
+        "fullName": "Full name",
+        "email": "Email",
+        "phone": "Phone",
+        "studentId": "Student ID",
+        "department": "Department",
+        "bio": "Bio"
+      },
+      "save": "Save changes",
+      "saved": "Saved"
+    },
+    "nav": {
+      "overview": "Overview",
+      "dashboard": "Dashboard",
+      "myCourses": "My Courses",
+      "myExams": "My Exams",
+      "learningPath": "Learning Path",
+      "community": "Community",
+      "leaderboard": "Leaderboard",
+      "discussions": "Discussions",
+      "messages": "Messages",
+      "practice": "Practice",
+      "practiceQuiz": "Practice Quiz",
+      "recommendations": "Recommendations",
+      "aiAssistant": "AI Assistant",
+      "search": "Search",
+      "tools": "Tools",
+      "tokenWallet": "Token Wallet",
+      "ocr": "OCR Scanner",
+      "speechToText": "Speech to Text",
+      "streak": "Learning Streak",
+      "account": "Account",
+      "certificates": "Certificates",
+      "notifications": "Notifications",
+      "profile": "Profile",
+      "settings": "Settings"
+    },
+    "courses": {
+      "title": "Courses",
+      "subtitle": "Discover and continue your learning journey",
+      "browseAll": "Browse All Courses",
+      "stats": {
+        "total": "Total",
+        "inProgress": "In Progress",
+        "completed": "Completed",
+        "notStarted": "Not Started"
+      },
+      "searchPlaceholder": "Search courses...",
+      "sort": {
+        "recent": "Recent",
+        "progress": "Progress",
+        "title": "Title A-Z"
+      },
+      "filter": {
+        "all": "All",
+        "in_progress": "In Progress",
+        "completed": "Completed",
+        "not_started": "Not Started"
+      },
+      "empty": "You have not enrolled in any courses yet.",
+      "reviewBtn": "Review",
+      "startBtn": "Start Learning",
+      "continueBtn": "Continue Learning",
+      "pagination": {
+        "range": "{{from}}-{{to}} of {{total}}",
+        "prev": "Prev",
+        "next": "Next",
+        "pageSize": "Show",
+        "perPage": "/ page"
+      }
+    },
+    "courseDetail": {
+      "about": "About",
+      "curriculum": "Curriculum",
+      "reviews": "Reviews",
+      "discussions": "Course discussions",
+      "students": "students",
+      "continueBtn": "Continue",
+      "duration": "Duration",
+      "hours": "hours",
+      "lessonsCount": "{{count}} lessons",
+      "level": "Level",
+      "language": "Language",
+      "lastUpdated": "Last updated",
+      "instructor": "Instructor",
+      "instructorRole": "Instructor",
+      "whatYouLearn": "What you'll learn",
+      "requirements": "Requirements",
+      "section": "Section",
+      "minutes": "min",
+      "preview": "Preview"
+    },
+    "learn": {
+      "lesson": "Lesson",
+      "of": "of",
+      "backToCourse": "Back to course",
+      "progress": "Progress",
+      "current": "Current",
+      "videoControls": {
+        "speed": "Speed",
+        "quality": "Quality",
+        "subtitle": "Subtitle",
+        "subtitleLang": "Subtitle language"
+      },
+      "meta": {
+        "views": "views",
+        "daysAgo": "days ago"
+      },
+      "completed": "Completed",
+      "actions": {
+        "markWatched": "Mark as watched",
+        "nextLesson": "Next lesson"
+      },
+      "transcript": {
+        "title": "Transcript & Translation",
+        "tabSubtitle": "Subtitle",
+        "tabTranscript": "Transcript",
+        "tabTranslate": "Translate"
+      },
+      "aiSummary": {
+        "badge": "AI",
+        "title": "AI Summary"
+      }
+    },
+    "examTaking": {
+      "examLabel": "Exam",
+      "courseName": "Course",
+      "timeLeft": "Time left",
+      "proctoring": "Proctoring",
+      "submit": "Submit",
+      "question": "Question",
+      "of": "of",
+      "pointsUnit": "pts",
+      "prev": "Previous",
+      "flag": "Flag",
+      "next": "Next",
+      "cameraTitle": "Proctoring camera",
+      "cameraLive": "LIVE",
+      "cameraRecording": "Recording",
+      "attentionTitle": "Attention alert",
+      "attentionGreat": "You are focused!",
+      "attentionDesc": "You are looking at the screen.",
+      "attentionAlert": "Warning: Please look at the screen.",
+      "navigator": "Question navigator",
+      "summaryAnswered": "Answered",
+      "summaryUnanswered": "Unanswered",
+      "summaryFlagged": "Flagged",
+      "rulesTitle": "Exam rules",
+      "submitConfirmTitle": "Confirm submission",
+      "submitConfirmDesc": "Are you sure you want to submit? You cannot change your answers after.",
+      "answeredStat": "answered",
+      "unansweredStat": "unanswered",
+      "flaggedStat": "flagged",
+      "warning": "{{count}} warnings",
+      "submitContinue": "Continue",
+      "submitFinal": "Submit",
+      "noLooking": "No looking away",
+      "noPhone": "No phone use",
+      "noMultiple": "One person, one device",
+      "rule1": "Always look at the screen during the exam",
+      "rule2": "Ensure adequate room lighting",
+      "rule3": "Do not leave the exam tab",
+      "rule4": "Do not communicate with others"
+    },
+    "results": {
+      "title": "Exam Results",
+      "subtitle": "Detailed results and feedback",
+      "submitted": "Submitted at",
+      "passed": "PASSED",
+      "failed": "FAILED",
+      "outOf": "/{{total}} pts",
+      "score": "Score",
+      "rank": "Rank",
+      "timeUsed": "Time used",
+      "backToExams": "Back to exams",
+      "reviewAnswers": "Review answers",
+      "share": "Share",
+      "retakeExam": "Retake",
+      "breakdown": "Breakdown",
+      "feedback": "Instructor feedback",
+      "previousResults": "Previous attempts"
+    },
+    "practice": {
+      "title": "Practice",
+      "subtitle": "Random quiz questions",
+      "points": "pts",
+      "question": "Question",
+      "of": "of",
+      "questionType": "Type",
+      "flagToggle": "Flag for review",
+      "showExplanation": "Show explanation",
+      "correctAnswer": "Correct answer",
+      "prev": "Previous",
+      "next": "Next",
+      "submitAll": "Submit all",
+      "nav": "Navigator",
+      "summary": "Summary",
+      "answered": "Answered",
+      "unanswered": "Unanswered",
+      "flagged": "Flagged",
+      "correctCount": "Correct",
+      "tipsTitle": "Practice tips",
+      "tip1": "Read the question carefully",
+      "tip2": "Flag hard questions to review",
+      "tip3": "Practice consistently",
+      "confirmSubmit": "Confirm submission?",
+      "confirmNo": "Continue",
+      "confirmYes": "Submit now",
+      "results": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "needsWork": "Needs work",
+        "completed": "Completed",
+        "review": "Review",
+        "yourScore": "Your score",
+        "continueLearning": "Continue learning"
+      },
+      "restart": "Restart",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "learningPath": {
+      "title": "Learning Path",
+      "subtitle": "Steps to reach your goal",
+      "done": "Done",
+      "locked": "Locked",
+      "current": "In progress",
+      "estimated": "Estimated time",
+      "hours": "hours",
+      "continuePath": "Continue",
+      "review": "Review",
+      "not_started": "Not started",
+      "in_progress": "In progress",
+      "completed": "Completed"
+    },
+    "certificates": {
+      "title": "My Certificates",
+      "subtitle": "View and manage certificates you have earned",
+      "serial": "Serial",
+      "issued": "Issued",
+      "download": "Download",
+      "share": "Share",
+      "pagination": {
+        "range": "{{from}}-{{to}} of {{total}}",
+        "prev": "Prev",
+        "next": "Next",
+        "pageSize": "Show",
+        "perPage": "/ page"
+      }
+    },
+    "messages": {
+      "title": "Messages",
+      "subtitle": "Chat with instructors and fellow learners",
+      "search": "Search conversations...",
+      "online": "Online",
+      "offline": "Offline",
+      "typeMessage": "Type a message...",
+      "send": "Send",
+      "selectConversation": "Select a conversation to start"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Latest updates about your activity",
+      "markAllRead": "Mark all read",
+      "filter": {
+        "all": "All",
+        "unread": "Unread",
+        "course": "Course",
+        "exam": "Exam",
+        "system": "System",
+        "achievement": "Achievements",
+        "message": "Messages"
+      },
+      "empty": "No notifications."
+    },
+    "settings": {
+      "title": "Settings",
+      "subtitle": "Customize your account preferences",
+      "themeAuto": "System",
+      "tabs": {
+        "general": "General",
+        "notifications": "Notifications",
+        "privacy": "Privacy",
+        "language": "Language"
+      },
+      "theme": "Theme",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "System",
+      "emailNotif": "Email notifications",
+      "pushNotif": "Push notifications",
+      "courseUpdates": "Course updates",
+      "examReminders": "Exam reminders",
+      "weeklyReport": "Weekly report",
+      "promotions": "Promotions",
+      "language": "Language",
+      "languageVI": "Tiếng Việt",
+      "languageEN": "English"
+    },
+    "search": {
+      "title": "Search",
+      "subtitle": "Find courses, exams, instructors and more",
+      "placeholder": "Search courses, exams, instructors...",
+      "recentSearches": "Recent searches",
+      "popularTopics": "Popular topics",
+      "results": "Results",
+      "empty": "No results found",
+      "filter": {
+        "all": "All",
+        "course": "Courses",
+        "exam": "Exams",
+        "instructor": "Instructors"
+      },
+      "type": {
+        "course": "Course",
+        "exam": "Exam",
+        "instructor": "Instructor"
+      }
+    },
+    "reviews": {
+      "basedOn": "Based on {{count}} reviews",
+      "writeReview": "Write review",
+      "helpful": "Helpful",
+      "filter": {
+        "all": "All",
+        "positive": "Positive",
+        "critical": "Critical",
+        "withComment": "With comment"
+      }
+    },
+    "enrollment": {
+      "title": "My Enrollments",
+      "subtitle": "Manage your enrolled courses",
+      "course": "Course",
+      "enrolledAt": "Enrolled at",
+      "expiresAt": "Expires at",
+      "noExpiry": "Never",
+      "payment": "Payment",
+      "status": "Status",
+      "filter": {
+        "all": "All",
+        "active": "Active",
+        "expired": "Expired",
+        "cancelled": "Cancelled"
+      },
+      "paymentFree": "Free",
+      "paymentPaid": "Paid",
+      "paymentPending": "Pending",
+      "statusActive": "Active",
+      "statusExpired": "Expired",
+      "statusCancelled": "Cancelled"
+    },
+    "leaderboard": {
+      "title": "Leaderboard",
+      "subtitle": "Compete with the learning community",
+      "allTime": "All-time",
+      "points_unit": "pts",
+      "rank": "Rank",
+      "name": "Learner",
+      "points": "Points",
+      "courses": "Courses",
+      "streak": "Streak",
+      "days": "days",
+      "yourRank": "Your rank",
+      "all": "All-time",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "courseDiscussion": {
+      "title": "Course Discussion",
+      "subtitle": "Ask questions and discuss with the community",
+      "status": {
+        "completed": "Completed",
+        "inProgress": "In progress"
+      },
+      "role": {
+        "instructor": "Instructor",
+        "student": "Student"
+      },
+      "defaultTitle": "New question",
+      "backToList": "Back to list",
+      "modules": "Modules",
+      "lessons": "Lessons",
+      "qaTitle": "Q&A",
+      "qaSubtitle": "Questions about {{course}}",
+      "saved": "Saved",
+      "askQuestion": "Ask question",
+      "tab": {
+        "all": "All",
+        "unanswered": "Unanswered",
+        "resolved": "Resolved",
+        "mine": "Mine"
+      },
+      "search": "Search questions...",
+      "sort": {
+        "newest": "Newest",
+        "mostLiked": "Most liked",
+        "unanswered": "Unanswered"
+      },
+      "empty": "No discussions yet.",
+      "badge": {
+        "pinned": "Pinned",
+        "unanswered": "Unanswered",
+        "resolved": "Resolved",
+        "exam": "Exam"
+      },
+      "reply": "Reply",
+      "replies": "replies",
+      "askModal": {
+        "title": "Ask a new question",
+        "titleLabel": "Title",
+        "titlePlaceholder": "Summarize your question",
+        "topicLabel": "Topic",
+        "selectTopic": "Select a topic",
+        "bodyLabel": "Body",
+        "bodyPlaceholder": "Describe your question in detail",
+        "attachmentLabel": "Attachment",
+        "attachmentHint": "Images, PDF up to 10MB",
+        "cancel": "Cancel",
+        "submit": "Post"
+      },
+      "listTitle": "Discussion forums",
+      "listSubtitle": "Latest questions and discussions",
+      "stats": {
+        "courses": "courses",
+        "threads": "threads",
+        "unanswered": "unanswered"
+      },
+      "listSearch": "Search across all courses...",
+      "filter": {
+        "all": "All",
+        "unanswered": "Unanswered",
+        "pinned": "Pinned"
+      },
+      "emptyCourses": "No forums yet.",
+      "threads": "threads",
+      "pagination": {
+        "range": "{{from}}-{{to}} of {{total}}",
+        "prev": "Prev",
+        "next": "Next",
+        "pageSize": "Show",
+        "perPage": "/ page"
+      }
+    },
+    "discussion": {
+      "placeholder": "Write a comment...",
+      "post": "Post",
+      "instructorBadge": "Instructor"
+    },
+    "recommendations": {
+      "title": "Recommended for you",
+      "subtitle": "Courses tailored to your interests",
+      "refresh": "Refresh recommendations",
+      "enroll": "Enroll now",
+      "viewDetail": "View detail",
+      "reason": {
+        "basedOnHistory": "Based on your learning history",
+        "similarStudents": "Similar learners also liked this course",
+        "newRelease": "Newly released",
+        "similar": "Similar to courses you took",
+        "trending": "Trending now",
+        "skill": "Matches your skills",
+        "instructor": "From your favorite instructor"
+      },
+      "pagination": {
+        "range": "{{from}}-{{to}} of {{total}}",
+        "prev": "Prev",
+        "next": "Next",
+        "pageSize": "Show",
+        "perPage": "/ page"
+      }
+    },
+    "speechToText": {
+      "stats": {
+        "accuracy": "Accuracy",
+        "sentences": "Sentences",
+        "words": "Words",
+        "confidence": "Confidence"
+      },
+      "history": "History",
+      "practiceNew": "Practice new",
+      "filter": {
+        "language": "Language",
+        "mode": "Mode"
+      },
+      "mode": {
+        "conversation": "Conversation",
+        "pronunciation": "Pronunciation",
+        "dictation": "Dictation",
+        "transcription": "Transcription"
+      },
+      "lang": {
+        "vi": "Vietnamese",
+        "en": "English",
+        "ja": "Japanese",
+        "ko": "Korean",
+        "zh": "Chinese"
+      },
+      "title": "Speech practice & recognition",
+      "subtitle": "Train pronunciation, dictation, and conversation with detailed AI feedback",
+      "transcript": {
+        "title": "Transcript",
+        "subtitle": "Recognized text"
+      },
+      "recording": "Recording",
+      "tapToRecord": "Tap to record",
+      "action": {
+        "play": "Play",
+        "download": "Download",
+        "save": "Save",
+        "share": "Share"
+      },
+      "waveform": {
+        "title": "Waveform",
+        "subtitle": "Audio visualization"
+      },
+      "phonemes": {
+        "title": "Phonemes",
+        "subtitle": "Pronunciation detail"
+      },
+      "words": {
+        "title": "Words",
+        "subtitle": "Word analysis",
+        "matched": "Matched",
+        "mispronounced": "Mispronounced",
+        "missing": "Missing"
+      }
+    },
+    "aiAssistant": {
+      "title": "AI Assistant",
+      "thisWeek": "This week",
+      "greeting": "Hi! How can I help?",
+      "defaultThreads": {
+        "machineLearning": "Machine Learning",
+        "pythonPath": "Python path",
+        "essayGrade": "Grade essay",
+        "blockchainExam": "Blockchain exam"
+      },
+      "newChat": "New chat",
+      "empty": "Start a new conversation",
+      "deleteConfirm": "Delete this conversation?",
+      "tip": {
+        "title": "Tip",
+        "desc": "Ask specific questions for better answers"
+      },
+      "headerSubtitle": "Your AI learning assistant",
+      "online": "Online",
+      "clearChat": "Clear chat",
+      "subtitle": "Ask the AI",
+      "inputPlaceholder": "Type your question...",
+      "disclaimer": "AI can make mistakes. Verify important info.",
+      "today": "Today",
+      "yesterday": "Yesterday"
+    },
+    "reports": {
+      "title": "Learning Reports",
+      "subtitle": "Analyze your progress and results",
+      "tabs": {
+        "study": "Study time",
+        "exam": "Exams",
+        "achievement": "Achievements",
+        "engagement": "Engagement"
+      },
+      "range": {
+        "7d": "7 days",
+        "30d": "30 days",
+        "90d": "90 days",
+        "ytd": "Year-to-date"
+      },
+      "export": "Export report"
+    }
+  },
+  "instructor": {
+    "dashboard": {
+      "title": "Instructor Dashboard",
+      "subtitle": "Overview of your teaching activity",
+      "welcomeGreeting": "Good morning",
+      "welcomeTitle": "Welcome back",
+      "stats": {
+        "courses": "Courses",
+        "students": "Students",
+        "exams": "Exams",
+        "rating": "Avg Rating"
+      },
+      "myCourses": "My Courses",
+      "upcomingExams": "Upcoming Exams & Pending Grading",
+      "quickActions": "Quick Actions",
+      "topStudents": "Top Students",
+      "recentActivity": "Recent Activity",
+      "viewAll": "View all",
+      "monitors": "Monitors",
+      "results": "Results",
+      "gradeNow": "Grade Now",
+      "expiringSoon": "Expiring soon",
+      "pendingGrading": "Pending grading",
+      "waiting": "Waiting",
+      "courseUnit": "lessons",
+      "studentsUnit": "students",
+      "score": "score",
+      "ago": "ago",
+      "created": "Created",
+      "export": "Export Report",
+      "aiQuestion": "Generate AI Question",
+      "aiAssistant": "AI Assistant"
+    },
+    "nav": {
+      "overview": "Overview",
+      "community": "Community",
+      "create": "Create",
+      "analytics": "Analytics",
+      "aiTools": "AI Tools",
+      "account": "Account",
+      "dashboard": "Dashboard",
+      "myCourses": "My Courses",
+      "exams": "Exams",
+      "students": "Students",
+      "createCourse": "Create Course",
+      "createExam": "Create Exam",
+      "stats": "Statistics",
+      "reports": "Reports",
+      "grading": "Grading",
+      "discussions": "Discussions",
+      "messages": "Messages",
+      "aiQuestion": "Generate AI Question",
+      "aiAssistant": "AI Assistant",
+      "copyright": "Copyright",
+      "profile": "Profile",
+      "settings": "Settings"
+    },
+    "discussion": {
+      "title": "Course discussions",
+      "subtitle": "Manage discussions with students in your courses",
+      "filter": {
+        "all": "All",
+        "questions": "Questions",
+        "announcements": "Announcements"
+      },
+      "placeholder": "Post an announcement or reply to students...",
+      "post": "Post",
+      "helper": "Tip: Your posts will appear with an Instructor badge",
+      "instructorBadge": "Instructor",
+      "like": "Like",
+      "reply": "Reply",
+      "replyAction": "↩ Reply"
+    },
+    "messages": {
+      "title": "Messages",
+      "subtitle": "Chat with your students and other instructors",
+      "search": "Search...",
+      "placeholder": "Type a message...",
+      "send": "Send",
+      "online": "Online",
+      "offline": "Offline",
+      "empty": "Select a conversation"
+    },
+    "course": {
+      "create": "Create New Course",
+      "edit": "Edit Course",
+      "subtitle": "Fill in details to create a new course",
+      "saveDraft": "Save Draft",
+      "publish": "Publish",
+      "steps": {
+        "basic": "Basic Info",
+        "content": "Content",
+        "pricing": "Pricing",
+        "review": "Review"
+      },
+      "info": {
+        "title": "Course Information",
+        "courseTitle": "Course Title",
+        "courseTitlePlaceholder": "e.g., Full-Stack Web Development Bootcamp 2026",
+        "shortDesc": "Short Description",
+        "shortDescPlaceholder": "A short description (max 200 characters)",
+        "fullDesc": "Full Description",
+        "fullDescPlaceholder": "Detailed description of the course, content, learning outcomes...",
+        "category": "Category",
+        "selectCategory": "Select category",
+        "level": "Level",
+        "selectLevel": "Select level",
+        "thumbnail": "Thumbnail",
+        "uploadHint": "Drag and drop file or",
+        "uploadClick": "click to upload",
+        "uploadSpec": "PNG, JPG (max 5MB) - Recommended: 1280x720px"
+      },
+      "tags": {
+        "title": "Tags",
+        "hint": "Press Enter to add tag. Max 5 tags.",
+        "placeholder": "Add tag..."
+      },
+      "curriculum": {
+        "title": "Course Curriculum",
+        "addLesson": "Add Lesson",
+        "addChapter": "Add New Chapter",
+        "chapterPlaceholder": "Chapter name, e.g., Introduction to HTML",
+        "lessonPlaceholder": "Lesson name",
+        "durationPlaceholder": "30 min"
+      },
+      "pricing": {
+        "title": "Pricing",
+        "free": "Free",
+        "freeDesc": "Free for everyone",
+        "paid": "Paid",
+        "paidDesc": "Set a price for this course",
+        "subscription": "Subscription",
+        "subscriptionDesc": "Requires premium subscription"
+      },
+      "levelOptions": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
+      "lessonTypes": {
+        "video": "Video",
+        "document": "Document",
+        "quiz": "Quiz"
+      }
+    },
+    "exam": {
+      "create": "Create New Exam",
+      "preview": "Preview",
+      "saveDraft": "Save Draft",
+      "publish": "Publish",
+      "info": {
+        "title": "Exam Information",
+        "name": "Exam Name",
+        "namePlaceholder": "e.g., JavaScript Fundamentals Quiz",
+        "course": "Course",
+        "selectCourse": "Select course",
+        "duration": "Duration",
+        "description": "Description",
+        "descriptionPlaceholder": "Brief description of the exam...",
+        "options": {
+          "proctoring": "Enable Proctoring (Webcam monitoring)",
+          "randomize": "Randomize questions",
+          "showResults": "Allow viewing answers after exam",
+          "autoGrade": "Auto-grade"
+        }
+      },
+      "timerOptions": {
+        "15": "15 min",
+        "30": "30 min",
+        "60": "60 min",
+        "90": "90 min",
+        "120": "120 min"
+      },
+      "questionTypes": {
+        "title": "Question Types",
+        "mc": "Multiple Choice",
+        "essay": "Essay",
+        "coding": "Coding",
+        "tf": "True/False"
+      },
+      "questions": {
+        "title": "Questions List",
+        "addNew": "Add New Question",
+        "placeholder": "Enter question content...",
+        "points": "Points:",
+        "addOption": "Add option",
+        "optionPlaceholder": "Option"
+      }
+    },
+    "grading": {
+      "title": "Grading",
+      "subtitle": "List of exams pending and completed grading",
+      "export": "Export Report",
+      "stats": {
+        "total": "Total Sessions",
+        "clean": "Clean",
+        "warning": "Warning",
+        "flagged": "Flagged",
+        "attention": "Avg Attention"
+      },
+      "filters": {
+        "all": "All",
+        "clean": "Clean",
+        "warning": "Warning",
+        "flagged": "Flagged"
+      },
+      "table": {
+        "student": "Student",
+        "time": "Time",
+        "attention": "Attention",
+        "violations": "Violations",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "clean": "Clean",
+        "warning": "Warning",
+        "flagged": "Flagged"
+      },
+      "view": "View",
+      "sessionList": "Exam Sessions",
+      "empty": "No exam sessions found"
+    },
+    "courses": {
+      "title": "My Courses",
+      "subtitle": "Manage all the courses you have created",
+      "createNew": "Create course",
+      "stats": {
+        "total": "Total courses",
+        "published": "Published",
+        "drafts": "Drafts",
+        "students": "Total students"
+      },
+      "filter": {
+        "all": "All",
+        "published": "Published",
+        "draft": "Draft",
+        "archived": "Archived"
+      },
+      "status": {
+        "draft": "Draft",
+        "published": "Published",
+        "archived": "Archived"
+      },
+      "searchPlaceholder": "Search by name or category...",
+      "sort": {
+        "recent": "Recently updated",
+        "enrollments": "Most enrolled",
+        "title": "By title"
+      },
+      "lessons": "lessons",
+      "studentsUnit": "students",
+      "updated": "Updated",
+      "edit": "Edit",
+      "viewStats": "View stats",
+      "empty": "No courses yet. Create your first one!",
+      "pagination": {
+        "range": "Showing {{from}}–{{to}} of {{total}}",
+        "prev": "Prev",
+        "next": "Next",
+        "pageSize": "Show",
+        "perPage": "/ page"
+      }
+    },
+    "exams": {
+      "title": "Exams",
+      "subtitle": "Manage all exams across your courses",
+      "createNew": "Create exam",
+      "stats": {
+        "total": "Total exams",
+        "active": "Active",
+        "pendingGrading": "Pending grading",
+        "participants": "Participants"
+      },
+      "filter": {
+        "all": "All",
+        "active": "Active",
+        "scheduled": "Scheduled",
+        "completed": "Completed",
+        "draft": "Draft"
+      },
+      "status": {
+        "active": "Active",
+        "scheduled": "Scheduled",
+        "completed": "Completed",
+        "draft": "Draft"
+      },
+      "searchPlaceholder": "Search by title or course...",
+      "table": {
+        "exam": "Exam",
+        "course": "Course",
+        "participants": "Participants",
+        "pending": "Pending",
+        "expires": "Expires",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "gradeNow": "Grade now",
+      "empty": "No exams yet.",
+      "pagination": {
+        "range": "Showing {{from}}–{{to}} of {{total}}",
+        "prev": "Prev",
+        "next": "Next",
+        "pageSize": "Show",
+        "perPage": "/ page"
+      }
+    },
+    "students": {
+      "title": "Students",
+      "subtitle": "List of students enrolled in your courses",
+      "export": "Export list",
+      "stats": {
+        "total": "Total students",
+        "active": "Actively learning",
+        "atRisk": "Need support",
+        "avgScore": "Avg score"
+      },
+      "filter": {
+        "all": "All",
+        "active": "Active",
+        "at_risk": "At risk",
+        "inactive": "Inactive"
+      },
+      "status": {
+        "active": "Active",
+        "at_risk": "At risk",
+        "inactive": "Inactive"
+      },
+      "searchPlaceholder": "Search by name or email...",
+      "sort": {
+        "recent": "Recently active",
+        "score": "Highest score",
+        "name": "By name"
+      },
+      "table": {
+        "student": "Student",
+        "courses": "Courses",
+        "lessons": "Lessons done",
+        "avgScore": "Avg score",
+        "lastActive": "Last active",
+        "status": "Status"
+      },
+      "empty": "No students yet.",
+      "pagination": {
+        "range": "Showing {{from}}–{{to}} of {{total}}",
+        "prev": "Prev",
+        "next": "Next",
+        "pageSize": "Show",
+        "perPage": "/ page"
+      }
+    },
+    "reports": {
+      "title": "Reports",
+      "subtitle": "Detailed analytics of teaching performance and revenue",
+      "exportPdf": "Export PDF",
+      "kpi": {
+        "totalEnrollments": "Total enrollments",
+        "completionRate": "Completion rate",
+        "revenue": "Revenue",
+        "avgWatchTime": "Avg watch time"
+      },
+      "minutes": "min",
+      "tab": {
+        "enrollment": "Enrollment",
+        "completion": "Completion",
+        "revenue": "Revenue",
+        "engagement": "Engagement"
+      },
+      "range": {
+        "7d": "7 days",
+        "30d": "30 days",
+        "90d": "90 days",
+        "ytd": "Year to date"
+      },
+      "breakdown": "Comparison vs previous period",
+      "table": {
+        "metric": "Metric",
+        "current": "Current",
+        "previous": "Previous",
+        "delta": "Change"
+      }
+    },
+    "aiQuestion": {
+      "title": "AI Question Generator",
+      "subtitle": "Auto-generate high-quality questions using AI",
+      "config": {
+        "title": "Configuration",
+        "subtitle": "Set the requirements for AI",
+        "topic": "Topic",
+        "topicPlaceholder": "e.g. React.js fundamentals",
+        "type": "Question type",
+        "difficulty": "Difficulty",
+        "count": "Count",
+        "language": "Language",
+        "extra": "Additional requirements (optional)",
+        "extraPlaceholder": "e.g. Focus on Hooks, include code examples..."
+      },
+      "types": {
+        "multiple_choice": "Multiple choice",
+        "true_false": "True / False",
+        "short_answer": "Short answer",
+        "essay": "Essay"
+      },
+      "difficulty": {
+        "easy": "Easy",
+        "medium": "Medium",
+        "hard": "Hard"
+      },
+      "generate": "Generate",
+      "generating": "Generating...",
+      "questionsReady": "questions ready",
+      "copy": "Copy",
+      "saveToBank": "Save to bank",
+      "regenerate": "Regenerate",
+      "showAnswer": "Show answer & explanation",
+      "answer": "Answer",
+      "explanation": "Explanation",
+      "empty": {
+        "title": "No questions yet",
+        "desc": "Enter a topic and click \"Generate\" to let AI create questions for you."
+      }
+    },
+    "aiAssistant": {
+      "title": "AI Assistant",
+      "subtitle": "Your AI helper to teach more effectively",
+      "headerTitle": "Teaching assistant",
+      "headerSubtitle": "Powered by Agentic RAG",
+      "online": "Online",
+      "clearChat": "Clear chat",
+      "newChat": "New chat",
+      "suggestions": "Quick suggestions",
+      "history": "History",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "thisWeek": "This week",
+      "older": "Older",
+      "empty": "No conversations yet",
+      "deleteConfirm": "Delete this conversation?",
+      "prompt": {
+        "courseIdea": "Suggest a structure for a new course",
+        "lessonPlan": "Draft a lesson plan",
+        "studentFeedback": "How to give feedback to students",
+        "examTips": "Tips for creating effective exams",
+        "teachingTips": "Improve my teaching style",
+        "translate": "Translate content to English"
+      },
+      "tip": {
+        "title": "Tip",
+        "desc": "Describe your context clearly to get more useful answers."
+      },
+      "inputPlaceholder": "Ask AI anything...",
+      "disclaimer": "AI may make mistakes. Verify important information.",
+      "greeting": "Hi! I'm your AI assistant. How can I help with your teaching today?",
+      "defaultThreads": {
+        "machineLearning": "Explain Machine Learning",
+        "pythonPath": "Build a Python learning path",
+        "essayGrade": "Grade my essay",
+        "blockchainExam": "Ask about blockchain exam"
+      }
+    },
+    "profile": {
+      "title": "Profile",
+      "subtitle": "Manage your personal information and account",
+      "unknownUser": "User",
+      "active": "Active",
+      "editProfile": "Edit profile",
+      "stats": {
+        "courses": "Courses",
+        "students": "Students",
+        "exams": "Exams",
+        "rating": "Rating"
+      },
+      "tab": {
+        "overview": "Overview",
+        "edit": "Edit",
+        "security": "Security",
+        "notifications": "Notifications"
+      },
+      "about": {
+        "title": "About",
+        "placeholder": "Share about yourself, your teaching experience and expertise..."
+      },
+      "recent": {
+        "title": "Recent activity",
+        "item": "Sample activity {{i}}: you updated a course"
+      },
+      "field": {
+        "fullName": "Full name",
+        "email": "Email",
+        "phone": "Phone",
+        "title": "Title",
+        "location": "Location",
+        "website": "Website",
+        "bio": "About"
+      },
+      "save": "Save changes",
+      "cancel": "Cancel",
+      "security": {
+        "password": {
+          "title": "Password",
+          "desc": "Change your password periodically to keep your account safe.",
+          "change": "Change password"
+        },
+        "2fa": {
+          "title": "Two-factor authentication",
+          "desc": "Add an extra layer of security with Google Authenticator."
+        }
+      },
+      "notif": {
+        "enrollment": {
+          "title": "New enrollment",
+          "desc": "Notify when a student enrolls"
+        },
+        "submission": {
+          "title": "New submission",
+          "desc": "Notify when a student submits"
+        },
+        "review": {
+          "title": "New review",
+          "desc": "Notify when a new review is posted"
+        },
+        "system": {
+          "title": "System notifications",
+          "desc": "Updates & maintenance"
+        }
+      }
+    },
+    "settings": {
+      "title": "Settings",
+      "subtitle": "Customize options for your instructor account",
+      "section": {
+        "general": "General",
+        "teaching": "Teaching",
+        "notifications": "Notifications",
+        "integrations": "Integrations",
+        "billing": "Billing"
+      },
+      "saved": "Changes saved",
+      "save": "Save changes",
+      "connect": "Connect",
+      "connected": "Connected",
+      "general": {
+        "title": "General settings",
+        "desc": "Language, timezone and display format",
+        "language": "Language",
+        "timezone": "Timezone"
+      },
+      "teaching": {
+        "title": "Teaching settings",
+        "desc": "Default configuration for courses and exams",
+        "autoGrade": "Auto grading",
+        "autoGradeDesc": "AI auto-grades multiple choice and short answers",
+        "plagiarism": "Plagiarism check",
+        "plagiarismDesc": "Compare submissions to detect copying",
+        "proctoring": "Online proctoring",
+        "proctoringDesc": "Enable AI proctoring via webcam during exams",
+        "passScore": "Minimum passing score"
+      },
+      "notifications": {
+        "title": "Notification settings",
+        "desc": "Choose channels for each event",
+        "event": "Event",
+        "enrollment": "Enrollment",
+        "submission": "Submission",
+        "review": "Review",
+        "system": "System",
+        "email": "Email",
+        "inApp": "In-app",
+        "push": "Push"
+      },
+      "integrations": {
+        "title": "Third-party integrations",
+        "desc": "Connect the tools you use",
+        "zoomDesc": "Auto-create Zoom rooms for live classes",
+        "meetDesc": "Schedule Google Meet for live classes",
+        "slackDesc": "Receive notifications via Slack workspace",
+        "driveDesc": "Sync course materials"
+      },
+      "billing": {
+        "title": "Plan & billing",
+        "desc": "Manage your Pro plan and payment history",
+        "pro": "PRO",
+        "proPlan": "Instructor Pro plan",
+        "renewsAt": "Renews on {{date}}",
+        "perMonth": "/ month",
+        "tokensUsed": "Tokens used",
+        "aiCalls": "AI calls",
+        "storage": "Storage",
+        "ofLimit": "/ {{limit}}",
+        "thisMonth": "this month",
+        "manage": "Manage plan",
+        "invoices": "Invoices"
+      }
+    },
+    "analytics": {
+      "title": "Analytics",
+      "subtitle": "Statistics and analysis of teaching performance",
+      "kpi": {
+        "students": "Students",
+        "courses": "Courses",
+        "exams": "Exams",
+        "completion": "Completion Rate",
+        "avgScore": "Avg Score",
+        "rating": "Rating"
+      },
+      "charts": {
+        "enrollmentTrend": "Enrollment Trend",
+        "examScores": "Exam Score Distribution"
+      }
+    },
+    "copyright": {
+      "title": "IP & Copyright Management",
+      "subtitle": "Register, protect and license your intellectual property",
+      "exportCert": "Export Certificate",
+      "registerNew": "Register New IP",
+      "stats": {
+        "total": "Total IPs Registered",
+        "pending": "Pending Review",
+        "verified": "Verified",
+        "revenue": "Licensing Revenue"
+      },
+      "tabs": {
+        "myIps": "My IPs",
+        "register": "Register New",
+        "licensing": "Licensing",
+        "disputes": "Disputes"
+      },
+      "table": {
+        "title": "Title",
+        "type": "Type",
+        "hash": "Hash",
+        "registered": "Registered Date",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "type": {
+        "course": "Course",
+        "video": "Video",
+        "exam": "Exam",
+        "content": "Content"
+      },
+      "status": {
+        "verified": "Verified",
+        "pending": "Pending",
+        "rejected": "Rejected"
+      },
+      "action": {
+        "view": "View"
+      },
+      "ips": {
+        "ip001": "Advanced React Patterns 2024",
+        "ip002": "TypeScript Deep Dive Lecture Series",
+        "ip003": "Frontend Engineer Mock Exam Q3",
+        "ip004": "JavaScript Cheatsheet Vol.2",
+        "ip005": "Node.js Microservices Bootcamp",
+        "ip006": "CSS Grid Masterclass Workshop",
+        "ip007": "System Design Interview Bank",
+        "ip008": "Vue 3 Composition API Guide"
+      },
+      "licensees": {
+        "lic001": "TechEdu Vietnam",
+        "lic002": "CodeAcademy Asia",
+        "lic003": "LearnHub Global"
+      },
+      "disputesData": {
+        "dsp001": {
+          "title": "Similarity claim on React Patterns course",
+          "claimant": "WebDev Academy"
+        }
+      },
+      "form": {
+        "type": "IP Type",
+        "title": "Title",
+        "titlePlaceholder": "e.g. Advanced React Course",
+        "description": "Description",
+        "descPlaceholder": "Describe your IP content in detail...",
+        "file": "Source File",
+        "dropFile": "Click or drop a file here",
+        "hash": "SHA-256 Hash",
+        "generateHash": "Generate hash",
+        "network": "Blockchain Network",
+        "reset": "Reset",
+        "submit": "Submit registration",
+        "submitting": "Submitting..."
+      },
+      "network": {
+        "polygon": "Polygon",
+        "ethereum": "Ethereum",
+        "binance": "Binance Smart Chain"
+      },
+      "licensing": {
+        "totalIncome": "Total Income",
+        "last30d": "Last 30 days",
+        "activeLicensees": "Active Licensees",
+        "renewingSoon": "Renewing soon: 1",
+        "totalDeals": "Total Deals",
+        "sinceLaunch": "Since launch",
+        "licensee": "Licensee",
+        "duration": "Duration",
+        "royalty": "Royalty",
+        "active": "Active",
+        "expired": "Expired",
+        "pending": "Pending"
+      },
+      "disputes": {
+        "empty": "No active disputes at the moment.",
+        "claimant": "Claimant",
+        "filed": "Filed",
+        "view": "View detail",
+        "respond": "Respond",
+        "status": {
+          "open": "Open",
+          "reviewing": "Reviewing",
+          "resolved": "Resolved"
+        }
+      }
+    }
+  },
+  "admin": {
+    "wallet": {
+      "title": "Multi-sig Wallet",
+      "subtitle": "Manage treasury, signers and multi-signature transactions",
+      "actions": {
+        "exportHistory": "Export history",
+        "propose": "Propose transaction"
+      },
+      "treasuryBalance": "Treasury balance",
+      "signers": "Signers",
+      "activeSigners": "Active signers",
+      "multisig": "Multi-sig config",
+      "thresholdRequired": "Signatures required",
+      "of": "of",
+      "multisigConfig": "Multi-sig configuration",
+      "editConfig": "Edit",
+      "config": {
+        "threshold": "Signature threshold",
+        "dailyLimit": "Daily limit",
+        "timeLock": "Time lock",
+        "chain": "Blockchain"
+      },
+      "recentTx": "Recent transactions",
+      "activitySummary": "Activity summary",
+      "summary": {
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "outgoing": "Total outgoing",
+        "incoming": "Total incoming"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "transactions": "Transactions",
+        "signers": "Signers",
+        "pending_one": "Pending",
+        "pending_other": "Pending ({{count}})"
+      },
+      "table": {
+        "hash": "Hash",
+        "from": "From",
+        "to": "To",
+        "amount": "Amount",
+        "signatures": "Signatures",
+        "status": "Status",
+        "time": "Time"
+      },
+      "status": {
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "rejected": "Rejected"
+      },
+      "signerStatus": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "signerAddress": "Wallet address",
+      "votingPower": "Voting power",
+      "remove": "Remove",
+      "noPending": "No pending requests",
+      "proposer": "Proposer",
+      "signatureProgress": "Signature progress",
+      "approve": "Approve",
+      "reject": "Reject",
+      "viewDetails": "View details",
+      "pagination": {
+        "prev": "Previous",
+        "next": "Next",
+        "range": "Showing {{from}} - {{to}} of {{total}}",
+        "pageSize": "Show",
+        "perPage": "per page"
+      }
+    },
+    "heatmaps": {
+      "title": "Heatmaps",
+      "subtitle": "Click and scroll heatmap analytics across pages",
+      "export": "Export",
+      "refresh": "Refresh",
+      "filter": {
+        "page": "Page",
+        "last7d": "Last 7 days",
+        "last30d": "Last 30 days",
+        "last90d": "Last 90 days",
+        "deviceAll": "All devices",
+        "desktop": "Desktop",
+        "mobile": "Mobile",
+        "tablet": "Tablet"
+      },
+      "page": {
+        "homepage": "Homepage",
+        "courseList": "Course List",
+        "checkout": "Checkout",
+        "dashboard": "Dashboard"
+      },
+      "stats": {
+        "totalClicks": "Total clicks",
+        "uniqueClickers": "Unique clickers",
+        "avgClicks": "Avg clicks / session",
+        "hottestArea": "Hottest area",
+        "heroBanner": "Hero Banner"
+      },
+      "click": {
+        "title": "Click Heatmap",
+        "subtitle": "Click density across page regions"
+      },
+      "scroll": {
+        "title": "Scroll Depth Heatmap",
+        "subtitle": "% of users reaching each section"
+      },
+      "legend": {
+        "high": "High clicks",
+        "medium": "Medium",
+        "low": "Low",
+        "reachHigh": "High reach",
+        "reachLow": "Low reach"
+      },
+      "hotspots": {
+        "title": "Top 5 Hotspots",
+        "subtitle": "Elements with the highest click volume",
+        "element": "Element",
+        "clicks": "Clicks",
+        "ctr": "CTR",
+        "heatBar": "Intensity",
+        "data": {
+          "ctaEnroll": "CTA Button \"Enroll Now\"",
+          "courseCard1": "Course Card #1",
+          "searchBar": "Search Bar",
+          "heroBanner": "Hero Banner",
+          "loginLink": "Login Link",
+          "courseCard3": "Course Card #3",
+          "pricingToggle": "Pricing Toggle",
+          "filterSidebar": "Filter Sidebar",
+          "footerAbout": "Footer About",
+          "languageSwitcher": "Language Switcher",
+          "courseCard2": "Course Card #2",
+          "helpCenter": "Help Center"
+        }
+      }
+    },
+    "funnels": {
+      "title": "Funnels",
+      "subtitle": "Conversion analytics across user journey steps",
+      "export": "Export",
+      "compare": "Compare",
+      "selector": {
+        "signup": "Signup Funnel",
+        "enrollment": "Course Enrollment",
+        "exam": "Exam Completion",
+        "checkout": "Checkout"
+      },
+      "stats": {
+        "entries": "Entries",
+        "completions": "Completions",
+        "conversion": "Conversion rate",
+        "biggestDropoff": "Biggest drop-off step"
+      },
+      "viz": {
+        "title": "Funnel Visualization",
+        "subtitle": "Steps in the user journey"
+      },
+      "step": {
+        "conv": "Conversion: {{value}}%"
+      },
+      "steps": {
+        "signup": {
+          "visit": "Visit page",
+          "form": "Fill signup form",
+          "verify": "Verify email",
+          "profile": "Complete profile",
+          "done": "Finish signup"
+        },
+        "enrollment": {
+          "browse": "Browse courses",
+          "view": "View course detail",
+          "cart": "Add to cart",
+          "pay": "Checkout payment",
+          "done": "Finish enrollment"
+        },
+        "exam": {
+          "start": "Start exam",
+          "q1": "Finish question 1",
+          "mid": "Reach 50% of exam",
+          "submit": "Submit exam",
+          "grade": "Graded",
+          "cert": "Receive certificate"
+        },
+        "checkout": {
+          "cart": "Open cart",
+          "info": "Enter info",
+          "ship": "Choose shipping",
+          "pay": "Make payment",
+          "done": "Order placed"
+        }
+      },
+      "cohort": {
+        "title": "Cohort Analysis",
+        "subtitle": "Retention by signup week",
+        "week": "Cohort"
+      },
+      "recs": {
+        "title": "AI Recommendations",
+        "subtitle": "Suggestions based on the biggest drop-off",
+        "applyAll": "Apply all",
+        "impact": {
+          "high": "High impact",
+          "medium": "Medium",
+          "low": "Low"
+        },
+        "checkout": {
+          "title": "Simplify checkout",
+          "desc": "Reduce from 5 steps to 3 and add e-wallet to lift conversion ~18%."
+        },
+        "exam": {
+          "title": "Smart review prompts",
+          "desc": "Surface practice questions to learners dropping off at mid-exam."
+        },
+        "signup": {
+          "title": "Add social login",
+          "desc": "Enable Google/Apple login to cut signup time by ~40%."
+        }
+      }
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "subtitle": "System overview and key metrics",
+      "recentUsers": "Recent Users",
+      "viewAll": "View All",
+      "quickActions": "Quick Actions",
+      "recentActivity": "Recent Activity",
+      "systemStatus": "System Status"
+    },
+    "stats": {
+      "users": "Users",
+      "courses": "Courses",
+      "exams": "Exams",
+      "tokens": "Tokens Issued",
+      "uptime": "Uptime"
+    },
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "suspended": "Suspended",
+      "deleted": "Deleted",
+      "healthy": "Healthy",
+      "highLoad": "High Load",
+      "rejected": "Rejected"
+    },
+    "table": {
+      "user": "User",
+      "role": "Role",
+      "status": "Status",
+      "joined": "Joined"
+    },
+    "quick": {
+      "addUser": "Add User",
+      "createCourse": "Review Courses",
+      "createExam": "Review Exams",
+      "deployToken": "Deploy Token"
+    },
+    "role": {
+      "superAdmin": "Super Admin",
+      "admin": "Admin",
+      "instructor": "Instructor",
+      "student": "Student",
+      "guest": "Guest"
+    },
+    "nav": {
+      "overview": "Overview",
+      "dashboard": "Dashboard",
+      "analytics": "Analytics",
+      "management": "Management",
+      "users": "Users",
+      "courses": "Courses",
+      "instructorApproval": "Instructor Approval",
+      "exams": "Exams",
+      "discussions": "Discussions",
+      "blockchain": "Blockchain",
+      "tenantsSection": "Organizations",
+      "tenants": "Tenants",
+      "system": "System",
+      "security": "Security",
+      "auditLog": "Audit log",
+      "notifications": "Notifications",
+      "settings": "Settings",
+      "heatmaps": "Heatmaps",
+      "funnels": "Funnels",
+      "wallet": "Token Wallet"
+    },
+    "users": {
+      "title": "User Management",
+      "subtitle": "Manage all users in the system",
+      "export": "Export",
+      "addUser": "Add user",
+      "selected": "selected",
+      "changeRole": "Change role",
+      "lock": "Lock",
+      "delete": "Delete",
+      "unlock": "Unlock",
+      "searchPlaceholder": "Search by name, email...",
+      "allRoles": "All roles",
+      "allStatus": "All statuses",
+      "newest": "Newest",
+      "nameAZ": "Name A-Z",
+      "noResults": "No users found",
+      "showing": "Showing",
+      "of": "of",
+      "users": "users",
+      "addNew": "Add new user",
+      "fullName": "Full name",
+      "email": "Email",
+      "chooseRole": "Choose role",
+      "chooseDept": "Choose department"
+    },
+    "table": {
+      "user": "User",
+      "role": "Role",
+      "status": "Status",
+      "joined": "Joined",
+      "department": "Department",
+      "actions": "Actions"
+    },
+    "instructorApproval": {
+      "title": "Instructor Approval",
+      "subtitle": "Review pending instructor applications",
+      "export": "Export",
+      "searchPlaceholder": "Search by name, email...",
+      "noResults": "No applications found",
+      "stats": {
+        "total": "Total",
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "yearsExp": "years experience",
+      "email": "Email",
+      "phone": "Phone",
+      "expertise": "Expertise",
+      "submitted": "Submitted",
+      "bio": "Bio",
+      "downloadCV": "Download CV",
+      "viewPortfolio": "View portfolio",
+      "rejectionReason": "Rejection reason",
+      "reasonLabel": "Rejection reason",
+      "reasonPlaceholder": "Enter rejection reason...",
+      "reject": "Reject",
+      "approve": "Approve",
+      "preview": "Preview",
+      "viewDetail": "View detail"
+    },
+    "adminTenant": {
+      "title": "Organizations",
+      "subtitle": "Manage organizations using IOES platform",
+      "noResults": "No organizations found",
+      "pagination": {
+        "range": "{{from}}-{{to}} of {{total}}",
+        "prev": "Prev",
+        "next": "Next",
+        "pageSize": "Show",
+        "perPage": "/ page"
+      },
+      "stats": {
+        "total": "Total",
+        "active": "Active",
+        "trial": "Trial",
+        "enterprise": "Enterprise",
+        "suspended": "Suspended"
+      },
+      "actions": {
+        "export": "Export",
+        "add": "Add",
+        "reactivate": "Reactivate",
+        "upgrade": "Upgrade",
+        "manage": "Manage",
+        "dashboard": "Dashboard"
+      },
+      "filters": {
+        "searchPlaceholder": "Search organizations...",
+        "allStatuses": "All statuses",
+        "allPlans": "All plans"
+      },
+      "metrics": {
+        "users": "Users",
+        "courses": "Courses",
+        "exams": "Exams"
+      },
+      "detail": {
+        "title": "Organization detail",
+        "manageOrg": "Manage organization",
+        "editBranding": "Edit branding",
+        "settings": "Settings",
+        "loginsThisYear": "Logins this year",
+        "peak": "Peak",
+        "recentUsers": "Recent users",
+        "addUser": "Add user",
+        "noUsers": "No users yet",
+        "colUser": "User",
+        "colRole": "Role",
+        "colDept": "Department",
+        "colStatus": "Status",
+        "colAction": "Action",
+        "detail": "Detail",
+        "quickActions": "Quick actions",
+        "qaAddUser": "Add user",
+        "qaCreateCourse": "Create course",
+        "qaCreateExam": "Create exam",
+        "qaImportData": "Import data",
+        "departments": "Departments",
+        "addDept": "Add department",
+        "noDepartments": "No departments yet",
+        "usageTitle": "Platform usage",
+        "usageDesc": "Track usage over the last 30 days",
+        "recentActivity": "Recent activity",
+        "backToList": "Back to list"
+      }
+    },
+    "approval": {
+      "title": "Course Approval",
+      "subtitle": "Review submitted courses",
+      "export": "Export",
+      "searchPlaceholder": "Search courses...",
+      "noResults": "No courses found",
+      "lessons": "lessons",
+      "students": "students",
+      "submitted": "Submitted",
+      "rejectionReason": "Rejection reason",
+      "reasonLabel": "Rejection reason",
+      "reasonPlaceholder": "Enter rejection reason...",
+      "reject": "Reject",
+      "approve": "Approve",
+      "preview": "Preview",
+      "viewDetail": "View detail"
+    },
+    "discussion": {
+      "title": "Discussion Management",
+      "subtitle": "Monitor and manage discussions in the system",
+      "total": "Total",
+      "activeCount": "Active",
+      "reportedCount": "Reported",
+      "hiddenCount": "Hidden",
+      "search": "Search...",
+      "filter": {
+        "all": "All",
+        "active": "Active",
+        "reported": "Reported",
+        "hidden": "Hidden"
+      },
+      "reported": "reported",
+      "hidden": "Hidden",
+      "hide": "Hide",
+      "restore": "Restore",
+      "delete": "Delete"
+    },
+    "auditLog": {
+      "title": "Audit log",
+      "subtitle": "Track every user action in the system",
+      "export": "Export",
+      "advancedFilter": "Advanced filter",
+      "noResults": "No records found",
+      "stats": {
+        "totalEvents": "Total events",
+        "criticalEvents": "Critical events",
+        "loginFailures": "Login failures",
+"logStorage": "Log storage",
+      "retention": "90-day retention",
+      "pagination": {
+        "range": "{{from}}-{{to}} of {{total}}",
+        "prev": "Prev",
+        "next": "Next",
+        "pageSize": "Show",
+        "perPage": "/ page"
+      }
+    },
+      "filters": {
+        "searchPlaceholder": "Search by ID, user...",
+        "allTypes": "All types",
+        "allSeverities": "All severities",
+        "today": "Today",
+        "custom": "Custom"
+      },
+      "type": {
+        "create": "Create",
+        "update": "Update",
+        "delete": "Delete",
+        "auth": "Auth",
+        "login": "Login",
+        "error": "Error"
+      },
+      "severity": {
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "table": {
+        "timestamp": "Timestamp",
+        "user": "User",
+        "action": "Action",
+        "resource": "Resource",
+        "ip": "IP",
+        "severity": "Severity",
+        "viewDetail": "View detail"
+      },
+      "userCell": {
+        "automated": "System"
+      },
+      "detail": {
+        "title": "Event detail",
+        "id": "ID",
+        "actor": "Actor",
+        "action": "Action",
+        "resource": "Resource",
+        "ip": "IP address",
+        "timestamp": "Timestamp",
+        "severity": "Severity",
+        "changes": "Changes"
+      }
+    },
+    "stats": {
+      "users": "Users",
+      "courses": "Courses",
+      "exams": "Exams",
+      "tokens": "Tokens issued",
+      "uptime": "Uptime",
+      "allUsers": "All users",
+      "allCourses": "All courses",
+      "students": "Students",
+      "instructors": "Instructors",
+      "admins": "Admins",
+      "suspended": "Suspended",
+      "pendingApproval": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Analytics dashboard for the IOES platform",
+    "filters": {
+      "range": "Time range",
+      "ranges": {
+        "7d": "Last 7 days",
+        "30d": "Last 30 days",
+        "90d": "Last 90 days",
+        "ytd": "Year to date"
+      },
+      "granularity": "Granularity",
+      "granularities": {
+        "day": "Day",
+        "week": "Week",
+        "month": "Month"
+      }
+    },
+    "kpi": {
+      "activeUsers": "Active users",
+      "newSignups": "New signups",
+      "courseEnrolls": "Enrollments",
+      "examSubmits": "Exam submissions",
+      "tokensIssued": "Tokens issued",
+      "avgSession": "Avg session (min)"
+    },
+    "charts": {
+      "usersGrowth": "User growth",
+      "enrollments": "Course enrollments",
+      "examCompletion": "Exam completion rate",
+      "passRate": "Monthly pass rate",
+      "topCourses": "Top courses",
+      "roleDistribution": "Role distribution"
+    },
+    "table": {
+      "course": "Course",
+      "enrollments": "Enrollments",
+      "completion": "Completion",
+      "rating": "Rating"
+    }
+  },
+  "systemConfig": {
+    "title": "System configuration",
+    "subtitle": "Operational parameters for the IOES platform",
+    "savedAt": "Saved at {time}",
+    "sections": {
+      "general": "General",
+      "security": "Security & auth",
+      "exam": "Exam & anti-cheat",
+      "notification": "Notifications",
+      "blockchain": "Blockchain & token",
+      "backup": "Backup & ops"
+    },
+    "general": {
+      "platformName": "Platform name",
+      "tagline": "Tagline",
+      "supportEmail": "Support email",
+      "defaultLang": "Default language",
+      "timezone": "Timezone",
+      "maintenance": "Maintenance mode"
+    },
+    "security": {
+      "passwordPolicy": "Password policy",
+      "minLength": "Minimum length",
+      "requireUppercase": "Require uppercase",
+      "requireNumber": "Require number",
+      "requireSpecial": "Require special character",
+      "sessionTimeout": "Session timeout (min)",
+      "mfaRequired": "Require MFA for admin",
+      "loginThrottle": "Login attempts / 5 min"
+    },
+    "exam": {
+      "defaultDuration": "Default exam duration (min)",
+      "maxQuestions": "Max questions",
+      "enableProctoring": "Enable webcam proctoring",
+      "shuffleQuestions": "Shuffle questions",
+      "antiCheat": "Anti-cheat (copy/paste)",
+      "gradingScale": "Grading scale (%)"
+    },
+    "notification": {
+      "emailChannel": "Email channel",
+      "pushChannel": "Push notification",
+      "smsChannel": "SMS channel",
+      "newUserAlert": "Notify new user",
+      "courseSubmittedAlert": "Notify course pending approval",
+      "examGradedAlert": "Notify exam graded"
+    },
+    "blockchain": {
+      "network": "Network",
+      "contracts": "Contract address",
+      "tokenSymbol": "Token symbol",
+      "mintPerExam": "Mint per passed exam"
+    },
+    "backup": {
+      "autoBackup": "Automatic backup",
+      "retentionDays": "Retention (days)",
+      "targetStorage": "Target storage",
+      "runBackupNow": "Run backup now"
+    }
+  },
+  "examAdmin": {
+    "title": "Exam management",
+    "subtitle": "Monitor and oversee all exams in the system",
+    "stats": {
+      "total": "Total exams",
+      "active": "In progress",
+      "completed": "Completed",
+      "avgScore": "Avg score",
+      "passRate": "Pass rate",
+      "flagged": "Flagged"
+    },
+    "filters": {
+      "searchPlaceholder": "Search exam, course, instructor...",
+      "allStatus": "All status",
+      "allCourses": "All courses"
+    },
+    "table": {
+      "exam": "Exam",
+      "course": "Course",
+      "instructor": "Instructor",
+      "duration": "Duration",
+      "participants": "Participants",
+      "avgScore": "Avg score",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "actions": {
+      "view": "View details",
+      "edit": "Edit",
+      "extend": "Extend",
+      "cancel": "Cancel exam",
+      "export": "Export results"
+    },
+    "empty": "No exams found"
+  },
+  "blockchain": {
+    "title": "Blockchain & Token",
+    "subtitle": "Manage smart contracts, token rewards and on-chain transactions",
+    "stats": {
+      "totalSupply": "Total supply",
+      "circulating": "Circulating",
+      "minted": "Minted",
+      "burned": "Burned",
+      "holders": "Holders",
+      "tx24h": "Tx 24h"
+    },
+    "contract": {
+      "title": "Smart Contract",
+      "address": "Address",
+      "network": "Network",
+      "deployBlock": "Deploy block",
+      "version": "Version",
+      "verify": "Verified",
+      "explorer": "Open Explorer"
+    },
+    "transactions": "Recent transactions",
+    "rewards": "Token rewards this week",
+    "table": {
+      "tx": "TxHash",
+      "type": "Type",
+      "from": "From",
+      "to": "To",
+      "amount": "Amount",
+      "time": "Time",
+      "status": "Status"
+    },
+    "txType": {
+      "mint": "Mint",
+      "burn": "Burn",
+      "transfer": "Transfer",
+      "reward": "Reward"
+    },
+    "txStatus": {
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "failed": "Failed"
+    }
+  },
+  "security": {
+    "title": "Security",
+    "subtitle": "Monitor security events, audit logs and firewall settings",
+    "stats": {
+      "threats": "Threats today",
+      "blockedIPs": "Blocked IPs",
+      "failedLogins": "Failed logins",
+      "activeSessions": "Active sessions"
+    },
+    "events": {
+      "title": "Security events",
+      "severity": "Severity",
+      "type": "Type",
+      "source": "Source",
+      "user": "User",
+      "time": "Time",
+      "actions": "Actions"
+    },
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "info": "Info"
+    },
+    "eventType": {
+      "login_failed": "Login failed",
+      "brute_force": "Brute force",
+      "suspicious_ip": "Suspicious IP",
+      "mfa_disabled": "MFA disabled",
+      "permission_escalation": "Permission escalation",
+      "data_export": "Data export",
+      "rate_limit": "Rate limit"
+    },
+    "actions": {
+      "block": "Block IP",
+      "investigate": "Investigate",
+      "dismiss": "Dismiss"
+    },
+    "audit": {
+      "title": "Recent audit log",
+      "actor": "Actor",
+      "action": "Action",
+      "target": "Target",
+      "ip": "IP"
+    }
+  },
+  "notificationsAdmin": {
+    "title": "System notifications",
+    "subtitle": "Manage in-app notifications, broadcasts and templates",
+    "stats": {
+      "sent24h": "Sent 24h",
+      "unread": "Unread",
+      "templates": "Templates",
+      "subscribers": "Subscribers"
+    },
+    "inbox": {
+      "title": "Notification inbox",
+      "markAllRead": "Mark all as read",
+      "filter": "Filter",
+      "filters": {
+        "all": "All",
+        "unread": "Unread",
+        "system": "System",
+        "user": "User",
+        "course": "Course",
+        "exam": "Exam"
+      }
+    },
+    "broadcast": {
+      "title": "Send broadcast notification",
+      "audience": "Audience",
+      "audiences": {
+        "all": "All users",
+        "students": "Students",
+        "instructors": "Instructors",
+        "admins": "Admins"
+      },
+      "channel": "Channel",
+      "channels": {
+        "inApp": "In-App",
+        "email": "Email",
+        "push": "Push"
+      },
+      "title_placeholder": "Notification title",
+      "message": "Message",
+      "message_placeholder": "Type your message...",
+      "send": "Send now",
+      "preview": "Preview"
+    },
+    "templates": {
+      "title": "Templates",
+      "name": "Template name",
+      "trigger": "Trigger",
+      "channel": "Channel",
+      "active": "Active",
+      "edit": "Edit"
+    }
+  },
+  "shared": {
+    "all": "All",
+    "none": "—",
+    "justNow": "just now",
+    "minutesAgo": "{n}m ago",
+    "hoursAgo": "{n}h ago",
+    "daysAgo": "{n}d ago",
+    "on": "On",
+    "off": "Off",
+    "sent": "Sent!",
+    "menu": "Open menu",
+    "viewAll": "View all",
+    "tokenSymbol": "IOES",
+    "view": "View",
+    "edit": "Edit",
+    "export": "Export",
+    "block": "Block",
+    "investigate": "Investigate",
+    "dismiss": "Dismiss",
+    "markRead": "Mark as read",
+    "save": "Save",
+    "runBackup": "Run backup",
+    "send": "Send",
+    "toggle": "Toggle",
+    "durationUnit": "min",
+    "vsLastPeriod": "vs last period",
+    "month": "months",
+    "total": "Total",
+    "time": {
+      "12months": "12 months"
+    },
+    "timezone": {
+      "hn": "GMT+7 (Hanoi)",
+      "bkk": "GMT+7 (Bangkok)",
+      "sg": "GMT+8 (Singapore)",
+      "utc": "UTC"
+    },
+    "storage": {
+      "s3": "AWS S3 (ioes-prod)",
+      "gcs": "Google Cloud Storage",
+      "azure": "Azure Blob",
+      "nas": "Local NAS"
+    },
+    "language": {
+      "vi": "Vietnamese",
+      "en": "English"
+    },
+    "channels": {
+      "inApp": "In-App",
+      "email": "Email",
+      "push": "Push"
+    },
+    "channelShort": {
+      "inApp": "In-App",
+      "email": "Email",
+      "push": "Push"
+    }
+  },
+  "aria": {
+    "view": "View details",
+    "edit": "Edit",
+    "extend": "Extend",
+    "cancelExam": "Cancel exam",
+    "export": "Export results",
+    "markRead": "Mark as read",
+    "blockIp": "Block IP",
+    "investigate": "Investigate",
+    "dismiss": "Dismiss",
+    "saveConfig": "Save configuration",
+    "runBackup": "Run backup now",
+    "sendBroadcast": "Send broadcast notification",
+    "selectAudience": "Select audience",
+    "selectChannel": "Select channel",
+    "searchExam": "Search exam",
+    "filterSeverity": "Filter by severity",
+    "filterCategory": "Filter by category",
+    "filterStatus": "Filter by status",
+    "selectRange": "Select time range",
+    "selectLanguage": "Select language",
+    "selectTimezone": "Select timezone",
+    "selectStorage": "Select storage",
+    "enterTitle": "Enter title",
+    "enterMessage": "Enter message"
+  },
+  "public": {
+    "userProfile": {
+      "verified": "Verified",
+      "role": {
+        "instructor": "Instructor",
+        "student": "Student"
+      },
+      "joined": "Joined",
+      "follow": "Follow",
+      "following": "Following",
+      "share": "Share",
+      "sendMessage": "Send message",
+      "stats": {
+        "followers": "Followers",
+        "following": "Following",
+        "courses": "Courses",
+        "enrolled": "Enrolled",
+        "certificates": "Certificates",
+        "ratingLabel": "Rating"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "courses": "Courses",
+        "reviews": "Reviews",
+        "achievements": "Achievements"
+      },
+      "about": "About",
+      "skills": "Skills",
+      "goals": "Goals",
+      "socialLinks": "Social links",
+      "coursesCreated": "Courses created",
+      "enrolledCourses": "Enrolled courses",
+      "coursesCount": "courses",
+      "students": "students",
+      "reviewsLeft": "Reviews left",
+      "badgesTitle": "Badges",
+      "unlocked": "Unlocked"
+    },
+    "verifyCertificate": {
+      "heroBadge": "Public Certificate Verification",
+      "heroTitle": "Verify any IOES certificate",
+      "heroSubtitle": "Enter the certificate ID or paste the hash to instantly confirm authenticity on the blockchain.",
+      "inputPlaceholder": "Enter certificate ID or hash (e.g., CERT-2026-A12F4B)",
+      "verifyBtn": "Verify",
+      "verifying": "Verifying...",
+      "tryPreset": "Try a sample:",
+      "empty": {
+        "title": "Ready to verify",
+        "desc": "Enter a certificate ID above, or pick one of the samples below to test."
+      },
+      "searchingDesc": "Looking up the certificate on the blockchain...",
+      "notFound": {
+        "title": "Certificate not found",
+        "desc": "We couldn't find any certificate matching this ID. Double-check the spelling or contact the issuer."
+      },
+      "verified": "Verified Certificate",
+      "invalid": "Invalid or Revoked",
+      "fields": {
+        "student": "Student",
+        "course": "Course",
+        "completion": "Completion Date",
+        "score": "Score",
+        "issuedBy": "Issued By",
+        "hash": "Certificate Hash (SHA-256)",
+        "txHash": "Blockchain Transaction"
+      },
+      "footerNote": "Verified signature is stored permanently on Polygon.",
+      "viewOnPolygon": "View on PolygonScan",
+      "qrTitle": "Scan to verify instantly",
+      "qrDesc": "Every IOES certificate ships with a unique QR code for mobile verification.",
+      "qrPoint1": "Scan with any mobile camera",
+      "qrPoint2": "Deep-link opens this exact page",
+      "qrPoint3": "Same hash, same answer — always",
+      "howTitle": "How to verify",
+      "howSubtitle": "3 simple steps",
+      "step1Title": "Get the ID",
+      "step1Desc": "Ask the candidate for the certificate ID found at the top-right of their PDF, or scan its QR code.",
+      "step2Title": "Enter & verify",
+      "step2Desc": "Paste the ID or hash into the input above and click Verify.",
+      "step3Title": "Check the result",
+      "step3Desc": "We'll show the holder's name, course, score, and a blockchain proof you can audit.",
+      "ctaTitle": "Need help?",
+      "ctaDesc": "Reach our trust & safety team for any verification questions."
+    },
+    "helpCenter": {
+      "hero": {
+        "badge": "Help Center",
+        "title": "How can we help you today?",
+        "desc": "Search our knowledge base for tutorials, guides and answers to frequently asked questions.",
+        "searchPlaceholder": "Search articles, guides, questions...",
+        "suggestionLabel": "Popular:"
+      },
+      "categories": {
+        "gettingStarted": {
+          "title": "Getting Started",
+          "desc": "Tutorials for new users",
+          "count": 24
+        },
+        "account": {
+          "title": "Account",
+          "desc": "Sign-up, login, security",
+          "count": 18
+        },
+        "courses": {
+          "title": "Courses",
+          "desc": "Enroll, learn, certify",
+          "count": 32
+        },
+        "exams": {
+          "title": "Exams",
+          "desc": "Schedule, rules, grading",
+          "count": 27
+        },
+        "payments": {
+          "title": "Payments",
+          "desc": "Invoices, refunds, promos",
+          "count": 15
+        },
+        "technical": {
+          "title": "Technical",
+          "desc": "Bugs, browsers, setup",
+          "count": 21
+        }
+      },
+      "articleCount": "{{count}} articles",
+      "popular": {
+        "title": "Popular articles",
+        "subtitle": "Most read this week",
+        "viewAll": "View all",
+        "empty": "No articles match your search",
+        "tags": {
+          "tagGettingStarted": "Getting Started",
+          "tagAccount": "Account",
+          "tagCourses": "Courses",
+          "tagExams": "Exams",
+          "tagPayments": "Payments",
+          "tagTechnical": "Technical"
+        },
+        "readTime": {
+          "a1": "5 min",
+          "a2": "7 min",
+          "a3": "8 min",
+          "a4": "4 min",
+          "a5": "6 min",
+          "a6": "10 min",
+          "a7": "5 min",
+          "a8": "9 min"
+        }
+      },
+      "articles": {
+        "a1": {
+          "title": "Create your IOES account in 2 minutes",
+          "desc": "Step-by-step walkthrough to register a new learner account, verify your email and set up your profile."
+        },
+        "a2": {
+          "title": "Enroll in a course and pay securely",
+          "desc": "Learn about supported payment methods, how to apply promo codes and receive e-invoices."
+        },
+        "a3": {
+          "title": "Online exam rules — what you need to know",
+          "desc": "Proctoring policies, violation handling and the appeal process for learners."
+        },
+        "a4": {
+          "title": "Secure your account with two-factor authentication",
+          "desc": "Enable 2FA via Authenticator app or SMS to protect your IOES account."
+        },
+        "a5": {
+          "title": "Refund policy and how to cancel your enrollment",
+          "desc": "Conditions, deadlines and the process for refunding a course or subscription."
+        },
+        "a6": {
+          "title": "Fix webcam not working during exams",
+          "desc": "How to grant camera permissions, update drivers and adjust browser settings for proctored exams."
+        },
+        "a7": {
+          "title": "Review your answers after an exam",
+          "desc": "Access detailed analytics for each question, the correct answer and instructor explanations."
+        },
+        "a8": {
+          "title": "Download your Blockchain certificate and share on LinkedIn",
+          "desc": "Download your blockchain-verified certificate and showcase your achievement on social media."
+        }
+      },
+      "faq": {
+        "title": "Frequently asked questions",
+        "subtitle": "Quick answers to the most common questions",
+        "q1": {
+          "question": "How do I get started with IOES?",
+          "answer": "After creating an account, you can explore free courses in the \"Courses\" section. When you are ready, pick the right course and click \"Enroll\" to begin your learning journey."
+        },
+        "q2": {
+          "question": "Can I try a course for free before enrolling?",
+          "answer": "Yes. Most courses offer the first 2-3 lessons for free. You can also join \"Open\" courses published by instructors without enrollment."
+        },
+        "q3": {
+          "question": "How recognized are IOES certificates?",
+          "answer": "Our certificates are verified using blockchain technology and are publicly verifiable. Many IOES enterprise partners recognize these certificates in their hiring and employee evaluation processes."
+        },
+        "q4": {
+          "question": "I forgot my password — what should I do?",
+          "answer": "Click the \"Forgot password\" link on the login page and follow the instructions. A recovery email will be sent to your registered address within 1-2 minutes."
+        },
+        "q5": {
+          "question": "Is payment secure?",
+          "answer": "All transactions are processed through PCI-DSS certified payment gateways. IOES does not store your card information. We support VNPay, MoMo, international cards and bank transfers."
+        },
+        "q6": {
+          "question": "Can I learn on mobile devices?",
+          "answer": "Yes. The IOES web interface is responsive on every device. You can also install our PWA for a smoother experience and offline learning."
+        },
+        "q7": {
+          "question": "How can I become an instructor?",
+          "answer": "You need at least 3 years of professional experience or a relevant degree, plus the completion of our \"Train the Trainer\" course. After submitting your application, our team will respond within 5-7 business days."
+        },
+        "q8": {
+          "question": "How does exam proctoring work?",
+          "answer": "We combine AI Computer Vision with human proctors. All unusual behavior is recorded and reported. Learners who violate rules receive warnings or have their results invalidated according to policy."
+        },
+        "q9": {
+          "question": "Can I request a VAT invoice?",
+          "answer": "Yes. After a successful payment, go to \"Payment history\" and select \"Request invoice\". Please provide your full company details and tax ID. The invoice will be emailed within 24 hours."
+        },
+        "q10": {
+          "question": "How do I contact technical support?",
+          "answer": "Email support@ioes.edu.vn, call our hotline 1900 5678 (24/7), or use the chat widget at the bottom-right corner. Our technical team is always ready to help."
+        }
+      },
+      "contact": {
+        "title": "Contact us",
+        "subtitle": "Pick the channel that suits you best",
+        "email": {
+          "title": "Support email",
+          "desc": "Response within 4 business hours",
+          "value": "support@ioes.edu.vn"
+        },
+        "liveChat": {
+          "title": "Live chat",
+          "desc": "Instant help from 8:00 - 22:00",
+          "value": "Start chat"
+        },
+        "phone": {
+          "title": "Hotline",
+          "desc": "Free domestic calls",
+          "value": "1900 5678"
+        },
+        "community": {
+          "title": "Community forum",
+          "desc": "Connect with 50,000+ learners",
+          "value": "Join the community"
+        }
+      },
+      "cta": {
+        "title": "Still need help?",
+        "desc": "IOES support is available 24/7. Reach out anytime and we will get back to you with the answers you need.",
+        "contactSupport": "Contact support",
+        "submitTicket": "Submit a ticket"
+      }
+    },
+    "legal": {
+      "header": {
+        "badge": "Legal & Compliance",
+        "lastUpdated": "Last updated: 25/07/2026"
+      },
+      "tabs": {
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service"
+      },
+      "toc": {
+        "title": "Table of contents"
+      },
+      "relatedDocs": {
+        "title": "Related documents",
+        "cookies": "Cookie Policy",
+        "dpa": "Data Processing Agreement (DPA)",
+        "imprint": "Imprint"
+      },
+      "contactBox": {
+        "title": "Contact our DPO",
+        "desc": "For any questions about your privacy rights or personal data requests, please contact our Data Protection Officer (DPO)."
+      },
+      "privacy": {
+        "title": "Privacy Policy",
+        "intro": "We are committed to protecting your privacy and personal data in accordance with GDPR, Vietnam's PDPA and international standards.",
+        "s1": {
+          "number": "1",
+          "heading": "Information we collect",
+          "body1": "We collect information you provide directly when registering, enrolling in courses or using IOES services, including name, email, phone number, date of birth, avatar, organization details (if any) and exam content.",
+          "body2": "In addition, we automatically gather technical data such as IP address, browser type, device, operating system and activity logs to ensure security and improve service quality. Cookies and similar technologies are used according to our dedicated Cookie Policy."
+        },
+        "s2": {
+          "number": "2",
+          "heading": "How we use your information",
+          "body1": "Your information is used to operate the platform, process enrollments and payments, perform auto-grading, provide technical support, send important notifications and improve user experience through anonymous analytics.",
+          "body2": "We DO NOT sell your personal data to any third party under any circumstance. Every processing activity has a clear legal basis under Article 6 GDPR and Article 11 of Vietnam's PDPA."
+        },
+        "s3": {
+          "number": "3",
+          "heading": "Sharing data with third parties",
+          "body1": "We only share data with trusted partners within the necessary scope, including payment gateways (VNPay, MoMo, Stripe), cloud hosting providers (AWS Singapore) and analytics tools (Google Analytics in anonymized mode).",
+          "body2": "All partners have signed a Data Processing Agreement (DPA) compliant with GDPR. The current partner list is published on our Trust Center and updated every quarter."
+        },
+        "s4": {
+          "number": "4",
+          "heading": "Rights of EU users (GDPR)",
+          "body1": "If you are in the European Economic Area (EEA), you have the following rights under GDPR: Right of access (Art. 15), Right to rectification (Art. 16), Right to erasure (Art. 17), Right to restriction (Art. 18), Right to data portability (Art. 20) and Right to object (Art. 21).",
+          "body2": "To exercise these rights, please submit a request to privacy@ioes.edu.vn. We will respond within 30 days. You also have the right to lodge a complaint with your national data protection authority."
+        },
+        "s5": {
+          "number": "5",
+          "heading": "Rights of users in Vietnam (PDPA)",
+          "body1": "Under Decree 13/2023/ND-CP on personal data protection, users in Vietnam have the right to be informed, the right to consent, the right to access, the right to delete or restrict processing and the right to complain.",
+          "body2": "You may request a review, update or deletion of your personal data at any time through Account Settings or by contacting our DPO. We respect your rights and will handle requests within 72 hours."
+        },
+        "s6": {
+          "number": "6",
+          "heading": "Cookies and tracking technologies",
+          "body1": "IOES uses essential cookies (to maintain login sessions), performance cookies (anonymous analytics) and functional cookies (language and theme preferences). We DO NOT use third-party advertising cookies.",
+          "body2": "You can manage cookies in Settings > Privacy or via your browser settings. Disabling certain cookies may affect your experience on the platform."
+        },
+        "s7": {
+          "number": "7",
+          "heading": "Data retention and deletion",
+          "body1": "Account data is stored for the duration of your use of the service and up to 24 months after your last activity. Exam and certificate data is stored permanently on the blockchain to ensure public verifiability.",
+          "body2": "After an account is deleted, personal data is removed from production systems within 30 days, except for records required by law (tax, accounting) which are kept for the legally mandated period."
+        },
+        "s8": {
+          "number": "8",
+          "heading": "Contact our DPO",
+          "body1": "IOES's Data Protection Officer can be reached via email dpo@ioes.edu.vn or by post at: Floor 15, ABC Tower, 123 Nguyen Hue, District 1, Ho Chi Minh City, Vietnam.",
+          "body2": "We encourage you to contact the DPO before filing a formal complaint. In most cases, we can resolve the issue within 7 business days."
+        }
+      },
+      "terms": {
+        "title": "Terms of Service",
+        "intro": "By accessing and using the IOES platform, you agree to comply with the terms below. Please read them carefully before using the service.",
+        "s1": {
+          "number": "1",
+          "heading": "Acceptance of terms",
+          "body1": "When you create an account or use any IOES service, you confirm that you have read, understood and agree to be bound by these Terms, together with our Privacy Policy and any supplementary terms that apply to specific services.",
+          "body2": "If you do not agree with any of these terms, please discontinue use of the service immediately. We reserve the right to refuse service to any individual or organization that violates these terms."
+        },
+        "s2": {
+          "number": "2",
+          "heading": "Account responsibilities",
+          "body1": "You are solely responsible for safeguarding your login credentials and all activity that occurs under your account. Please notify us immediately if you detect any unauthorized access. IOES is not liable for losses arising from unauthorized use of your account.",
+          "body2": "You must provide accurate, complete and up-to-date information during registration. Identity fraud, multi-accounting or promotion abuse are considered serious violations."
+        },
+        "s3": {
+          "number": "3",
+          "heading": "Course access",
+          "body1": "After a successful payment, you are granted a non-exclusive, non-transferable access right to the course content for the period stated on your enrollment. Access is for your personal use only and must not be shared under any circumstances.",
+          "body2": "Some courses may have time-limited access or prerequisite requirements. Logging in simultaneously from many devices may be limited according to our anti-fraud policy."
+        },
+        "s4": {
+          "number": "4",
+          "heading": "Payment and refunds",
+          "body1": "All course prices include VAT (where applicable). We accept payments via VNPay, MoMo, international credit cards and bank transfer. Refund requests must be submitted within 7 days of enrollment and the learner must not have completed more than 20% of the course content.",
+          "body2": "In the event IOES cancels a course due to technical or content reasons, we commit to refunding 100% of the tuition within 14 business days. Recurring subscriptions can be cancelled anytime and remain effective until the end of the paid period."
+        },
+        "s5": {
+          "number": "5",
+          "heading": "Prohibited conduct",
+          "body1": "You may not: copy, distribute or repurpose course content for commercial use; use automation tools (bots, scripts) to cheat during exams; share your account with others; or post content that is illegal, infringes third-party rights or is fraudulent.",
+          "body2": "Violations may result in immediate account suspension, invalidation of learning results, and — in severe cases — legal action. We reserve the right to take legal action against fraudulent behavior."
+        },
+        "s6": {
+          "number": "6",
+          "heading": "Intellectual property rights",
+          "body1": "All content on IOES — including but not limited to text, images, video, audio, source code and design — belongs to IOES or licensed instructors and partners. Any unauthorized copying is handled under Vietnam's Intellectual Property Law and applicable international treaties.",
+          "body2": "You retain ownership of content you create (assignments, exam submissions, forum posts). However, you grant IOES a non-exclusive, royalty-free license to use that content for the operation and improvement of the service."
+        },
+        "s7": {
+          "number": "7",
+          "heading": "Disclaimers",
+          "body1": "IOES provides the service on an 'as-is' basis and does not guarantee that the service will operate uninterrupted or be completely error-free. We strive for 99.5% uptime but are not liable for disruptions caused by force majeure events.",
+          "body2": "IOES certificates are awarded based on learning and exam performance. We do not guarantee that the certificate will be recognized by every organization or employer. Users are responsible for verifying recognition before enrolling."
+        },
+        "s8": {
+          "number": "8",
+          "heading": "Limitation of liability",
+          "body1": "To the maximum extent permitted by law, IOES's total liability to you for any claim arising out of your use of the service will not exceed the amount you have paid to IOES in the most recent 12 months.",
+          "body2": "IOES is not liable for any indirect, incidental, special or consequential damages, including but not limited to lost profits, lost data or business interruption, even if we have been advised of the possibility of such damages."
+        },
+        "s9": {
+          "number": "9",
+          "heading": "Governing law and dispute resolution",
+          "body1": "These Terms are governed by the laws of Vietnam. Any dispute will first be resolved through good-faith negotiation between the parties within 30 days.",
+          "body2": "If no agreement is reached, the dispute will be submitted to the Vietnam International Arbitration Centre (VIAC) under its current procedural rules. The tribunal's award is final and binding on the parties."
+        },
+        "s10": {
+          "number": "10",
+          "heading": "Contact",
+          "body1": "Any questions, complaints or requests related to these Terms can be sent to legal@ioes.edu.vn or by calling our hotline 1900 1234 during business hours.",
+          "body2": "We commit to responding to all requests within 3 business days. If you need urgent help with an account security issue, please use the 24/7 emergency line 1900 9999."
+        }
+      }
+    }
+  },
+  "student_ocr": {
+    "title": "OCR Tool",
+    "subtitle": "Extract text from documents, handwriting, receipts and ID cards using AI",
+    "howItWorks": "How it works",
+    "upload": "Upload",
+    "modeLabel": "Recognition mode",
+    "langLabel": "Language",
+    "modes": {
+      "document": "Document",
+      "handwriting": "Handwriting",
+      "receipt": "Receipt",
+      "idcard": "ID Card"
+    },
+    "langs": {
+      "vi": "Vietnamese",
+      "en": "English"
+    },
+    "dropzone": {
+      "title": "Drag and drop files here",
+      "desc": "Supports JPG, PNG, PDF — up to 10MB per file. The system automatically detects text and returns results in seconds.",
+      "browse": "Browse files",
+      "formats": "Supported formats: JPG, PNG, PDF, TIFF · Up to 10MB"
+    },
+    "preview": {
+      "original": "Original image",
+      "extracted": "Extracted text",
+      "avgConfidence": "Avg accuracy {{value}}%"
+    },
+    "actions": {
+      "copy": "Copy",
+      "downloadTxt": "Download TXT",
+      "downloadDocx": "Download DOCX",
+      "translate": "Translate",
+      "rescan": "Re-scan"
+    },
+    "confidence": {
+      "high": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "low": "Low"
+    },
+    "history": {
+      "title": "OCR history",
+      "subtitle": "Your recent scan jobs",
+      "viewAll": "View all",
+      "success": "Success",
+      "failed": "Failed",
+      "lines": "{{count}} lines"
+    }
+  },
+  "public_helpCenter": {
+    "hero": {
+      "badge": "Help Center",
+      "title": "How can we help you today?",
+      "desc": "Search our knowledge base for tutorials, guides and answers to frequently asked questions.",
+      "searchPlaceholder": "Search articles, guides, questions...",
+      "suggestionLabel": "Popular:"
+    },
+    "categories": {
+      "gettingStarted": {
+        "title": "Getting Started",
+        "desc": "Tutorials for new users",
+        "count": 24
+      },
+      "account": {
+        "title": "Account",
+        "desc": "Sign-up, login, security",
+        "count": 18
+      },
+      "courses": {
+        "title": "Courses",
+        "desc": "Enroll, learn, certify",
+        "count": 32
+      },
+      "exams": {
+        "title": "Exams",
+        "desc": "Schedule, rules, grading",
+        "count": 27
+      },
+      "payments": {
+        "title": "Payments",
+        "desc": "Invoices, refunds, promos",
+        "count": 15
+      },
+      "technical": {
+        "title": "Technical",
+        "desc": "Bugs, browsers, setup",
+        "count": 21
+      }
+    },
+    "articleCount": "{{count}} articles",
+    "popular": {
+      "title": "Popular articles",
+      "subtitle": "Most read this week",
+      "viewAll": "View all",
+      "empty": "No articles match your search",
+      "tags": {
+        "tagGettingStarted": "Getting Started",
+        "tagAccount": "Account",
+        "tagCourses": "Courses",
+        "tagExams": "Exams",
+        "tagPayments": "Payments",
+        "tagTechnical": "Technical"
+      },
+      "readTime": {
+        "a1": "5 min",
+        "a2": "7 min",
+        "a3": "8 min",
+        "a4": "4 min",
+        "a5": "6 min",
+        "a6": "10 min",
+        "a7": "5 min",
+        "a8": "9 min"
+      }
+    },
+    "articles": {
+      "a1": {
+        "title": "Create your IOES account in 2 minutes",
+        "desc": "Step-by-step walkthrough to register a new learner account, verify your email and set up your profile."
+      },
+      "a2": {
+        "title": "Enroll in a course and pay securely",
+        "desc": "Learn about supported payment methods, how to apply promo codes and receive e-invoices."
+      },
+      "a3": {
+        "title": "Online exam rules — what you need to know",
+        "desc": "Proctoring policies, violation handling and the appeal process for learners."
+      },
+      "a4": {
+        "title": "Secure your account with two-factor authentication",
+        "desc": "Enable 2FA via Authenticator app or SMS to protect your IOES account."
+      },
+      "a5": {
+        "title": "Refund policy and how to cancel your enrollment",
+        "desc": "Conditions, deadlines and the process for refunding a course or subscription."
+      },
+      "a6": {
+        "title": "Fix webcam not working during exams",
+        "desc": "How to grant camera permissions, update drivers and adjust browser settings for proctored exams."
+      },
+      "a7": {
+        "title": "Review your answers after an exam",
+        "desc": "Access detailed analytics for each question, the correct answer and instructor explanations."
+      },
+      "a8": {
+        "title": "Download your Blockchain certificate and share on LinkedIn",
+        "desc": "Download your blockchain-verified certificate and showcase your achievement on social media."
+      }
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "subtitle": "Quick answers to the most common questions",
+      "q1": {
+        "question": "How do I get started with IOES?",
+        "answer": "After creating an account, you can explore free courses in the 'Courses' section. When you are ready, pick the right course and click 'Enroll' to begin your learning journey."
+      },
+      "q2": {
+        "question": "Can I try a course for free before enrolling?",
+        "answer": "Yes. Most courses offer the first 2-3 lessons for free. You can also join 'Open' courses published by instructors without enrollment."
+      },
+      "q3": {
+        "question": "How recognized are IOES certificates?",
+        "answer": "Our certificates are verified using blockchain technology and are publicly verifiable. Many IOES enterprise partners recognize these certificates in their hiring and employee evaluation processes."
+      },
+      "q4": {
+        "question": "I forgot my password — what should I do?",
+        "answer": "Click the 'Forgot password' link on the login page and follow the instructions. A recovery email will be sent to your registered address within 1-2 minutes."
+      },
+      "q5": {
+        "question": "Is payment secure?",
+        "answer": "All transactions are processed through PCI-DSS certified payment gateways. IOES does not store your card information. We support VNPay, MoMo, international cards and bank transfers."
+      },
+      "q6": {
+        "question": "Can I learn on mobile devices?",
+        "answer": "Yes. The IOES web interface is responsive on every device. You can also install our PWA for a smoother experience and offline learning."
+      },
+      "q7": {
+        "question": "How can I become an instructor?",
+        "answer": "You need at least 3 years of professional experience or a relevant degree, plus the completion of our 'Train the Trainer' course. After submitting your application, our team will respond within 5-7 business days."
+      },
+      "q8": {
+        "question": "How does exam proctoring work?",
+        "answer": "We combine AI Computer Vision with human proctors. All unusual behavior is recorded and reported. Learners who violate rules receive warnings or have their results invalidated according to policy."
+      },
+      "q9": {
+        "question": "Can I request a VAT invoice?",
+        "answer": "Yes. After a successful payment, go to 'Payment history' and select 'Request invoice'. Please provide your full company details and tax ID. The invoice will be emailed within 24 hours."
+      },
+      "q10": {
+        "question": "How do I contact technical support?",
+        "answer": "Email support@ioes.edu.vn, call our hotline 1900 5678 (24/7), or use the chat widget at the bottom-right corner. Our technical team is always ready to help."
+      }
+    },
+    "contact": {
+      "title": "Contact us",
+      "subtitle": "Pick the channel that suits you best",
+      "email": {
+        "title": "Support email",
+        "desc": "Response within 4 business hours",
+        "value": "support@ioes.edu.vn"
+      },
+      "liveChat": {
+        "title": "Live chat",
+        "desc": "Instant help from 8:00 - 22:00",
+        "value": "Start chat"
+      },
+      "phone": {
+        "title": "Hotline",
+        "desc": "Free domestic calls",
+        "value": "1900 5678"
+      },
+      "community": {
+        "title": "Community forum",
+        "desc": "Connect with 50,000+ learners",
+        "value": "Join the community"
+      }
+    },
+    "cta": {
+      "title": "Still need help?",
+      "desc": "IOES support is available 24/7. Reach out anytime and we will get back to you with the answers you need.",
+      "contactSupport": "Contact support",
+      "submitTicket": "Submit a ticket"
+    }
+  },
+  "public_legal": {
+    "header": {
+      "badge": "Legal & Compliance",
+      "lastUpdated": "Last updated: 25/07/2026"
+    },
+    "tabs": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    },
+    "toc": {
+      "title": "Table of contents"
+    },
+    "relatedDocs": {
+      "title": "Related documents",
+      "cookies": "Cookie Policy",
+      "dpa": "Data Processing Agreement (DPA)",
+      "imprint": "Imprint"
+    },
+    "contactBox": {
+      "title": "Contact our DPO",
+      "desc": "For any questions about your privacy rights or personal data requests, please contact our Data Protection Officer (DPO)."
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "intro": "We are committed to protecting your privacy and personal data in accordance with GDPR, Vietnam's PDPA and international standards.",
+      "s1": {
+        "number": "1",
+        "heading": "Information we collect",
+        "body1": "We collect information you provide directly when registering, enrolling in courses or using IOES services, including name, email, phone number, date of birth, avatar, organization details (if any) and exam content.",
+        "body2": "In addition, we automatically gather technical data such as IP address, browser type, device, operating system and activity logs to ensure security and improve service quality. Cookies and similar technologies are used according to our dedicated Cookie Policy."
+      },
+      "s2": {
+        "number": "2",
+        "heading": "How we use your information",
+        "body1": "Your information is used to operate the platform, process enrollments and payments, perform auto-grading, provide technical support, send important notifications and improve user experience through anonymous analytics.",
+        "body2": "We DO NOT sell your personal data to any third party under any circumstance. Every processing activity has a clear legal basis under Article 6 GDPR and Article 11 of Vietnam's PDPA."
+      },
+      "s3": {
+        "number": "3",
+        "heading": "Sharing data with third parties",
+        "body1": "We only share data with trusted partners within the necessary scope, including payment gateways (VNPay, MoMo, Stripe), cloud hosting providers (AWS Singapore) and analytics tools (Google Analytics in anonymized mode).",
+        "body2": "All partners have signed a Data Processing Agreement (DPA) compliant with GDPR. The current partner list is published on our Trust Center and updated every quarter."
+      },
+      "s4": {
+        "number": "4",
+        "heading": "Rights of EU users (GDPR)",
+        "body1": "If you are in the European Economic Area (EEA), you have the following rights under GDPR: Right of access (Art. 15), Right to rectification (Art. 16), Right to erasure (Art. 17), Right to restriction (Art. 18), Right to data portability (Art. 20) and Right to object (Art. 21).",
+        "body2": "To exercise these rights, please submit a request to privacy@ioes.edu.vn. We will respond within 30 days. You also have the right to lodge a complaint with your national data protection authority."
+      },
+      "s5": {
+        "number": "5",
+        "heading": "Rights of users in Vietnam (PDPA)",
+        "body1": "Under Decree 13/2023/ND-CP on personal data protection, users in Vietnam have the right to be informed, the right to consent, the right to access, the right to delete or restrict processing and the right to complain.",
+        "body2": "You may request a review, update or deletion of your personal data at any time through Account Settings or by contacting our DPO. We respect your rights and will handle requests within 72 hours."
+      },
+      "s6": {
+        "number": "6",
+        "heading": "Cookies and tracking technologies",
+        "body1": "IOES uses essential cookies (to maintain login sessions), performance cookies (anonymous analytics) and functional cookies (language and theme preferences). We DO NOT use third-party advertising cookies.",
+        "body2": "You can manage cookies in Settings > Privacy or via your browser settings. Disabling certain cookies may affect your experience on the platform."
+      },
+      "s7": {
+        "number": "7",
+        "heading": "Data retention and deletion",
+        "body1": "Account data is stored for the duration of your use of the service and up to 24 months after your last activity. Exam and certificate data is stored permanently on the blockchain to ensure public verifiability.",
+        "body2": "After an account is deleted, personal data is removed from production systems within 30 days, except for records required by law (tax, accounting) which are kept for the legally mandated period."
+      },
+      "s8": {
+        "number": "8",
+        "heading": "Contact our DPO",
+        "body1": "IOES's Data Protection Officer can be reached via email dpo@ioes.edu.vn or by post at: Floor 15, ABC Tower, 123 Nguyen Hue, District 1, Ho Chi Minh City, Vietnam.",
+        "body2": "We encourage you to contact the DPO before filing a formal complaint. In most cases, we can resolve the issue within 7 business days."
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "intro": "By accessing and using the IOES platform, you agree to comply with the terms below. Please read them carefully before using the service.",
+      "s1": {
+        "number": "1",
+        "heading": "Acceptance of terms",
+        "body1": "When you create an account or use any IOES service, you confirm that you have read, understood and agree to be bound by these Terms, together with our Privacy Policy and any supplementary terms that apply to specific services.",
+        "body2": "If you do not agree with any of these terms, please discontinue use of the service immediately. We reserve the right to refuse service to any individual or organization that violates these terms."
+      },
+      "s2": {
+        "number": "2",
+        "heading": "Account responsibilities",
+        "body1": "You are solely responsible for safeguarding your login credentials and all activity that occurs under your account. Please notify us immediately if you detect any unauthorized access. IOES is not liable for losses arising from unauthorized use of your account.",
+        "body2": "You must provide accurate, complete and up-to-date information during registration. Identity fraud, multi-accounting or promotion abuse are considered serious violations."
+      },
+      "s3": {
+        "number": "3",
+        "heading": "Course access",
+        "body1": "After a successful payment, you are granted a non-exclusive, non-transferable access right to the course content for the period stated on your enrollment. Access is for your personal use only and must not be shared under any circumstances.",
+        "body2": "Some courses may have time-limited access or prerequisite requirements. Logging in simultaneously from many devices may be limited according to our anti-fraud policy."
+      },
+      "s4": {
+        "number": "4",
+        "heading": "Payment and refunds",
+        "body1": "All course prices include VAT (where applicable). We accept payments via VNPay, MoMo, international credit cards and bank transfer. Refund requests must be submitted within 7 days of enrollment and the learner must not have completed more than 20% of the course content.",
+        "body2": "In the event IOES cancels a course due to technical or content reasons, we commit to refunding 100% of the tuition within 14 business days. Recurring subscriptions can be cancelled anytime and remain effective until the end of the paid period."
+      },
+      "s5": {
+        "number": "5",
+        "heading": "Prohibited conduct",
+        "body1": "You may not: copy, distribute or repurpose course content for commercial use; use automation tools (bots, scripts) to cheat during exams; share your account with others; or post content that is illegal, infringes third-party rights or is fraudulent.",
+        "body2": "Violations may result in immediate account suspension, invalidation of learning results, and — in severe cases — legal action. We reserve the right to take legal action against fraudulent behavior."
+      },
+      "s6": {
+        "number": "6",
+        "heading": "Intellectual property rights",
+        "body1": "All content on IOES — including but not limited to text, images, video, audio, source code and design — belongs to IOES or licensed instructors and partners. Any unauthorized copying is handled under Vietnam's Intellectual Property Law and applicable international treaties.",
+        "body2": "You retain ownership of content you create (assignments, exam submissions, forum posts). However, you grant IOES a non-exclusive, royalty-free license to use that content for the operation and improvement of the service."
+      },
+      "s7": {
+        "number": "7",
+        "heading": "Disclaimers",
+        "body1": "IOES provides the service on an 'as-is' basis and does not guarantee that the service will operate uninterrupted or be completely error-free. We strive for 99.5% uptime but are not liable for disruptions caused by force majeure events.",
+        "body2": "IOES certificates are awarded based on learning and exam performance. We do not guarantee that the certificate will be recognized by every organization or employer. Users are responsible for verifying recognition before enrolling."
+      },
+      "s8": {
+        "number": "8",
+        "heading": "Limitation of liability",
+        "body1": "To the maximum extent permitted by law, IOES's total liability to you for any claim arising out of your use of the service will not exceed the amount you have paid to IOES in the most recent 12 months.",
+        "body2": "IOES is not liable for any indirect, incidental, special or consequential damages, including but not limited to lost profits, lost data or business interruption, even if we have been advised of the possibility of such damages."
+      },
+      "s9": {
+        "number": "9",
+        "heading": "Governing law and dispute resolution",
+        "body1": "These Terms are governed by the laws of Vietnam. Any dispute will first be resolved through good-faith negotiation between the parties within 30 days.",
+        "body2": "If no agreement is reached, the dispute will be submitted to the Vietnam International Arbitration Centre (VIAC) under its current procedural rules. The tribunal's award is final and binding on the parties."
+      },
+      "s10": {
+        "number": "10",
+        "heading": "Contact",
+        "body1": "Any questions, complaints or requests related to these Terms can be sent to legal@ioes.edu.vn or by calling our hotline 1900 1234 during business hours.",
+        "body2": "We commit to responding to all requests within 3 business days. If you need urgent help with an account security issue, please use the 24/7 emergency line 1900 9999."
+      }
+    }
+  },
+  "streak": {
+    "dowMon": "Mon",
+    "dowWed": "Wed",
+    "dowFri": "Fri",
+    "weekMon": "Mon",
+    "weekTue": "Tue",
+    "weekWed": "Wed",
+    "weekThu": "Thu",
+    "weekFri": "Fri",
+    "weekSat": "Sat",
+    "weekSun": "Sun",
+    "m7": "7 days",
+    "m30": "30 days",
+    "m100": "100 days",
+    "m365": "365 days",
+    "monthJan": "Jan",
+    "monthFeb": "Feb",
+    "monthMar": "Mar",
+    "monthApr": "Apr",
+    "monthMay": "May",
+    "monthJun": "Jun",
+    "monthJul": "Jul",
+    "monthAug": "Aug",
+    "monthSep": "Sep",
+    "monthOct": "Oct",
+    "monthNov": "Nov",
+    "monthDec": "Dec"
+  }
+}
