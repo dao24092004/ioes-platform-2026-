@@ -12,12 +12,15 @@ interface User {
 
 interface AuthState {
   user: User | null;
+  /** JWT gửi kèm mọi request qua API Gateway. */
+  accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  
+
   // Actions
   setUser: (user: User | null) => void;
-  login: (user: User) => void;
+  setAccessToken: (token: string | null) => void;
+  login: (user: User, accessToken?: string) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
 }
@@ -26,30 +29,36 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
+      accessToken: null,
       isAuthenticated: false,
       isLoading: false,
 
       setUser: (user) => set({ user, isAuthenticated: !!user }),
-      
-      login: (user) => set({ 
-        user, 
+
+      setAccessToken: (accessToken) => set({ accessToken }),
+
+      login: (user, accessToken) => set({
+        user,
+        ...(accessToken === undefined ? {} : { accessToken }),
         isAuthenticated: true,
-        isLoading: false 
+        isLoading: false
       }),
-      
-      logout: () => set({ 
-        user: null, 
+
+      logout: () => set({
+        user: null,
+        accessToken: null,
         isAuthenticated: false,
-        isLoading: false 
+        isLoading: false
       }),
       
       setLoading: (loading) => set({ isLoading: loading }),
     }),
     {
       name: 'ioes-auth',
-      partialize: (state) => ({ 
-        user: state.user, 
-        isAuthenticated: state.isAuthenticated 
+      partialize: (state) => ({
+        user: state.user,
+        accessToken: state.accessToken,
+        isAuthenticated: state.isAuthenticated
       }),
     }
   )
