@@ -12,13 +12,14 @@ import { UploadController } from './upload.controller';
 import { StorageService } from './storage/storage.service';
 import { ImageUploadService } from './storage/image-upload.service';
 import { BulkImportService } from './bulk-import/bulk-import.service';
+import { TopicSyncConsumer } from './topic-sync.consumer';
+import { ContentServiceClient } from './content-service.client';
 import {
   Question,
   QuestionOption,
   CodingTestCase,
 } from './entities/question.entity';
-import { OutboxEvent } from './entities/outbox-event.entity';
-import { ProcessedEvent } from './entities/processed-event.entity';
+import { OutboxEvent, ProcessedEvent } from '@ioes/common-node';
 import { KafkaModule } from '@ioes/common-node';
 
 @Module({
@@ -56,13 +57,18 @@ import { KafkaModule } from '@ioes/common-node';
     StorageService,
     ImageUploadService,
     BulkImportService,
+    // ADR-012: Topic sync từ content-service
+    TopicSyncConsumer,
+    ContentServiceClient,
   ],
   exports: [
     QuestionBankService,
     QuestionWriteService,
     DgraphClient,
+    DgraphSyncConsumer,
     StorageService,
     ImageUploadService,
+    ContentServiceClient,
   ],
 })
 export class QuestionBankModule {}
