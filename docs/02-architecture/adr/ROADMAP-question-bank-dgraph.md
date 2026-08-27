@@ -192,14 +192,16 @@ Thêm 3 services:
 - `dgraph-alpha`: Storage + GraphQL endpoint (1 instance dev, có thể scale lên 3+)
 - `dgraph-ratel`: Admin UI (dev only)
 
-**Ports:**
-- `dgraph-alpha`: 8080 (GraphQL), 9080 (gRPC), 8000 (Ratel - chỉ dev)
+**Ports (per ADR-010):**
+- `dgraph-alpha`: 18080→8080 (GraphQL, host→container), 9080 (gRPC), 8000 (Ratel - chỉ dev)
 - `dgraph-zero`: 5080 (internal), 6080 (internal)
+
+> **Note:** Host port 8080 thuộc về `api-gateway`. Container port 8080 của Dgraph không exposed trực tiếp ra host (chỉ internal Docker network dùng).
 
 **Volumes:**
 - `dgraph_data:/var/lib/dgraph` (persistent storage)
 
-**Healthcheck:** `curl -f http://localhost:8080/health`
+**Healthcheck:** `curl -f http://localhost:18080/health`
 
 #### A2. Tạo GraphQL Schema
 
@@ -226,7 +228,7 @@ Script tự động deploy schema khi Dgraph khởi động lần đầu.
 
 - [ ] `docker compose up -d dgraph-zero dgraph-alpha`
 - [ ] Truy cập `http://localhost:8000` (Ratel UI) → thấy được
-- [ ] GraphQL endpoint `http://localhost:8080/graphql` trả về schema
+- [ ] GraphQL endpoint `http://localhost:18080/graphql` trả về schema (host port per ADR-010)
 - [ ] Query `__schema { types { name } }` trả về các type đã định nghĩa
 
 ---

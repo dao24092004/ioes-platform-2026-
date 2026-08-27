@@ -142,10 +142,12 @@ Các tính năng cần có:
 | Service | Port | Vai trò | Tech |
 |---------|------|---------|------|
 | `exam-suite` (giữ nguyên) | 9005 | Module `question-bank` gọi Dgraph + sync consumer | Node.js + NestJS |
-| `dgraph-alpha` (MỚI) | 8080 (GraphQL), 9080 (gRPC) | Read-side Question Bank store | Dgraph v23.3.0 |
+| `dgraph-alpha` (MỚI) | 18080 (host) → 8080 (container, GraphQL), 9080 (gRPC) | Read-side Question Bank store | Dgraph v23.3.0 |
 | `dgraph-zero` (MỚI) | 5080 | Dgraph coordinator (cho standalone dev) | Dgraph v23.3.0 |
 | `kafka` (đã có) | 9092 | Event bus sync PostgreSQL → Dgraph | Confluent Kafka |
 | `api-gateway` (đã có) | 8080 | Route `/api/v1/question-bank/**` | Spring Cloud Gateway |
+
+> **Port mapping chính thức:** Dgraph host port đổi từ 8080 → 18080 theo ADR-010 (giải phóng 8080 cho api-gateway). Container port 8080 giữ nguyên.
 
 **Không tạo service mới** → module `question-bank` nằm trong `exam-suite` (giữ nguyên 10 services, không phá vỡ service boundaries).
 

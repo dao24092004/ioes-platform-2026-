@@ -3,7 +3,8 @@
 # Version: 1.0
 # Date: 23/08/2026
 # Deploy: Ratel UI (http://localhost:8000) → Schema → paste → Deploy
-# Or via curl: curl -X POST http://localhost:8080/admin/schema --data-binary @schema.graphql
+# Or via curl: curl -X POST http://localhost:18080/admin/schema --data-binary @schema.graphql  (host port per ADR-010)
+# Note: from inside Docker network use http://dgraph-alpha:8080/admin/schema (container port)
 # =============================================================================
 #
 # Knowledge Graph cho Ngân hàng câu hỏi ôn tập - IOES

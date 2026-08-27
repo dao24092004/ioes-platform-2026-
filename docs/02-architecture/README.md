@@ -24,9 +24,10 @@ Tài liệu kiến trúc hệ thống.
 | [ADR-006](./adr/ADR-006-service-integration.md) | Service Integration | ✅ Accepted | 24/08/2026 |
 | [ADR-008](./adr/ADR-008-jwt-secret-synchronization.md) | **JWT Secret Synchronization** | ✅ Accepted | 24/08/2026 |
 | [ADR-009](./adr/ADR-009-gateway-timeouts-and-circuit-breaker.md) | **Gateway Timeouts & Circuit Breaker** | ✅ Accepted | 24/08/2026 |
+| [ADR-010](./adr/ADR-010-resolve-port-8080-conflict.md) | **Resolve Port 8080 Conflict (Dgraph ↔ Gateway)** | ✅ Accepted | 25/08/2026 |
 | [ROADMAP-question-bank-dgraph](./adr/ROADMAP-question-bank-dgraph.md) | Roadmap: Question Bank Dgraph | 📋 In progress | — |
 
-> **Đọc trước khi code:** ADR-001, ADR-002, ADR-006, ADR-008, ADR-009 (liên quan đến mọi service).
+> **Đọc trước khi code:** ADR-001, ADR-002, ADR-006, ADR-008, ADR-009, **ADR-010** (port conflict — ảnh hưởng mọi service khi full-stack dev).
 
 ## Status
 

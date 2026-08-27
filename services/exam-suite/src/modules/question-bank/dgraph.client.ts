@@ -64,10 +64,10 @@ export class DgraphClient implements OnModuleInit {
   ) {
     const config = this.buildConfig();
     this.baseUrl = config.url.replace(/\/$/, '');
-    this.graphqlEndpoint = config.graphqlEndpoint;
-    this.adminEndpoint = config.adminEndpoint;
+    this.graphqlEndpoint = config.graphqlEndpoint ?? '/graphql';
+    this.adminEndpoint = config.adminEndpoint ?? '/admin';
     this.token = config.token;
-    this.timeoutMs = config.timeoutMs;
+    this.timeoutMs = config.timeoutMs ?? 5000;
     this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config.retry };
     this.circuitBreaker = new CircuitBreaker({
       failureThreshold: config.circuitBreaker.failureThreshold ?? 5,
@@ -88,8 +88,9 @@ export class DgraphClient implements OnModuleInit {
     );
   }
 
-  private buildConfig(): Required<
-    Omit<DgraphClientConfig, 'url' | 'retry' | 'circuitBreaker'>
+  private buildConfig(): Omit<
+    DgraphClientConfig,
+    'url' | 'retry' | 'circuitBreaker'
   > & {
     url: string;
     retry: Partial<RetryConfig>;
@@ -100,12 +101,12 @@ export class DgraphClient implements OnModuleInit {
       url:
         cfg.get<string>('DGRAPH_URL') ??
         cfg.get<string>('DGRAPH_INTERNAL_URL') ??
-        'http://localhost:8080',
+        'http://localhost:18080', // default fallback per ADR-010
       graphqlEndpoint:
         cfg.get<string>('DGRAPH_GRAPHQL_ENDPOINT') ?? '/graphql',
       adminEndpoint:
         cfg.get<string>('DGRAPH_ADMIN_ENDPOINT') ?? '/admin',
-      token: cfg.get<string>('DGRAPH_TOKEN') || undefined,
+      token: cfg.get<string>('DGRAPH_TOKEN') ?? undefined,
       timeoutMs: parseInt(
         cfg.get<string>('DGRAPH_TIMEOUT_MS') ?? '5000',
         10,
