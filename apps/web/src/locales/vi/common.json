@@ -1408,7 +1408,20 @@
     },
     "practice": {
       "title": "Luyện tập",
-      "subtitle": "Câu hỏi trắc nghiệm ngẫu nhiên",
+      "subtitle": "Câu hỏi soạn từ học liệu của bạn",
+      "setup": {
+        "title": "Luyện tập chủ đề nào?",
+        "desc": "Câu hỏi được soạn từ học liệu đã nạp, không lấy từ kiến thức chung của mô hình.",
+        "topic": "Chủ đề",
+        "topicPlaceholder": "Ví dụ: Box model, Flexbox, Git...",
+        "difficulty": "Độ khó",
+        "count": "Số câu",
+        "start": "Bắt đầu luyện tập",
+        "generating": "Đang soạn câu hỏi...",
+        "notGrounded": "Học liệu chưa có nội dung về chủ đề này. Hãy thử chủ đề khác.",
+        "partial": "Đã xin {{requested}} câu, học liệu chỉ đủ cho {{returned}}.",
+        "change": "Đổi chủ đề"
+      },
       "points": "điểm",
       "question": "Câu hỏi",
       "of": "/",

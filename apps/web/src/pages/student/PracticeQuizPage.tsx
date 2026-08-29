@@ -1,171 +1,57 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import StudentLayout from '@/components/layout/StudentLayout';
-import { studentApi, type StudentPracticeQuestion } from '@/services/api';
+import {
+  questionsApi,
+  type Difficulty,
+  type GeneratedQuestion,
+  type GeneratedQuestionSet,
+} from '@/services/api/questions.api';
+import { ApiError } from '@/config/api.config';
 
-type DifficultyFilter = 'all' | 'easy' | 'medium' | 'hard';
+/** Do kho phoi ra cho sinh vien. Domain co 5 muc, form chi dung 3. */
+type DifficultyChoice = Extract<Difficulty, 'easy' | 'medium' | 'hard'>;
+
+const DIFFICULTIES: DifficultyChoice[] = ['easy', 'medium', 'hard'];
+
+/**
+ * Cau hoi da dung dinh dang ma giao dien lam bai can.
+ *
+ * `correct_index` suy ra tu `is_correct` cua API. Doi chieu nay chi dung duoc
+ * vi de luyen tap chi sinh multiple_choice — dung mot dap an.
+ */
+interface PracticeQuestion {
+  id: string;
+  topic: string;
+  difficulty: DifficultyChoice;
+  question: string;
+  options: string[];
+  correct_index: number;
+  explanation: string;
+  sourceTitle: string;
+}
+
+const toPracticeQuestion = (
+  q: GeneratedQuestion,
+  index: number,
+  fallbackTopic: string,
+): PracticeQuestion => ({
+  id: `${q.source.chunkId}-${index}`,
+  topic: q.source.title || fallbackTopic,
+  difficulty: q.difficulty as DifficultyChoice,
+  question: q.questionText,
+  options: q.options.map((o) => o.optionText),
+  correct_index: q.options.findIndex((o) => o.isCorrect),
+  explanation: q.explanation,
+  sourceTitle: q.source.title,
+});
 
 interface QuestionState {
   selected: number | null;
   flagged: boolean;
   showResult: boolean;
 }
-
-interface MockQuestion {
-  id: string;
-  question: string;
-  options: string[];
-  correct_index: number;
-  explanation: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  topic: string;
-}
-
-// Mock fallback nếu API rỗng — dùng để demo UI
-const MOCK_QUESTIONS: MockQuestion[] = [
-  {
-    id: 'q1',
-    question: 'Trong thuật toán Gradient Descent, learning rate (tốc độ học) quá lớn có thể gây ra vấn đề gì?',
-    options: [
-      'Model sẽ hội tụ chậm hơn',
-      'Model có thể dao động quanh điểm tối ưu hoặc divergence (phân kỳ)',
-      'Model sẽ bị underfitting',
-      'Learning rate không ảnh hưởng đến quá trình training',
-    ],
-    correct_index: 1,
-    explanation:
-      'Learning rate quá lớn sẽ khiến các bước cập nhật weights quá lớn, dẫn đến việc model "nhảy" qua điểm tối ưu (overshooting) hoặc thậm chí divergence — loss tăng thay vì giảm. Đây là lý do tại sao việc chọn learning rate phù hợp rất quan trọng.',
-    difficulty: 'medium',
-    topic: 'Optimization',
-  },
-  {
-    id: 'q2',
-    question: 'Hàm activation nào sau đây thường được dùng cho output layer của bài toán binary classification?',
-    options: ['ReLU', 'Tanh', 'Sigmoid', 'Softmax'],
-    correct_index: 2,
-    explanation:
-      'Sigmoid đưa output về khoảng (0, 1), phù hợp biểu diễn xác suất 2 lớp. Softmax dùng cho multi-class, ReLU cho hidden layers vì giảm vanishing gradient.',
-    difficulty: 'easy',
-    topic: 'Activation',
-  },
-  {
-    id: 'q3',
-    question: 'Overfitting xảy ra khi nào?',
-    options: [
-      'Model quá đơn giản so với dữ liệu',
-      'Model học quá khớp dữ liệu training, kém trên dữ liệu mới',
-      'Dữ liệu training quá ít',
-      'Learning rate quá nhỏ',
-    ],
-    correct_index: 1,
-    explanation:
-      'Overfitting là khi model học cả noise của tập train nên accuracy trên train cao nhưng trên validation/test thấp. Cách giảm: thêm data, regularization (L1/L2), dropout, early stopping.',
-    difficulty: 'easy',
-    topic: 'Regularization',
-  },
-  {
-    id: 'q4',
-    question: 'Công thức nào đúng cho hàm loss Cross-Entropy?',
-    options: [
-      'L = (y - ŷ)²',
-      'L = -Σ y·log(ŷ)',
-      'L = |y - ŷ|',
-      'L = max(0, 1 - y·ŷ)',
-    ],
-    correct_index: 1,
-    explanation:
-      'Cross-entropy đo khác biệt giữa phân phối thật y và dự đoán ŷ: L = -Σ y·log(ŷ). MSE (a) dùng cho regression, hinge loss (d) cho SVM.',
-    difficulty: 'medium',
-    topic: 'Loss Function',
-  },
-  {
-    id: 'q5',
-    question: 'Khi nào nên dùng Batch Normalization?',
-    options: [
-      'Chỉ ở output layer',
-      'Trước activation, giúp ổn định phân phối activations',
-      'Sau loss function',
-      'Không ảnh hưởng tới huấn luyện',
-    ],
-    correct_index: 1,
-    explanation:
-      'Batch Norm chuẩn hoá activations theo batch giúp training ổn định, cho phép dùng learning rate lớn hơn, đẩy nhanh convergence.',
-    difficulty: 'medium',
-    topic: 'Normalization',
-  },
-  {
-    id: 'q6',
-    question: 'Dropout là gì?',
-    options: [
-      'Một kỹ thuật tăng tốc training',
-      'Một kỹ thuật regularization bằng cách ngẫu nhiên "tắt" một số neuron khi training',
-      'Một optimizer',
-      'Một loss function',
-    ],
-    correct_index: 1,
-    explanation:
-      'Dropout ngẫu nhiên zero-out một phần activations trong training, ngăn model phụ thuộc vào một số neuron cụ thể — giảm overfitting.',
-    difficulty: 'easy',
-    topic: 'Regularization',
-  },
-  {
-    id: 'q7',
-    question: 'Transformer sử dụng cơ chế nào làm cốt lõi?',
-    options: ['Convolution', 'Recurrence', 'Self-Attention', 'Pooling'],
-    correct_index: 2,
-    explanation:
-      'Self-attention cho phép mỗi vị trí trong sequence "nhìn" tất cả vị trí khác, song song hoá được và nắm bắt long-range dependency tốt hơn RNN/CNN.',
-    difficulty: 'hard',
-    topic: 'Transformer',
-  },
-  {
-    id: 'q8',
-    question: 'Precision và Recall — câu nào đúng?',
-    options: [
-      'Precision = TP / (TP + FN)',
-      'Recall = TP / (TP + FP)',
-      'Precision = TP / (TP + FP)',
-      'Precision và Recall luôn bằng nhau',
-    ],
-    correct_index: 2,
-    explanation:
-      'Precision (độ chính xác) = TP / (TP + FP) — trong số dự đoán positive, bao nhiêu đúng. Recall (độ phủ) = TP / (TP + FN) — trong số thực tế positive, bao nhiêu được tìm ra.',
-    difficulty: 'medium',
-    topic: 'Metrics',
-  },
-  {
-    id: 'q9',
-    question: 'Embedding trong NLP là gì?',
-    options: [
-      'Một cách mã hoá one-hot',
-      'Vector dense biểu diễn từ trong không gian liên tục',
-      'Một loại tokenizer',
-      'Một kiến trúc mạng',
-    ],
-    correct_index: 1,
-    explanation:
-      'Embedding ánh xạ mỗi từ sang vector dense (thường 50–300 chiều), học được ngữ nghĩa — các từ giống nhau nằm gần nhau trong không gian.',
-    difficulty: 'easy',
-    topic: 'NLP',
-  },
-  {
-    id: 'q10',
-    question: 'Vanishing gradient thường gặp khi nào?',
-    options: [
-      'Mạng nông với ReLU',
-      'Mạng sâu với activation saturating (sigmoid/tanh)',
-      'Optimizer Adam',
-      'Batch size lớn',
-    ],
-    correct_index: 1,
-    explanation:
-      'Sigmoid/Tanh có đạo hàm max = 0.25, nhân nhiều lớp dẫn tới gradient tiến về 0 — các layer đầu hầu như không học. Giải pháp: ReLU, residual connections, LSTM gates.',
-    difficulty: 'hard',
-    topic: 'Optimization',
-  },
-];
 
 const formatMMSS = (totalSeconds: number): string => {
   const safe = Math.max(0, Math.floor(totalSeconds));
@@ -176,28 +62,49 @@ const formatMMSS = (totalSeconds: number): string => {
 
 const PracticeQuizPage: React.FC = () => {
   const { t } = useTranslation();
-  const [difficulty, setDifficulty] = useState<DifficultyFilter>('all');
   const [idx, setIdx] = useState(0);
   const [states, setStates] = useState<QuestionState[]>([]);
   const [showResultsModal, setShowResultsModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  // Buoc chon chu de. De luyen tap sinh tu hoc lieu nen phai biet hoc gi truoc;
+  // truoc day trang nay nhay thang vao bai vi cau hoi la mang viet cung.
+  const [topic, setTopic] = useState('');
+  const [difficulty, setDifficulty] = useState<DifficultyChoice>('medium');
+  const [count, setCount] = useState(5);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [set, setSet] = useState<GeneratedQuestionSet | null>(null);
+
   // Timer (15 phút mặc định)
   const TOTAL_TIME = 15 * 60;
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
 
-  const { data: apiQuestions } = useQuery({
-    queryKey: ['student', 'practice', difficulty],
-    queryFn: () => studentApi.practiceQuestions(undefined),
-    retry: false,
-  });
+  const questions: PracticeQuestion[] = useMemo(
+    () => (set?.questions ?? []).map((q, i) => toPracticeQuestion(q, i, topic)),
+    [set, topic],
+  );
 
-  const questions: StudentPracticeQuestion[] = useMemo(() => {
-    const source: StudentPracticeQuestion[] =
-      apiQuestions && apiQuestions.length > 0 ? apiQuestions : (MOCK_QUESTIONS as unknown as StudentPracticeQuestion[]);
-    if (difficulty === 'all') return source;
-    return source.filter((q) => q.difficulty === difficulty);
-  }, [apiQuestions, difficulty]);
+  const startPractice = async () => {
+    if (!topic.trim() || generating) return;
+    setGenerating(true);
+    setError(null);
+    try {
+      setSet(
+        await questionsApi.generate({
+          topic: topic.trim(),
+          questionType: 'multiple_choice',
+          difficulty,
+          count,
+        }),
+      );
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : String(err));
+      setSet(null);
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   // Khởi tạo state khi đổi bộ câu hỏi
   useEffect(() => {
@@ -228,8 +135,81 @@ const PracticeQuizPage: React.FC = () => {
   if (questions.length === 0) {
     return (
       <StudentLayout title={t('student.practice.title')} subtitle={t('student.practice.subtitle')}>
-        <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
-          <div className="text-slate-500 dark:text-slate-400">No questions.</div>
+        <div className="max-w-xl mx-auto bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 sm:p-8">
+          <h2 className="text-lg font-semibold mb-1">{t('student.practice.setup.title')}</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
+            {t('student.practice.setup.desc')}
+          </p>
+
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            {t('student.practice.setup.topic')}
+          </label>
+          <input
+            type="text"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') void startPractice();
+            }}
+            placeholder={t('student.practice.setup.topicPlaceholder')}
+            className="w-full px-3 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:border-blue-500 mb-4"
+          />
+
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            {t('student.practice.setup.difficulty')}
+          </label>
+          <div className="flex gap-2 mb-4">
+            {DIFFICULTIES.map((d) => (
+              <button
+                key={d}
+                onClick={() => setDifficulty(d)}
+                className={`flex-1 px-3 py-2 text-xs font-semibold rounded-lg border transition-colors ${
+                  difficulty === d
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-blue-400'
+                }`}
+              >
+                {t(`student.practice.${d}`)}
+              </button>
+            ))}
+          </div>
+
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            {t('student.practice.setup.count')} <span className="text-slate-400">({count})</span>
+          </label>
+          <input
+            type="range"
+            min={1}
+            max={20}
+            value={count}
+            onChange={(e) => setCount(Number(e.target.value))}
+            className="w-full accent-blue-600 mb-5"
+          />
+
+          {error && (
+            <div
+              role="alert"
+              className="mb-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 px-3 py-2 text-sm text-red-700 dark:text-red-300"
+            >
+              {error}
+            </div>
+          )}
+
+          {/* Hoc lieu khong phu chu de. Ket qua hop le, khong phai loi - noi ro
+              de sinh vien doi chu de thay vi bam lai mai. */}
+          {set && !set.grounded && (
+            <div className="mb-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
+              {t('student.practice.setup.notGrounded')}
+            </div>
+          )}
+
+          <button
+            onClick={() => void startPractice()}
+            disabled={!topic.trim() || generating}
+            className="w-full px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold transition-colors"
+          >
+            {generating ? t('student.practice.setup.generating') : t('student.practice.setup.start')}
+          </button>
         </div>
       </StudentLayout>
     );
@@ -338,21 +318,29 @@ const PracticeQuizPage: React.FC = () => {
       <div className="grid lg:grid-cols-[1fr_300px] gap-4">
         {/* Question area */}
         <div className="max-w-3xl w-full mx-auto">
-          {/* Difficulty filter */}
-          <div className="flex items-center gap-2 mb-3 flex-wrap">
-            {(['all', 'easy', 'medium', 'hard'] as DifficultyFilter[]).map((d) => (
-              <button
-                key={d}
-                onClick={() => setDifficulty(d)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  difficulty === d
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-blue-400'
-                }`}
-              >
-                {t(`student.practice.${d}`)}
-              </button>
-            ))}
+          {/* Chu de va do kho da chot o buoc chon, khong loc trong bai nua:
+              ca bo de deu sinh cho dung mot muc. */}
+          <div className="flex items-center gap-2 mb-3 flex-wrap text-xs">
+            <span className="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold">{topic}</span>
+            <span className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-semibold">
+              {t(`student.practice.${difficulty}`)}
+            </span>
+            {/* Sinh it hon so da xin la binh thuong - hoc lieu du toi dau thi
+                soan toi do. Noi ra thay vi im lang. */}
+            {set && set.returned < set.requested && (
+              <span className="text-amber-600 dark:text-amber-400">
+                {t('student.practice.setup.partial', {
+                  requested: set.requested,
+                  returned: set.returned,
+                })}
+              </span>
+            )}
+            <button
+              onClick={() => setSet(null)}
+              className="ml-auto px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400 font-semibold"
+            >
+              {t('student.practice.setup.change')}
+            </button>
           </div>
 
           {/* Question card */}

@@ -1425,7 +1425,20 @@
     },
     "practice": {
       "title": "Practice",
-      "subtitle": "Random quiz questions",
+      "subtitle": "Questions written from your course material",
+      "setup": {
+        "title": "What do you want to practise?",
+        "desc": "Questions are written from ingested course material, never from the model's general knowledge.",
+        "topic": "Topic",
+        "topicPlaceholder": "e.g. Box model, Flexbox, Git...",
+        "difficulty": "Difficulty",
+        "count": "Questions",
+        "start": "Start practising",
+        "generating": "Writing questions...",
+        "notGrounded": "No course material covers this topic. Try another one.",
+        "partial": "Asked for {{requested}}, the material only supports {{returned}}.",
+        "change": "Change topic"
+      },
       "points": "pts",
       "question": "Question",
       "of": "of",
