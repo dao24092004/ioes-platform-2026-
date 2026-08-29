@@ -215,12 +215,20 @@ export class QuestionBankService {
       return null;
     }
 
-    const order = { 1: 5, 2: 4, 3: 3, 4: 2, 5: 1 } as Record<string, number>; // VERY_EASY→5 ... VERY_HARD→1
+    // Easier first: Dgraph trả về tên mức độ (`EASY`, `HARD`...), không phải số,
+    // nên tra theo tên và hạ về chữ thường cho khớp enum Difficulty.
+    const order: Record<string, number> = {
+      very_easy: 5,
+      easy: 4,
+      medium: 3,
+      hard: 2,
+      very_hard: 1,
+    };
     const questionsMap = new Map<string, PracticePathQuestionDto>();
 
     topic.questions?.forEach((q) => {
       const difficulty = q.difficulty;
-      const orderValue = order[difficulty] ?? 3;
+      const orderValue = order[String(difficulty).toLowerCase()] ?? 3;
       questionsMap.set(q.id, {
         id: q.id,
         questionText: q.questionText,
