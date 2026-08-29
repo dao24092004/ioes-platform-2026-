@@ -29,10 +29,12 @@
     "class-validator": "^0.14.1",
     "eureka-js-client": "^4.5.0",
     "jsonwebtoken": "^9.0.2",
+    "kafkajs": "^2.2.4",
     "pg": "^8.11.5",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.0",
