@@ -2217,7 +2217,13 @@
       "explanation": "Giải thích",
       "empty": {
         "title": "Chưa có câu hỏi nào",
-        "desc": "Nhập chủ đề và bấm \"Tạo câu hỏi\" để AI sinh câu hỏi cho bạn."
+        "desc": "Nhập chủ đề và bấm \"Tạo câu hỏi\". Câu hỏi được soạn từ học liệu đã nạp."
+      },
+      "source": "Nguồn",
+      "partial": "Đã xin {{requested}} câu, học liệu chỉ đủ căn cứ cho {{returned}}.",
+      "notGrounded": {
+        "title": "Học liệu chưa có nội dung về chủ đề này",
+        "desc": "Câu hỏi chỉ được soạn từ học liệu đã nạp, không lấy từ kiến thức chung của mô hình. Hãy thử chủ đề khác hoặc nạp thêm tài liệu."
       }
     },
     "aiAssistant": {

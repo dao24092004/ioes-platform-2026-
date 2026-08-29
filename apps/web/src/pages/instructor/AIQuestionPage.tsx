@@ -1,53 +1,64 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import InstructorLayout from '@/components/layout/InstructorLayout';
+import { questionsApi, type GeneratedQuestion, type GeneratedQuestionSet } from '@/services/api/questions.api';
+import { ApiError } from '@/config/api.config';
 
-type Difficulty = 'easy' | 'medium' | 'hard';
-type QuestionType = 'multiple_choice' | 'true_false' | 'short_answer' | 'essay';
+/**
+ * Độ khó phơi ra cho người dùng. Domain có 5 mức (very_easy..very_hard) nhưng
+ * form chỉ cho 3 — giữ nguyên form, map thẳng vì tên trùng nhau.
+ */
+type DifficultyChoice = 'easy' | 'medium' | 'hard';
 
-interface GeneratedQuestion {
-  id: string;
-  type: QuestionType;
-  difficulty: Difficulty;
-  question: string;
-  options?: string[];
-  answer: string;
-  explanation: string;
-}
+/** CODING không sinh được: cần test case chạy thật, không suy ra từ tài liệu. */
+type TypeChoice = 'multiple_choice' | 'true_false' | 'short_answer' | 'essay';
 
-const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
-const types: QuestionType[] = ['multiple_choice', 'true_false', 'short_answer', 'essay'];
+const difficulties: DifficultyChoice[] = ['easy', 'medium', 'hard'];
+const types: TypeChoice[] = ['multiple_choice', 'true_false', 'short_answer', 'essay'];
+
+/** Đáp án dưới dạng chữ, để hiện trong phần "xem đáp án". */
+const answerOf = (q: GeneratedQuestion): string => {
+  const correct = q.options.filter((o) => o.isCorrect).map((o) => o.optionText);
+  if (correct.length > 0) return correct.join('; ');
+  return q.answerText ?? '';
+};
 
 const AIQuestionPage: React.FC = () => {
   const { t } = useTranslation();
   const [topic, setTopic] = useState('');
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [type, setType] = useState<QuestionType>('multiple_choice');
+  const [difficulty, setDifficulty] = useState<DifficultyChoice>('medium');
+  const [type, setType] = useState<TypeChoice>('multiple_choice');
   const [count, setCount] = useState(5);
   const [language, setLanguage] = useState<'vi' | 'en'>('vi');
   const [extra, setExtra] = useState('');
   const [generating, setGenerating] = useState(false);
-  const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
+  const [result, setResult] = useState<GeneratedQuestionSet | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleGenerate = () => {
-    if (!topic.trim()) return;
+  const questions = result?.questions ?? [];
+
+  const handleGenerate = async () => {
+    if (!topic.trim() || generating) return;
     setGenerating(true);
-    setTimeout(() => {
-      const generated: GeneratedQuestion[] = Array.from({ length: count }).map((_, i) => {
-        const tpl = SAMPLE_BANK[(i + topic.length) % SAMPLE_BANK.length];
-        return {
-          id: `q-${Date.now()}-${i}`,
-          type,
+    setError(null);
+
+    try {
+      setResult(
+        await questionsApi.generate({
+          topic: topic.trim(),
+          questionType: type,
           difficulty,
-          question: tpl.q(topic),
-          options: type === 'multiple_choice' ? tpl.opts(topic) : undefined,
-          answer: tpl.answer,
-          explanation: tpl.explain,
-        };
-      });
-      setQuestions(generated);
+          count,
+          language,
+          instructions: extra.trim() || undefined,
+        }),
+      );
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : String(err));
+      setResult(null);
+    } finally {
       setGenerating(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -188,7 +199,29 @@ const AIQuestionPage: React.FC = () => {
 
         {/* Output */}
         <section className="xl:col-span-8 space-y-4">
-          {questions.length === 0 && !generating && (
+          {error && (
+            <div
+              role="alert"
+              className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 rounded-2xl px-5 py-3 text-sm"
+            >
+              {error}
+            </div>
+          )}
+
+          {/* Hoc lieu khong phu chu de. Day la ket qua hop le, khong phai loi -
+              noi ro de giang vien biet can nap them tai lieu. */}
+          {result && !result.grounded && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900 rounded-2xl p-8 text-center">
+              <h3 className="text-base font-semibold mb-1 text-amber-800 dark:text-amber-300">
+                {t('instructor.aiQuestion.notGrounded.title')}
+              </h3>
+              <p className="text-sm text-amber-700 dark:text-amber-400 max-w-md mx-auto">
+                {t('instructor.aiQuestion.notGrounded.desc')}
+              </p>
+            </div>
+          )}
+
+          {!result && !generating && !error && (
             <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 p-12 text-center">
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400">
                 <SparkleSvg />
@@ -198,10 +231,20 @@ const AIQuestionPage: React.FC = () => {
             </div>
           )}
 
-          {questions.length > 0 && (
-            <div className="flex items-center justify-between bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 px-5 py-3">
-              <div className="text-sm">
+          {result && questions.length > 0 && (
+            <div className="flex items-center justify-between gap-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 px-5 py-3">
+              <div className="text-sm min-w-0">
                 <span className="font-semibold">{questions.length}</span> {t('instructor.aiQuestion.questionsReady')}
+                {/* Tra it hon so da xin la binh thuong: hoc lieu du can cu toi
+                    dau thi soan toi do. Noi ra thay vi im lang dua it cau hon. */}
+                {result.returned < result.requested && (
+                  <span className="block text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                    {t('instructor.aiQuestion.partial', {
+                      requested: result.requested,
+                      returned: result.returned,
+                    })}
+                  </span>
+                )}
               </div>
               <div className="flex gap-2">
                 <button className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:text-blue-600">
@@ -215,12 +258,12 @@ const AIQuestionPage: React.FC = () => {
           )}
 
           {questions.map((q, idx) => (
-            <article key={q.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
+            <article key={`${q.source.chunkId}-${idx}`} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
               <header className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <span className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-bold">{idx + 1}</span>
                   <span className="text-xs px-2 py-0.5 rounded-md font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                    {t(`instructor.aiQuestion.types.${q.type}`)}
+                    {t(`instructor.aiQuestion.types.${q.questionType}`)}
                   </span>
                   <span className={`text-xs px-2 py-0.5 rounded-md font-semibold ${
                     q.difficulty === 'easy' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
@@ -230,17 +273,16 @@ const AIQuestionPage: React.FC = () => {
                     {t(`instructor.aiQuestion.difficulty.${q.difficulty}`)}
                   </span>
                 </div>
-                <button className="text-xs text-slate-500 hover:text-red-500 transition-colors">{t('instructor.aiQuestion.regenerate')}</button>
               </header>
-              <p className="text-sm font-medium mb-3 leading-relaxed">{q.question}</p>
-              {q.options && (
+              <p className="text-sm font-medium mb-3 leading-relaxed">{q.questionText}</p>
+              {q.options.length > 0 && (
                 <ol className="space-y-1.5 mb-3 pl-1">
                   {q.options.map((opt, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
                       <span className="w-5 h-5 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
                         {String.fromCharCode(65 + i)}
                       </span>
-                      <span>{opt}</span>
+                      <span>{opt.optionText}</span>
                     </li>
                   ))}
                 </ol>
@@ -248,8 +290,15 @@ const AIQuestionPage: React.FC = () => {
               <details className="bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 text-xs">
                 <summary className="cursor-pointer font-semibold text-blue-600 dark:text-blue-400">{t('instructor.aiQuestion.showAnswer')}</summary>
                 <div className="mt-2 space-y-1.5">
-                  <div><span className="font-semibold">{t('instructor.aiQuestion.answer')}: </span>{q.answer}</div>
+                  <div><span className="font-semibold">{t('instructor.aiQuestion.answer')}: </span>{answerOf(q)}</div>
                   <div className="text-slate-600 dark:text-slate-400"><span className="font-semibold">{t('instructor.aiQuestion.explanation')}: </span>{q.explanation}</div>
+                  {/* Doan hoc lieu da chong lung cho cau nay. Hien ra de giang
+                      vien doi chieu duoc thay vi phai tin vao mo hinh. */}
+                  <div className="pt-1.5 border-t border-slate-200 dark:border-slate-700 text-slate-500">
+                    <span className="font-semibold">{t('instructor.aiQuestion.source')}: </span>
+                    {q.source.title}
+                    <p className="mt-1 italic break-words">{q.source.excerpt}</p>
+                  </div>
                 </div>
               </details>
             </article>
@@ -265,28 +314,5 @@ const SparkleSvg = () => (
     <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
   </svg>
 );
-
-interface SampleTemplate { q: (topic: string) => string; opts: (topic: string) => string[]; answer: string; explain: string; }
-
-const SAMPLE_BANK: SampleTemplate[] = [
-  {
-    q: (t) => `Khái niệm cốt lõi của "${t}" là gì?`,
-    opts: () => ['Một định nghĩa truyền thống', 'Một framework ứng dụng', 'Một công cụ hỗ trợ', 'Tất cả đều sai'],
-    answer: 'Một framework ứng dụng',
-    explain: 'Các khái niệm nền tảng giúp người học định hướng nội dung.',
-  },
-  {
-    q: (t) => `Trong "${t}", yếu tố nào đóng vai trò quan trọng nhất?`,
-    opts: () => ['Tốc độ xử lý', 'Tính đúng đắn', 'Khả năng mở rộng', 'Trải nghiệm người dùng'],
-    answer: 'Tính đúng đắn',
-    explain: 'Đảm bảo kết quả đầu ra là yếu tố tiên quyết.',
-  },
-  {
-    q: (t) => `Ứng dụng thực tế của "${t}" trong ngành phần mềm là?`,
-    opts: () => ['Xây dựng hệ thống', 'Tối ưu hiệu năng', 'Đảm bảo chất lượng', 'Tất cả các ý trên'],
-    answer: 'Tất cả các ý trên',
-    explain: 'Các yếu tố trên đều là ứng dụng thực tế phổ biến.',
-  },
-];
 
 export default AIQuestionPage;

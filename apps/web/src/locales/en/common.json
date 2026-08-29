@@ -2234,7 +2234,13 @@
       "explanation": "Explanation",
       "empty": {
         "title": "No questions yet",
-        "desc": "Enter a topic and click \"Generate\" to let AI create questions for you."
+        "desc": "Enter a topic and press Generate. Questions are written from ingested course material."
+      },
+      "source": "Source",
+      "partial": "Asked for {{requested}}, the material only supports {{returned}}.",
+      "notGrounded": {
+        "title": "No course material covers this topic",
+        "desc": "Questions are written only from ingested course material, never from the model's general knowledge. Try another topic or ingest more material."
       }
     },
     "aiAssistant": {
