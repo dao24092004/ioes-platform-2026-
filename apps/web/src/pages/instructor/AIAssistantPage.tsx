@@ -1,16 +1,25 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import InstructorLayout from '@/components/layout/InstructorLayout';
+import { aiApi, type ChatSession } from '@/services/api/ai.api';
+import { ApiError } from '@/config/api.config';
 
 type ChatMsg = { id: string; role: 'user' | 'assistant'; content: string; created_at: string };
 
 type Thread = {
+  /** Id cục bộ. Bằng sessionId nếu phiên đã tồn tại ở backend. */
   id: string;
+  /** null khi phiên chưa được tạo — backend tạo ở lượt hỏi đầu tiên. */
+  sessionId: string | null;
   title: string;
   icon: 'purple' | 'blue' | 'green' | 'orange' | 'cyan' | 'pink';
   messages: ChatMsg[];
+  /** Lịch sử đã tải về chưa. Danh sách phiên không kèm tin nhắn. */
+  loaded: boolean;
   updated_at: number;
 };
+
+const DRAFT_THREAD_ID = 'current';
 
 const QUICK_PROMPTS = [
   'instructor.aiAssistant.prompt.courseIdea',
@@ -41,6 +50,22 @@ const COLOR_CLASSES: Record<Thread['icon'], string> = {
 
 const ICONS: Thread['icon'][] = ['purple', 'blue', 'green', 'orange', 'cyan', 'pink'];
 
+/**
+ * Màu gán theo thứ tự phiên chứ không random: random khiến mỗi lần render lại
+ * đổi màu một phiên, nhìn như danh sách nhảy lung tung.
+ */
+const iconForIndex = (index: number): Thread['icon'] => ICONS[index % ICONS.length];
+
+const sessionToThread = (session: ChatSession, index: number, fallbackTitle: string): Thread => ({
+  id: session.id,
+  sessionId: session.id,
+  title: session.title ?? fallbackTitle,
+  icon: iconForIndex(index),
+  messages: [],
+  loaded: false,
+  updated_at: new Date(session.lastMessageAt ?? session.updatedAt).getTime(),
+});
+
 const formatRelativeTime = (ts: number, locale: string): string => {
   const now = Date.now();
   const diffMs = now - ts;
@@ -66,64 +91,143 @@ const AIAssistantPage: React.FC = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
-  const [activeId, setActiveId] = useState<string>('current');
+  const [activeId, setActiveId] = useState<string>(DRAFT_THREAD_ID);
+  const [threads, setThreads] = useState<Thread[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [threads, setThreads] = useState<Thread[]>(() => {
-    const now = Date.now();
-    const hour = 60 * 60 * 1000;
-    const day = 24 * hour;
-    const greetContent = t('instructor.aiAssistant.greeting');
-    return [
-      {
-        id: 'ml-1',
-        title: t('instructor.aiAssistant.defaultThreads.machineLearning'),
-        icon: 'purple',
-        messages: [],
-        updated_at: now - 2 * hour,
-      },
-      {
-        id: 'py-2',
-        title: t('instructor.aiAssistant.defaultThreads.pythonPath'),
-        icon: 'blue',
-        messages: [],
-        updated_at: now - 5 * hour,
-      },
-      {
-        id: 'essay-3',
-        title: t('instructor.aiAssistant.defaultThreads.essayGrade'),
-        icon: 'green',
-        messages: [],
-        updated_at: now - day - (9.25 * hour),
-      },
-      {
-        id: 'bc-4',
-        title: t('instructor.aiAssistant.defaultThreads.blockchainExam'),
-        icon: 'orange',
-        messages: [],
-        updated_at: now - day - (13.75 * hour),
-      },
-      {
-        id: 'current',
-        title: t('instructor.aiAssistant.newChat'),
-        icon: 'cyan',
-        messages: [
-          {
-            id: 'm-init',
-            role: 'assistant',
-            created_at: new Date().toISOString(),
-            content: greetContent,
-          },
-        ],
-        updated_at: now,
-      },
-    ];
-  });
+  // appendToActive chạy trong callback bất đồng bộ; đọc activeId qua ref để
+  // không phải khai nó là dependency và tạo lại hàm sau mỗi lần đổi phiên.
+  const activeIdRef = useRef(activeId);
+  useEffect(() => {
+    activeIdRef.current = activeId;
+  }, [activeId]);
+
+  const greeting = t('instructor.aiAssistant.greeting');
+  const untitled = t('instructor.aiAssistant.newChat');
+
+  /** Phiên nháp: chưa có ở backend, chỉ hiện lời chào cho tới lượt hỏi đầu tiên. */
+  const makeDraftThread = useCallback(
+    (id: string, icon: Thread['icon']): Thread => ({
+      id,
+      sessionId: null,
+      title: untitled,
+      icon,
+      messages: [
+        {
+          id: `m-${Date.now()}`,
+          role: 'assistant',
+          created_at: new Date().toISOString(),
+          content: greeting,
+        },
+      ],
+      loaded: true,
+      updated_at: Date.now(),
+    }),
+    [greeting, untitled],
+  );
+
+  /** Nối một tin nhắn vào thread đang mở. */
+  const appendToActive = useCallback((message: ChatMsg) => {
+    setThreads((prev) =>
+      prev.map((th) =>
+        th.id === activeIdRef.current
+          ? { ...th, messages: [...th.messages, message], updated_at: Date.now() }
+          : th,
+      ),
+    );
+  }, []);
+
+  // Nạp danh sách phiên một lần khi vào trang. Danh sách không kèm tin nhắn —
+  // lịch sử của từng phiên chỉ tải khi người dùng bấm vào nó.
+  useEffect(() => {
+    let cancelled = false;
+
+    aiApi
+      .listSessions()
+      .then((sessions) => {
+        if (cancelled) return;
+        const loaded = sessions.map((session, index) => sessionToThread(session, index, untitled));
+        setThreads([...loaded, makeDraftThread(DRAFT_THREAD_ID, 'cyan')]);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        // Không có lịch sử vẫn phải chat được, nên chỉ mở một phiên nháp.
+        setThreads([makeDraftThread(DRAFT_THREAD_ID, 'cyan')]);
+        setLoadError(err instanceof ApiError ? err.message : String(err));
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingSessions(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [makeDraftThread, untitled]);
+
+  // Các phiên đang tải dở. `loaded` chỉ bật sau khi fetch xong, nên nếu chỉ
+  // dựa vào nó thì mọi thay đổi khác của `threads` trong lúc chờ sẽ phóng thêm
+  // một lời gọi nữa cho cùng phiên đó.
+  const loadingHistoryRef = useRef<Set<string>>(new Set());
+
+  // Tải lịch sử khi mở một phiên chưa có tin nhắn trong bộ nhớ.
+  useEffect(() => {
+    const thread = threads.find((th) => th.id === activeId);
+    if (!thread || thread.loaded || !thread.sessionId) return;
+
+    const sessionId = thread.sessionId;
+    if (loadingHistoryRef.current.has(sessionId)) return;
+    loadingHistoryRef.current.add(sessionId);
+
+    let cancelled = false;
+
+    aiApi
+      .getHistory(sessionId)
+      .then((history) => {
+        if (cancelled) return;
+        setThreads((prev) =>
+          prev.map((th) =>
+            th.id === sessionId
+              ? {
+                  ...th,
+                  loaded: true,
+                  messages: history.map((m) => ({
+                    id: m.id,
+                    role: m.role,
+                    content: m.content,
+                    created_at: m.createdAt,
+                  })),
+                }
+              : th,
+          ),
+        );
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        // Đánh dấu đã tải để không thử lại vô hạn khi backend đang lỗi.
+        setThreads((prev) =>
+          prev.map((th) => (th.id === sessionId ? { ...th, loaded: true } : th)),
+        );
+        setLoadError(err instanceof ApiError ? err.message : String(err));
+      })
+      .finally(() => {
+        loadingHistoryRef.current.delete(sessionId);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeId, threads]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [threads, activeId, thinking]);
 
-  const activeThread = useMemo(() => threads.find((t) => t.id === activeId) ?? threads[threads.length - 1], [threads, activeId]);
+  // Có thể là undefined ở lần render đầu, khi danh sách phiên chưa tải xong.
+  const activeThread = useMemo(
+    (): Thread | undefined => threads.find((th) => th.id === activeId) ?? threads[threads.length - 1],
+    [threads, activeId],
+  );
 
   const groupedThreads = useMemo(() => {
     const todayStart = startOfDay(Date.now());
@@ -148,56 +252,75 @@ const AIAssistantPage: React.FC = () => {
     setThreads((prev) => prev.map((th) => (th.id === activeId ? mutator(th) : th)));
   };
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     const content = text.trim();
-    if (!content) return;
+    if (!content || thinking) return;
+
     const ts = Date.now();
-    const userMsg: ChatMsg = { id: `m-${ts}`, role: 'user', content, created_at: new Date(ts).toISOString() };
+    const userMsg: ChatMsg = {
+      id: `m-${ts}`,
+      role: 'user',
+      content,
+      created_at: new Date(ts).toISOString(),
+    };
+
+    const thread = threads.find((th) => th.id === activeIdRef.current);
+    const sessionId = thread?.sessionId ?? undefined;
 
     updateActiveThread((th) => ({
       ...th,
-      title: th.messages.length <= 1 ? content.slice(0, 48) : th.title,
-      icon: th.icon ?? ICONS[Math.floor(Math.random() * ICONS.length)],
+      // Backend tự đặt tên phiên từ câu hỏi đầu; ở đây đặt tạm cho khỏi trống.
+      title: th.messages.filter((m) => m.role === 'user').length === 0 ? content.slice(0, 48) : th.title,
       messages: [...th.messages, userMsg],
       updated_at: ts,
     }));
 
     setInput('');
     setThinking(true);
+    setLoadError(null);
 
-    setTimeout(() => {
-      const replyTs = Date.now();
-      const reply: ChatMsg = {
-        id: `m-${replyTs}-r`,
+    try {
+      const turn = await aiApi.ask({ question: content, sessionId });
+
+      appendToActive({
+        id: turn.messageId,
         role: 'assistant',
-        created_at: new Date(replyTs).toISOString(),
-        content: generateReply(content),
-      };
-      setThreads((prev) =>
-        prev.map((th) =>
-          th.id === activeId ? { ...th, messages: [...th.messages, reply], updated_at: replyTs } : th,
-        ),
-      );
+        content: turn.answer,
+        created_at: new Date().toISOString(),
+      });
+
+      // Lượt đầu của phiên nháp: backend vừa cấp sessionId, gắn vào thread để
+      // các lượt sau nối đúng phiên thay vì mở phiên mới mỗi lần hỏi.
+      if (!sessionId) {
+        setThreads((prev) =>
+          prev.map((th) =>
+            th.id === activeIdRef.current ? { ...th, sessionId: turn.sessionId } : th,
+          ),
+        );
+      }
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : t('instructor.aiAssistant.error');
+      setLoadError(message);
+      appendToActive({
+        id: `m-${Date.now()}-err`,
+        role: 'assistant',
+        content: message,
+        created_at: new Date().toISOString(),
+      });
+    } finally {
       setThinking(false);
-    }, 1100);
+    }
   };
 
   const startNewChat = () => {
-    const id = `t-${Date.now()}`;
-    const greet = t('instructor.aiAssistant.greeting');
-    const newThread: Thread = {
-      id,
-      title: t('instructor.aiAssistant.newChat'),
-      icon: ICONS[Math.floor(Math.random() * ICONS.length)],
-      messages: [
-        { id: `m-${Date.now()}`, role: 'assistant', created_at: new Date().toISOString(), content: greet },
-      ],
-      updated_at: Date.now(),
-    };
-    setThreads((prev) => [...prev, newThread]);
+    // Phiên chỉ được tạo ở backend khi có câu hỏi đầu tiên, nên ở đây chỉ mở
+    // một thread nháp cục bộ. Tránh đẻ ra phiên rỗng nếu người dùng bỏ ngang.
+    const id = `draft-${Date.now()}`;
+    setThreads((prev) => [...prev, makeDraftThread(id, iconForIndex(prev.length))]);
     setActiveId(id);
   };
 
+  /** Ẩn phiên khỏi danh sách. Backend chưa có endpoint xoá nên chỉ là cục bộ. */
   const deleteThread = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setThreads((prev) => {
@@ -210,6 +333,10 @@ const AIAssistantPage: React.FC = () => {
     });
   };
 
+  /**
+   * Xoá nội dung đang hiển thị. Chỉ tác động phía client — backend không có
+   * endpoint xoá, và lịch sử phiên vẫn còn nguyên ở đó.
+   */
   const clearActive = () => {
     updateActiveThread((th) => ({
       ...th,
@@ -224,6 +351,19 @@ const AIAssistantPage: React.FC = () => {
       updated_at: Date.now(),
     }));
   };
+
+  if (!activeThread) {
+    return (
+      <InstructorLayout
+        title={t('instructor.aiAssistant.title')}
+        subtitle={t('instructor.aiAssistant.subtitle')}
+      >
+        <div className="h-[calc(100vh-180px)] flex items-center justify-center text-sm text-slate-500">
+          {t('common.loading', 'Đang tải...')}
+        </div>
+      </InstructorLayout>
+    );
+  }
 
   return (
     <InstructorLayout
@@ -244,7 +384,11 @@ const AIAssistantPage: React.FC = () => {
           </button>
 
           <div className="flex-1 overflow-y-auto -mx-1 px-1">
-            {groupedThreads.length === 0 ? (
+            {loadingSessions ? (
+              <div className="text-center text-xs text-slate-500 py-8">
+                {t('common.loading', 'Đang tải...')}
+              </div>
+            ) : groupedThreads.length === 0 ? (
               <div className="text-center text-xs text-slate-500 py-8">{t('instructor.aiAssistant.empty')}</div>
             ) : (
               groupedThreads.map((group) => (
@@ -335,6 +479,24 @@ const AIAssistantPage: React.FC = () => {
               </svg>
             </button>
           </header>
+
+          {loadError && (
+            <div
+              role="alert"
+              className="px-5 py-2.5 flex items-start gap-2 text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-b border-red-200 dark:border-red-900"
+            >
+              <svg className="w-4 h-4 flex-shrink-0 mt-px" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+              <span className="flex-1 min-w-0 break-words">{loadError}</span>
+              <button
+                onClick={() => setLoadError(null)}
+                className="flex-shrink-0 underline hover:no-underline"
+              >
+                {t('common.close', 'Đóng')}
+              </button>
+            </div>
+          )}
 
           <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/50 dark:bg-slate-950/50">
             {activeThread.messages.length === 0 ? (
@@ -441,20 +603,6 @@ const Message: React.FC<{ msg: ChatMsg }> = ({ msg }) => {
       </div>
     </div>
   );
-};
-
-const generateReply = (input: string): string => {
-  const lower = input.toLowerCase();
-  if (lower.includes('khóa học') || lower.includes('course')) {
-    return 'Gợi ý cấu trúc khóa học:\n\n1. **Tổng quan & mục tiêu** (1-2 bài)\n2. **Nền tảng cần thiết** (2-3 bài)\n3. **Kiến thức cốt lõi** (5-8 bài)\n4. **Bài tập thực hành** (3-4 bài)\n5. **Dự án cuối khóa** (1-2 tuần)\n\nMỗi bài nên có: video 8-12 phút, bài đọc, 3-5 câu hỏi trắc nghiệm.';
-  }
-  if (lower.includes('đề thi') || lower.includes('exam')) {
-    return 'Mẹo tạo đề thi hiệu quả:\n\n• 60% câu hỏi nhận biết, 30% thông hiểu, 10% vận dụng\n• Trộn câu dễ-trung bình-khó theo tỷ lệ 4-4-2\n• Mỗi đề có 1-2 câu tình huống thực tế\n• Thêm câu hỏi "tại sao" để đánh giá tư duy\n• Đặt thời gian: ~1.5 phút / câu';
-  }
-  if (lower.includes('sinh viên') || lower.includes('học viên') || lower.includes('student') || lower.includes('feedback')) {
-    return 'Cách đưa phản hồi hiệu quả:\n\n1. **Khen trước, góp ý sau** — chỉ ra điểm tốt trước\n2. **Cụ thể** — "Bài làm phần 2 rõ ràng" thay vì "Tốt"\n3. **Định hướng** — gợi ý cách cải thiện\n4. **Kịp thời** — phản hồi trong 48h\n5. **Khuyến khích** — động viên học tiếp';
-  }
-  return 'Cảm ơn bạn đã hỏi! Tôi có thể hỗ trợ bạn về:\n\n• Lên kế hoạch giảng dạy\n• Tạo câu hỏi & đề thi\n• Đánh giá học viên\n• Phân tích kết quả\n• Ý tưởng nội dung\n\nBạn muốn tôi giúp gì cụ thể hơn không?';
 };
 
 export default AIAssistantPage;
