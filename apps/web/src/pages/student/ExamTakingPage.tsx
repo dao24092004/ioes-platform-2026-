@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '@/app/store/uiStore';
 import { useAuthStore } from '@/app/store/authStore';
+import ProctoringPanel from '@/components/proctoring/ProctoringPanel';
 
 type Question = {
   id: string;
@@ -111,6 +112,11 @@ const ExamTakingPage: React.FC = () => {
   const [secondsLeft, setSecondsLeft] = useState(6670);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [attentionAlert, setAttentionAlert] = useState(false);
+
+  // attemptId đến từ luồng bắt đầu bài thi (Epic 3). Chưa có thì giám thị chạy
+  // ở chế độ chỉ xem: camera bật nhưng không gửi khung nào đi.
+  const [searchParams] = useSearchParams();
+  const attemptId = searchParams.get('attemptId') ?? undefined;
   const attentionTimerRef = React.useRef<number | null>(null);
 
   useEffect(() => {
@@ -385,20 +391,13 @@ const ExamTakingPage: React.FC = () => {
                 {t('student.examTaking.cameraTitle')}
               </span>
             </div>
-            <div className="p-5">
-              <div className="aspect-[4/3] bg-[#1a1a2e] rounded-xl flex items-center justify-center relative overflow-hidden">
-                <div className="flex flex-col items-center gap-3 text-white/70">
-                  <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  <span className="text-[13px]">{t('student.examTaking.cameraLive')}</span>
-                </div>
-                <div className="absolute bottom-3 left-3 flex items-center gap-2 px-3 py-1.5 bg-black/70 rounded-lg">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span className="text-xs text-white">{t('student.examTaking.cameraRecording')}</span>
-                </div>
-              </div>
-            </div>
+            <ProctoringPanel
+              attemptId={attemptId}
+              onViolation={() => setAttentionAlert(true)}
+              onAutoSubmitted={({ submissionId }) =>
+                navigate(`/student/exams/${examId}/result?submissionId=${submissionId}&flagged=1`)
+              }
+            />
           </div>
 
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
