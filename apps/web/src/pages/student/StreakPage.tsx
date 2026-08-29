@@ -1,6 +1,9 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import StudentLayout from '@/components/layout/StudentLayout';
+import { useAuthStore } from '@/app/store/authStore';
+import { analyticsApi } from '@/services/api/analytics.api';
 
 type ActivityLevel = 0 | 1 | 2 | 3 | 4;
 
@@ -10,52 +13,28 @@ interface DayActivity {
   studyMinutes: number;
 }
 
-const generateActivity = (): DayActivity[] => {
-  const today = new Date('2026-08-24');
+/**
+ * Khung lịch một năm, mọi ngày đều bằng 0.
+ *
+ * Trước đây hàm này sinh hoạt động giả bằng PRNG có seed, nên biểu đồ nhiệt
+ * hiện một năm học đều đặn cho mọi tài khoản. analytics-service mới chỉ có số
+ * tổng (`UserAnalytics`), chưa có chuỗi hoạt động theo ngày, nên ở đây chỉ
+ * dựng khung ngày thật và để trống cho tới khi backend có endpoint đó.
+ */
+const emptyYear = (): DayActivity[] => {
+  const today = new Date();
   const days: DayActivity[] = [];
-  // Deterministic PRNG for stable mock
-  let seed = 42;
-  const rand = () => {
-    seed = (seed * 9301 + 49297) % 233280;
-    return seed / 233280;
-  };
 
   for (let i = 364; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    const dow = d.getDay();
-    const isWeekend = dow === 0 || dow === 6;
-    const r = rand();
-    // Realistic pattern: ~70% active days, more on weekdays
-    let level: ActivityLevel = 0;
-    let minutes = 0;
-    if (r < 0.18) {
-      level = 0;
-      minutes = 0;
-    } else if (r < 0.42) {
-      level = 1;
-      minutes = 15 + Math.floor(rand() * 20);
-    } else if (r < 0.68) {
-      level = 2;
-      minutes = 35 + Math.floor(rand() * 30);
-    } else if (r < 0.88) {
-      level = 3;
-      minutes = 65 + Math.floor(rand() * 40);
-    } else {
-      level = 4;
-      minutes = 105 + Math.floor(rand() * 60);
-    }
-    if (isWeekend && r < 0.35) {
-      level = 0;
-      minutes = 0;
-    }
-    days.push({ date: dateStr, level, studyMinutes: minutes });
+    days.push({ date: dateStr, level: 0, studyMinutes: 0 });
   }
   return days;
 };
 
-const MOCK_ACTIVITY: DayActivity[] = generateActivity();
+const ACTIVITY: DayActivity[] = emptyYear();
 
 const MOCK_WEEK = [
   { day: 'streak.weekMon', minutes: 45 },
@@ -67,47 +46,42 @@ const MOCK_WEEK = [
   { day: 'streak.weekSun', minutes: 55 },
 ];
 
-const MOCK_MILESTONES = [
-  { id: 'm1', label: 'streak.m7', current: 42, target: 7, achieved: true, reward: 10 },
-  { id: 'm2', label: 'streak.m30', current: 42, target: 30, achieved: true, reward: 30 },
-  { id: 'm3', label: 'streak.m100', current: 42, target: 100, achieved: false, reward: 100 },
-  { id: 'm4', label: 'streak.m365', current: 42, target: 365, achieved: false, reward: 500 },
+/** Ngưỡng cố định; phần đạt hay chưa tính từ chuỗi ngày thật. */
+const MILESTONE_TARGETS = [
+  { id: 'm1', label: 'streak.m7', target: 7, reward: 10 },
+  { id: 'm2', label: 'streak.m30', target: 30, reward: 30 },
+  { id: 'm3', label: 'streak.m100', target: 100, reward: 100 },
+  { id: 'm4', label: 'streak.m365', target: 365, reward: 500 },
 ];
 
 const StreakPage: React.FC = () => {
   const { t } = useTranslation();
 
-  const stats = useMemo(() => {
-    const totalDays = MOCK_ACTIVITY.filter(d => d.level > 0).length;
-    const totalMinutes = MOCK_ACTIVITY.reduce((s, d) => s + d.studyMinutes, 0);
-    const totalHours = Math.round(totalMinutes / 60);
-    let cur = 0;
-    for (let i = MOCK_ACTIVITY.length - 1; i >= 0; i--) {
-      if (MOCK_ACTIVITY[i].level > 0) cur++;
-      else break;
-    }
-    let best = 0;
-    let run = 0;
-    for (const d of MOCK_ACTIVITY) {
-      if (d.level > 0) {
-        run++;
-        if (run > best) best = run;
-      } else {
-        run = 0;
-      }
-    }
-    return {
-      currentStreak: cur,
-      bestStreak: best,
-      daysActive: totalDays,
-      totalHours,
-      lessonsCompleted: Math.floor(totalMinutes / 25),
-      examsPassed: Math.floor(totalDays / 8),
-    };
-  }, []);
+  const userId = useAuthStore((st) => st.user?.id);
+
+  const { data: analytics, isLoading } = useQuery({
+    queryKey: ['student', 'analytics', userId],
+    queryFn: () => analyticsApi.getUserAnalytics(userId as string),
+    enabled: Boolean(userId),
+  });
+
+  // Số thật từ analytics-service. Trước đây các ô này tính từ dữ liệu sinh
+  // ngẫu nhiên, nên ai vào cũng thấy một chuỗi ngày học đẹp như nhau.
+  const stats = useMemo(
+    () => ({
+      currentStreak: analytics?.currentStreak ?? 0,
+      bestStreak: analytics?.longestStreak ?? 0,
+      // Backend chưa có "số ngày hoạt động", tạm lấy chuỗi dài nhất làm cận dưới.
+      daysActive: analytics?.longestStreak ?? 0,
+      totalHours: Math.round((analytics?.totalStudyMinutes ?? 0) / 60),
+      lessonsCompleted: analytics?.totalCoursesCompleted ?? 0,
+      examsPassed: analytics?.totalExamsPassed ?? 0,
+    }),
+    [analytics],
+  );
 
   const lastWeek = useMemo(() => {
-    const week = MOCK_ACTIVITY.slice(-7);
+    const week = ACTIVITY.slice(-7);
     return week.map((d, i) => ({
       day: MOCK_WEEK[i].day,
       minutes: d.studyMinutes,
@@ -119,18 +93,28 @@ const StreakPage: React.FC = () => {
 
   // Build heatmap grid: 53 weeks × 7 days
   const heatmapGrid = useMemo(() => {
-    const firstDate = new Date(MOCK_ACTIVITY[0].date);
+    const firstDate = new Date(ACTIVITY[0].date);
     const startDayOfWeek = firstDate.getDay();
     const grid: (DayActivity | null)[] = [];
     for (let i = 0; i < startDayOfWeek; i++) grid.push(null);
-    grid.push(...MOCK_ACTIVITY);
+    grid.push(...ACTIVITY);
     while (grid.length % 7 !== 0) grid.push(null);
     return grid;
   }, []);
 
   const totalWeeks = Math.ceil(heatmapGrid.length / 7);
 
-  const nextMilestone = MOCK_MILESTONES.find(m => !m.achieved);
+  const milestones = useMemo(
+    () =>
+      MILESTONE_TARGETS.map((m) => ({
+        ...m,
+        current: stats.currentStreak,
+        achieved: stats.currentStreak >= m.target,
+      })),
+    [stats.currentStreak],
+  );
+
+  const nextMilestone = milestones.find((m) => !m.achieved);
   const daysToMilestone = nextMilestone ? nextMilestone.target - stats.currentStreak : 0;
 
   return (
@@ -193,6 +177,16 @@ const StreakPage: React.FC = () => {
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('student.streak.activityTitle')}</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">{t('student.streak.activitySubtitle')}</p>
+            {/* Nói thẳng là chưa có dữ liệu, thay vì để lưới trống trông như
+                người dùng cả năm không học. */}
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+              {isLoading
+                ? t('common.loading', 'Đang tải...')
+                : t(
+                    'student.streak.noDailyData',
+                    'Chưa có dữ liệu hoạt động theo ngày — analytics-service hiện chỉ cung cấp số tổng.',
+                  )}
+            </p>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
             <span>{t('student.streak.less')}</span>
@@ -304,11 +298,11 @@ const StreakPage: React.FC = () => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('student.streak.achievementsTitle')}</h3>
           <span className="text-xs text-slate-500 dark:text-slate-400">
-            {MOCK_MILESTONES.filter(m => m.achieved).length} / {MOCK_MILESTONES.length}
+            {milestones.filter((m) => m.achieved).length} / {milestones.length}
           </span>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {MOCK_MILESTONES.map((m) => {
+          {milestones.map((m) => {
             const pct = Math.min(100, Math.round((m.current / m.target) * 100));
             return (
               <div key={m.id} className={`p-5 rounded-2xl border ${m.achieved ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800/50' : 'border-slate-200 dark:border-slate-700'}`}>

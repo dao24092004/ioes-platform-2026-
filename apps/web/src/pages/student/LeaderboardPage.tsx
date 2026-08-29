@@ -3,7 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import StudentLayout from '@/components/layout/StudentLayout';
 import { Card } from '@/components/common/Card';
-import { studentApi, type LeaderboardEntry } from '@/services/api';
+import { useAuthStore } from '@/app/store/authStore';
+import {
+  analyticsApi,
+  type LeaderboardEntry as ApiLeaderboardEntry,
+  type LeaderboardPeriod,
+} from '@/services/api/analytics.api';
 
 const badgeStyles = {
   gold: { bg: 'from-amber-400 to-yellow-500', text: 'text-amber-900', label: '🥇' },
@@ -14,16 +19,61 @@ const badgeStyles = {
 
 type Period = 'weekly' | 'monthly' | 'allTime';
 
+/** Hình dạng mà phần hiển thị bên dưới đang dùng. */
+interface LeaderboardEntry {
+  rank: number;
+  user_id: string;
+  full_name: string;
+  avatar: string | null;
+  points: number;
+  courses_completed: number;
+  streak_days: number;
+  badge: 'gold' | 'silver' | 'bronze' | null;
+}
+
+const PERIOD_PARAM: Record<Period, LeaderboardPeriod> = {
+  weekly: 'WEEKLY',
+  monthly: 'MONTHLY',
+  allTime: 'ALL_TIME',
+};
+
+/** Huy hiệu suy ra từ hạng, backend không trả trường này. */
+const badgeForRank = (rank: number): LeaderboardEntry['badge'] =>
+  rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : null;
+
+const toEntry = (e: ApiLeaderboardEntry): LeaderboardEntry => ({
+  rank: e.rank,
+  user_id: e.userId,
+  full_name: e.displayName,
+  avatar: e.avatarUrl,
+  points: Math.round(e.score),
+  courses_completed: e.coursesCompleted,
+  streak_days: e.currentStreak,
+  badge: badgeForRank(e.rank),
+});
+
 const LeaderboardPage: React.FC = () => {
   const { t } = useTranslation();
   const [period, setPeriod] = useState<Period>('weekly');
 
-  const { data: entries = [] } = useQuery({
-    queryKey: ['student', 'leaderboard'],
-    queryFn: () => studentApi.leaderboard(),
+  const currentUserId = useAuthStore((s) => s.user?.id);
+
+  // Đổi mốc thời gian phải gọi lại: xếp hạng tuần và toàn thời gian là hai
+  // bảng khác nhau. Trước đây `period` chỉ đổi giao diện nút bấm.
+  const { data: entries = [], isLoading } = useQuery({
+    queryKey: ['student', 'leaderboard', period],
+    queryFn: async () => (await analyticsApi.getLeaderboard(PERIOD_PARAM[period], 50)).map(toEntry),
   });
 
-  const myRank = entries.find((e: LeaderboardEntry) => e.rank === 42);
+  // Hạng của chính mình có thể nằm ngoài top 50, nên hỏi riêng thay vì dò
+  // trong danh sách.
+  const { data: myRankRaw } = useQuery({
+    queryKey: ['student', 'leaderboard', 'me', period],
+    queryFn: () => analyticsApi.getMyRank(PERIOD_PARAM[period]),
+    enabled: Boolean(currentUserId),
+  });
+
+  const myRank = myRankRaw ? toEntry(myRankRaw) : undefined;
   const top3 = entries.slice(0, 3);
   const rest = entries.slice(3);
 
@@ -44,6 +94,22 @@ const LeaderboardPage: React.FC = () => {
           </button>
         ))}
       </div>
+
+      {isLoading && (
+        <Card className="mb-6">
+          <div className="py-10 text-center text-sm text-slate-500">
+            {t('common.loading', 'Đang tải...')}
+          </div>
+        </Card>
+      )}
+
+      {!isLoading && entries.length === 0 && (
+        <Card className="mb-6">
+          <div className="py-10 text-center text-sm text-slate-500">
+            {t('student.leaderboard.empty', 'Chưa có dữ liệu xếp hạng cho mốc thời gian này.')}
+          </div>
+        </Card>
+      )}
 
       <Card className="mb-6 overflow-visible">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end px-2">
