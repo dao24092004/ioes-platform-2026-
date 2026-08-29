@@ -10,9 +10,9 @@ import {
   KAFKA_TOPICS,
   KAFKA_GROUPS,
   createLogger,
+  ProcessedEvent,
 } from '@ioes/common-node';
 import { DgraphClient } from './dgraph.client';
-import { ProcessedEvent } from './entities/processed-event.entity';
 import {
   UPSERT_QUESTION_MUTATION,
   SOFT_DELETE_QUESTION_MUTATION,

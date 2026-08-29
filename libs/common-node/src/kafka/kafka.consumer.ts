@@ -5,6 +5,9 @@ import { KafkaProducer } from './kafka.producer';
 import { createLogger } from '../utils/logger.util';
 import { EventEnvelope } from '../events/event-envelope';
 import { kafkaMessagesProcessed } from '../metrics';
+import { Counter } from '../metrics/metric-types';
+
+const kafkaMessagesCounter = kafkaMessagesProcessed as Counter;
 
 /**
  * KafkaConsumer - wrapper để subscribe topic với handler function.
@@ -167,7 +170,7 @@ export class KafkaConsumer implements OnModuleDestroy {
         // Manual commit duoc dat o consumer.run() ben duoi; ConsumerConfig
         // cua kafkajs khong nhan autoCommit.
         allowAutoTopicCreation: true,
-      });
+      } as any);
       await consumer.connect();
 
       for (const sub of subs) {
@@ -263,7 +266,7 @@ export class KafkaConsumer implements OnModuleDestroy {
       await sub.handler(envelope, message);
 
       // BUG #120 fix: track processed message metric
-      kafkaMessagesProcessed.inc({
+      kafkaMessagesCounter.inc({
         topic,
         status: 'success',
       });
@@ -277,7 +280,7 @@ export class KafkaConsumer implements OnModuleDestroy {
       );
     } catch (err) {
       const error = err as Error;
-      kafkaMessagesProcessed.inc({ topic, status: 'failed' });
+      kafkaMessagesCounter.inc({ topic, status: 'failed' });
 
       // BUG #41 fix: track retry count in-memory
       const existing = this.retryTracker.get(retryKey);

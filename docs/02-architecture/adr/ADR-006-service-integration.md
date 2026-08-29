@@ -61,6 +61,8 @@ Theo BA §8.4 và service-boundaries §2:
 └──────────────────────┘
 ```
 
+> **Note (ADR-010):** Host port 8080 thuộc về `api-gateway`. Dgraph Alpha dùng host port **18080** (container port 8080 nội bộ) để tránh conflict.
+
 ### 2.2. Inter-service Communication Pattern
 
 **Quy tắc (service-boundaries §2.2)**:

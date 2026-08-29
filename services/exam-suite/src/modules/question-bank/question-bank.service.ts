@@ -215,19 +215,21 @@ export class QuestionBankService {
       return null;
     }
 
-    const order = { 1: 5, 2: 4, 3: 3, 4: 2, 5: 1 }; // VERY_EASY→5 ... VERY_HARD→1
+    const order = { 1: 5, 2: 4, 3: 3, 4: 2, 5: 1 } as Record<string, number>; // VERY_EASY→5 ... VERY_HARD→1
     const questionsMap = new Map<string, PracticePathQuestionDto>();
 
     topic.questions?.forEach((q) => {
+      const difficulty = q.difficulty;
+      const orderValue = order[difficulty] ?? 3;
       questionsMap.set(q.id, {
         id: q.id,
         questionText: q.questionText,
-        difficulty: q.difficulty,
-        order: order[Number(q.difficulty) as keyof typeof order] ?? 3,
+        difficulty: difficulty,
+        order: orderValue,
         rationale: q.requiresSkills?.length
           ? `Cần kiến thức: ${q.requiresSkills.map((s) => s.name).join(', ')}`
           : undefined,
-      });
+      } as PracticePathQuestionDto);
     });
 
     // Add sub-topic questions (slightly later in path)

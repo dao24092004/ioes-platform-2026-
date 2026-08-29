@@ -12,6 +12,11 @@ export const KAFKA_TOPICS = {
   COURSE_PUBLISHED: 'content.course.published',
   COURSE_ENROLLED: 'content.course.enrolled',
 
+  // Topic events (ADR-012)
+  TOPIC_CREATED: 'content.topic.created',
+  TOPIC_UPDATED: 'content.topic.updated',
+  TOPIC_DELETED: 'content.topic.deleted',
+
   // Exam events
   EXAM_STARTED: 'exam.session.started',
   EXAM_SUBMITTED: 'exam.submission.submitted',

@@ -246,8 +246,8 @@ PROCTORING_ENABLED=true
 PROCTORING_VIDEO_QUALITY=720p
 PROCTORING_FRAME_RATE=5
 
-# Dgraph (Question Bank read store)
-DGRAPH_URL=http://localhost:8080
+# Dgraph (Question Bank read store) — see ADR-010
+DGRAPH_URL=http://localhost:18080
 DGRAPH_GRAPHQL_ENDPOINT=/graphql
 DGRAPH_ADMIN_ENDPOINT=/admin
 DGRAPH_TIMEOUT_MS=5000

@@ -6,6 +6,8 @@ import {
   GlobalExceptionFilter,
   HttpExceptionFilter,
   StructuredLogger,
+  MetricsController,
+  JwtAuthGuard,
 } from '@ioes/common-node';
 import { CorrelationIdMiddleware } from '@ioes/common-node';
 import { HttpLoggingInterceptor } from '@ioes/common-node';
@@ -13,6 +15,13 @@ import { AuditLogInterceptor } from '@ioes/common-node';
 
 async function bootstrap(): Promise<void> {
   const logger = new StructuredLogger('ExamSuite');
+
+  // Configure JWT Guard
+  JwtAuthGuard.configure({
+    secret: process.env.JWT_SECRET ?? 'development-secret-change-in-prod',
+    algorithms: ['HS256', 'HS384', 'HS512'],
+    // iss/aud check disabled for local dev - enable in production
+  });
 
   // HTTP app (REST only)
   const app = await NestFactory.create(AppModule, {

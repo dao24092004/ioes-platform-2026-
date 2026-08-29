@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { EventEnvelope } from './event-envelope';
 import { StructuredLogger } from '../logger/structured-logger';
+
+export const SERVICE_NAME_TOKEN = 'SERVICE_NAME';
 
 /**
  * EventPublisher - typed wrapper for emitting events.
@@ -13,27 +15,15 @@ import { StructuredLogger } from '../logger/structured-logger';
  * - Validate payload schema (optional)
  *
  * Use case: luôn dùng EventPublisher thay vì KafkaProducer.send() trực tiếp.
- *
- * @example
- * ```ts
- * await this.publisher.publish(
- *   EXAM_KAFKA_TOPICS.EXAM_EVENTS,
- *   EXAM_EVENT_TYPES.EXAM_STARTED,
- *   'Exam',
- *   attempt.examId,
- *   EXAM_STARTED_VERSION,
- *   { examId, attemptId, userId, ... },
- * );
- * ```
  */
 @Injectable()
 export class EventPublisher {
   private readonly logger = new StructuredLogger(EventPublisher.name);
-  private readonly serviceName: string;
 
-  constructor(serviceName?: string) {
-    this.serviceName = serviceName ?? process.env.SERVICE_NAME ?? 'unknown-service';
-  }
+  constructor(
+    @Inject(SERVICE_NAME_TOKEN)
+    private readonly serviceName: string,
+  ) {}
 
   /**
    * Build envelope without sending (cho việc save vào outbox trước).
@@ -64,7 +54,6 @@ export class EventPublisher {
    * Fallback to UUID v4 nếu không có crypto.randomUUID.
    */
   private generateEventId(): string {
-    // Best-effort v7 (timestamp prefix); fallback v4
     try {
       return uuidv4();
     } catch {
@@ -74,7 +63,6 @@ export class EventPublisher {
 
   private getCorrelationId(): string {
     try {
-      // Lazy import để tránh circular dep
       const { getCurrentTraceId } = require('../logger/correlation-context');
       return getCurrentTraceId() ?? uuidv4();
     } catch {

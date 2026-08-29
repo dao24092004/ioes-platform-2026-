@@ -7,6 +7,7 @@ import {
   KafkaProducer,
   OutboxService,
   EventPublisher,
+  SERVICE_NAME_TOKEN,
   OutboxEvent,
   ProcessedEvent,
 } from '@ioes/common-node';
@@ -34,6 +35,7 @@ import { CourseEventConsumer } from './consumers/course-event.consumer';
     KafkaProducer,
     KafkaConsumer,
     OutboxService,
+    { provide: SERVICE_NAME_TOKEN, useValue: process.env.SERVICE_NAME ?? 'exam-suite' },
     EventPublisher,
     ExamEventsPublisher,
     UserEventConsumer,

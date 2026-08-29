@@ -19,8 +19,9 @@ import { QuestionType } from '@ioes/common-node';
 export class QuestionTypeOptionsMatchConstraint
   implements ValidatorConstraintInterface
 {
-  validate(_value: unknown, args: ValidationArguments): boolean {
-    const obj = args.object as Record<string, unknown>;
+  validate(_value: unknown, validationArguments?: ValidationArguments): boolean {
+    if (!validationArguments) return true;
+    const obj = validationArguments.object as Record<string, unknown>;
     const questionType = obj.questionType as QuestionType;
     const options = obj.options as
       | Array<{ isCorrect?: boolean }>

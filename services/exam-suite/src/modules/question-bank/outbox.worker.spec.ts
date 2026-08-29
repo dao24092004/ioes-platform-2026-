@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
-import { KafkaProducer } from '@ioes/common-node';
+import { KafkaProducer, OutboxEvent } from '@ioes/common-node';
 import { OutboxWorker } from './outbox.worker';
-import { OutboxEvent } from './entities/outbox-event.entity';
 
 describe('OutboxWorker', () => {
   let worker: OutboxWorker;

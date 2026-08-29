@@ -59,17 +59,25 @@ spring.cloud.gateway:
     - id: content-service
       uri: lb://content-service
       predicates:
-        - Path=/api/content/**,/api/courses/**,/api/lessons/**
+        - Path=/api/content/**,/api/courses/**,/api/lessons/**,/api/topics/**,/api/v1/topics/**
       filters:
         - StripPrefix=2
 
-    # Exam Service
+    # Exam Service (REST endpoints: /api/exam, /api/exams, /api/questions)
     - id: exam-suite
-      uri: lb://exam-suite
+      uri: http://localhost:9005
       predicates:
         - Path=/api/exam/**,/api/exams/**,/api/questions/**
       filters:
         - StripPrefix=2
+
+    # Question Bank (nested path, strip only 1 segment)
+    - id: question-bank
+      uri: http://localhost:9005
+      predicates:
+        - Path=/api/question-bank/**
+      filters:
+        - StripPrefix=1
 
     # Analytics Service
     - id: analytics-service

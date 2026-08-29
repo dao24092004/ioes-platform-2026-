@@ -186,7 +186,7 @@ export class OutboxService {
         {
           status: 'PUBLISHED',
           processedAt: new Date(),
-          lastError: null,
+          lastError: undefined,
         },
       );
 

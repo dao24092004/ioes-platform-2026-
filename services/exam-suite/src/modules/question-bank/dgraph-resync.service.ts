@@ -9,9 +9,9 @@ import {
   KAFKA_TOPICS,
   QuestionEventPayload,
   EventEnvelope,
+  OutboxEvent,
 } from '@ioes/common-node';
 import { Question } from './entities/question.entity';
-import { OutboxEvent } from './entities/outbox-event.entity';
 import { DataSource } from 'typeorm';
 
 /**

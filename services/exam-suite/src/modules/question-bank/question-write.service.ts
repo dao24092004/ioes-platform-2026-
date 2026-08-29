@@ -14,21 +14,23 @@ import {
   QuestionStatus,
   createLogger,
   EventEnvelope,
+  OutboxEvent,
 } from '@ioes/common-node';
 import { Question } from './entities/question.entity';
-import { OutboxEvent } from './entities/outbox-event.entity';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
+import { ContentServiceClient } from './content-service.client';
 
 /**
  * QuestionWriteService với **Transactional Outbox Pattern**.
  *
  * Flow:
  * 1. Mở transaction
- * 2. INSERT/UPDATE question trong PostgreSQL
- * 3. INSERT OutboxEvent vào cùng transaction
- * 4. Commit transaction (DB + outbox atomic)
- * 5. OutboxWorker (background) sẽ publish events sang Kafka
+ * 2. Validate topicId qua ContentServiceClient (ADR-012 §3.3)
+ * 3. INSERT/UPDATE question trong PostgreSQL
+ * 4. INSERT OutboxEvent vào cùng transaction
+ * 5. Commit transaction (DB + outbox atomic)
+ * 6. OutboxWorker (background) sẽ publish events sang Kafka
  *
  * Benefits:
  * - DB write + event log atomic (không thể lệch)
@@ -47,6 +49,8 @@ export class QuestionWriteService {
     // KafkaProducer không dùng trực tiếp nữa - chỉ type reference cho tests
     // OutboxWorker sẽ dùng KafkaProducer thực sự
     private readonly _producer: KafkaProducer,
+    // ADR-012: validate topicId tồn tại qua content-service
+    private readonly contentServiceClient: ContentServiceClient,
   ) {}
 
   async create(
@@ -54,6 +58,9 @@ export class QuestionWriteService {
     user: UserPrincipalDto,
     correlationId: string,
   ): Promise<Question> {
+    // ADR-012 §3.3 Option A: Synchronous validation
+    await this.validateTopicExists(dto.topicId);
+
     return this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(Question);
 
@@ -100,6 +107,11 @@ export class QuestionWriteService {
     user: UserPrincipalDto,
     correlationId: string,
   ): Promise<Question> {
+    // ADR-012 §3.3: validate topicId nếu được thay đổi
+    if (dto.topicId) {
+      await this.validateTopicExists(dto.topicId);
+    }
+
     return this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(Question);
       const existing = await repo.findOne({ where: { id } });
@@ -300,5 +312,34 @@ export class QuestionWriteService {
       createdAt: q.createdAt.toISOString(),
       updatedAt: q.updatedAt.toISOString(),
     };
+  }
+
+  /**
+   * ADR-012 §3.3: Validate topicId tồn tại qua ContentService.
+   * Throw BusinessException nếu không tồn tại.
+   */
+  private async validateTopicExists(topicId: string | undefined): Promise<void> {
+    if (!topicId) {
+      throw new BusinessException(
+        ERROR_CODES.VALIDATION_FAILED,
+        'topicId is required',
+      );
+    }
+
+    const topic = await this.contentServiceClient.getTopic(topicId);
+    if (!topic) {
+      this.logger.warn(`Topic not found: ${topicId}`);
+      throw new BusinessException(
+        ERROR_CODES.NOT_FOUND,
+        `Topic ${topicId} not found or inactive`,
+      );
+    }
+
+    if (!topic.isActive) {
+      throw new BusinessException(
+        ERROR_CODES.VALIDATION_FAILED,
+        `Topic ${topicId} is inactive`,
+      );
+    }
   }
 }

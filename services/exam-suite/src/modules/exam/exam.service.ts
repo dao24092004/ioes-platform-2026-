@@ -174,7 +174,7 @@ export class ExamService {
         maxScore: questions.reduce((sum, q) => sum + q.points, 0),
         timeRemainingSeconds: lockedExam.timeLimitMinutes
           ? lockedExam.timeLimitMinutes * 60
-          : null,
+          : undefined,
       });
 
       const saved = await em.save(ExamAttempt, attempt);
@@ -270,10 +270,10 @@ export class ExamService {
     if (!includeCorrectAnswers) {
       for (const q of ordered) {
         if (q.options) {
-          q.options = q.options.map((o) => ({
+          q.options = (q.options.map((o) => ({
             ...o,
             isCorrect: undefined,
-          })) as unknown as typeof q.options;
+          })) as unknown) as typeof q.options;
         }
       }
     }

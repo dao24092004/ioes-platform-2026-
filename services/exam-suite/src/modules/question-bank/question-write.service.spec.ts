@@ -8,10 +8,10 @@ import {
   Difficulty,
   KAFKA_TOPICS,
   EVENT_TYPES,
+  OutboxEvent,
 } from '@ioes/common-node';
 import { QuestionWriteService } from './question-write.service';
 import { Question } from './entities/question.entity';
-import { OutboxEvent } from './entities/outbox-event.entity';
 import { CreateQuestionDto } from './dto/create-question.dto';
 
 /**
