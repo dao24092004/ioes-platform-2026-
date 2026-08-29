@@ -297,3 +297,94 @@ class _FixedChain:
 
     def invoke(self, _payload: object) -> _Message:
         return _Message(self._verdict)
+
+
+def test_verifies_against_full_passage_not_truncated_excerpt(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Doi chieu phai dung toan van doan, khong dung excerpt da cat.
+
+    RetrievedSource.excerpt cat con 280 ky tu de hien thi, trong khi chunk dai
+    toi 800. Doi chieu tren ban cat thi cau rut tu duoi chunk bi loai oan — do
+    that tren "Box model trong CSS" mat 2 tren 3 cau.
+    """
+    long_tail = "A" * 400 + " Margin nam ngoai cung cua box model."
+    doc = (
+        Document(
+            page_content=long_tail,
+            metadata={"doc_id": "box", "title": "Box model", "chunk_id": "box#0"},
+        ),
+        0.9,
+    )
+    monkeypatch.setattr(questions, "retrieve", lambda *_a, **_k: [doc])
+
+    seen: list[str] = []
+
+    class _Chain:
+        def __or__(self, _other: object) -> _Chain:
+            return self
+
+        def invoke(self, _payload: object) -> DraftQuestionList:
+            return DraftQuestionList(questions=[_mcq()])
+
+    class _Model:
+        def with_structured_output(self, _schema: object) -> _Chain:
+            return _Chain()
+
+    monkeypatch.setattr(questions, "PROMPT", _Chain())
+    monkeypatch.setattr(questions, "get_chat_model", lambda *_a, **_k: _Model())
+    monkeypatch.setattr(
+        questions,
+        "_verify",
+        lambda _draft, passage: (seen.append(passage), True)[1],
+    )
+
+    questions.generate(_request(count=1))
+
+    assert seen, "khong goi doi chieu"
+    assert seen[0] == long_tail, "doi chieu nhan ban cat thay vi toan van"
+
+
+# --- Tang 2: cong loc lac de --------------------------------------------------
+
+
+def test_refuses_when_material_is_off_topic(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Truy xuat ra tai lieu, nhung tai lieu khong ban ve chu de duoc hoi.
+
+    Do that: hoi "Gradient Descent va learning rate" tren corpus khong co mang
+    nay van ra 3 cau hop le, neo dung nguon — nhung noi dung la kiem thu phan
+    mem va REST API.
+    """
+    monkeypatch.setattr(questions, "retrieve", lambda *_a, **_k: [_doc()])
+    monkeypatch.setattr(questions, "_covers_topic", lambda *_a, **_k: False)
+
+    def explode(*_a: object, **_k: object) -> None:
+        raise AssertionError("khong duoc sinh de khi tai lieu lac de")
+
+    monkeypatch.setattr(questions, "get_chat_model", explode)
+
+    result = questions.generate(_request(topic="Gradient Descent"))
+
+    assert result.grounded is False
+    assert result.questions == []
+
+
+def test_generates_when_material_covers_topic(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(questions, "retrieve", lambda *_a, **_k: [_doc()])
+    monkeypatch.setattr(questions, "_covers_topic", lambda *_a, **_k: True)
+    _stub_generation(monkeypatch, [_mcq()])
+
+    assert questions.generate(_request()).returned == 1
+
+
+def test_relevance_gate_lets_through_on_model_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Cong loc lac de hong thi cho qua — ba tang chan bia van dung nguyen."""
+
+    def explode(*_a: object, **_k: object) -> None:
+        raise RuntimeError("nha cung cap loi")
+
+    monkeypatch.setattr(questions, "get_chat_model", explode)
+
+    assert questions._covers_topic("Box model", "ngu canh bat ky") is True

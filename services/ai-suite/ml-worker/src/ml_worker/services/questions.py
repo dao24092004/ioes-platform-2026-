@@ -2,22 +2,28 @@
 
 Khác chuỗi hỏi đáp ở mức độ nghiêm ngặt. Câu trả lời sai thì người đọc gạt đi;
 câu hỏi sai được lưu vào ngân hàng đề rồi **đem chấm điểm**, nên sai lan sang
-điểm số của nhiều người. Vì vậy ở đây dựng bốn tầng chặn thay vì một cờ
+điểm số của nhiều người. Vì vậy ở đây dựng năm tầng chặn thay vì một cờ
 ``grounded``:
 
 1. Ngữ cảnh là nguồn duy nhất. ``topic`` chỉ dùng để truy xuất, KHÔNG bao giờ
    vào lời nhắc sinh — câu "sinh câu hỏi về X" cho phép mô hình rút từ kiến
    thức nền của nó thay vì từ tài liệu.
-2. Bắt trích nguồn. Mỗi câu phải khai lấy từ khối ``[n]`` nào; khai sai hoặc
+2. Cổng lọc lạc đề. Bốn tầng còn lại chặn *bịa* chứ không chặn *sai chủ đề*:
+   truy xuất luôn trả về thứ gì đó nên bộ sinh vẫn soạn được đề hợp lệ từ tài
+   liệu chẳng liên quan. Xem ``_covers_topic``.
+3. Bắt trích nguồn. Mỗi câu phải khai lấy từ khối ``[n]`` nào; khai sai hoặc
    ngoài khoảng thì loại. Kiểm bằng mã, không phải tin lời mô hình.
-3. Đối chiếu. Hỏi lại mô hình một câu đóng, chỉ đưa đúng đoạn nó khai, xem đoạn
+4. Đối chiếu. Hỏi lại mô hình một câu đóng, chỉ đưa đúng đoạn nó khai, xem đoạn
    đó có thật sự chống lưng đáp án không.
-4. ``count`` là trần chứ không phải chỉ tiêu. Học liệu đủ 3 câu thì trả 3. Ép
+5. ``count`` là trần chứ không phải chỉ tiêu. Học liệu đủ 3 câu thì trả 3. Ép
    cho đủ N chính là cách chắc chắn nhất để mô hình bắt đầu bịa: hết dữ liệu
    thật, nó vẫn phải nộp đủ bài.
 
-Tầng 3 tốn thêm một lượt gọi mô hình mỗi câu. Đắt, nhưng rẻ hơn một câu sai
+Tầng 4 tốn thêm một lượt gọi mô hình mỗi câu. Đắt, nhưng rẻ hơn một câu sai
 nằm trong ngân hàng đề.
+
+Cả hai tầng 2 và 4 đều tìm ra khi chạy thật, không phải khi viết test — xem
+docstring của ``_covers_topic`` và ``_verify``.
 """
 
 from __future__ import annotations
@@ -126,6 +132,55 @@ VERIFY_PROMPT = ChatPromptTemplate.from_messages(
 
 VERIFIED_MARKER = "CO"
 
+_RELEVANCE_SYSTEM = """Bạn kiểm tra học liệu có bàn về chủ đề được hỏi không.
+
+Trả lời DUY NHẤT một từ:
+- CO — nếu TÀI LIỆU có nội dung thực chất về chủ đề, đủ để ra đề kiểm tra.
+- KHONG — nếu tài liệu nói về thứ khác, hoặc chỉ nhắc thoáng qua chủ đề.
+
+Không giải thích, không viết gì thêm."""
+
+_RELEVANCE_USER = """TÀI LIỆU:
+{context}
+
+CHỦ ĐỀ CẦN RA ĐỀ: {topic}"""
+
+RELEVANCE_PROMPT = ChatPromptTemplate.from_messages(
+    [("system", _RELEVANCE_SYSTEM), ("human", _RELEVANCE_USER)]
+)
+
+
+def _covers_topic(topic: str, context: str) -> bool:
+    """Học liệu truy xuất được có thật sự bàn về chủ đề không.
+
+    Bốn tầng kia chặn *bịa* — chúng buộc mọi câu hỏi phải bám vào một đoạn tài
+    liệu có thật. Chúng KHÔNG chặn *lạc đề*: điểm tương đồng không tách được
+    trong và ngoài phạm vi (xem services/rag.py — E5 nén mọi điểm vào dải
+    0,82-0,87), nên ``retrieve`` luôn trả về thứ gì đó, và bộ sinh ngoan ngoãn
+    soạn đề từ những gì nó nhận.
+
+    Đo thật: hỏi "Gradient Descent và learning rate trong machine learning" —
+    corpus không có mảng này — vẫn ra 3 câu, đều hợp lệ và neo đúng nguồn,
+    nhưng nội dung là kiểm thử phần mềm và REST API.
+
+    Cổng này được nhìn thấy ``topic``, khác với lời nhắc sinh. An toàn vì nó
+    không sinh ra chữ nào của đề: nó chỉ phán CO/KHONG, nên kiến thức nền của
+    mô hình không có đường lọt vào câu hỏi.
+
+    Mô hình lỗi thì cho qua: đây là bộ lọc lạc đề, không phải chốt chặn bịa —
+    ba tầng sau vẫn đứng nguyên.
+    """
+    try:
+        message = (RELEVANCE_PROMPT | get_chat_model(VERIFICATION_TEMPERATURE)).invoke(
+            {"context": context, "topic": topic}
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("relevance_check_failed", error=str(exc))
+        return True
+
+    verdict = str(getattr(message, "content", "")).strip().upper()
+    return verdict.startswith(VERIFIED_MARKER)
+
 
 def _format_context(documents: list[tuple[Document, float]]) -> str:
     """Đánh số khối để mô hình có cái mà trích. Số [n] khớp source_index."""
@@ -167,8 +222,14 @@ def _shape_is_valid(draft: DraftQuestion, question_type: QuestionType) -> bool:
     return not draft.options
 
 
-def _verify(draft: DraftQuestion, excerpt: str) -> bool:
+def _verify(draft: DraftQuestion, passage: str) -> bool:
     """Đoạn văn có thật sự chống lưng đáp án không.
+
+    ``passage`` phải là **toàn văn** đoạn tài liệu, đúng cái mà lượt sinh đã
+    đọc — không phải ``RetrievedSource.excerpt``. Excerpt bị cắt còn 280 ký tự
+    để hiển thị, trong khi chunk dài tới 800; đối chiếu trên bản cắt thì mọi
+    câu rút từ phần đuôi chunk đều bị loại oan. Đo trên chủ đề "Box model
+    trong CSS": dùng excerpt loại 2 trên 3 câu, mà cả hai đều đúng.
 
     Mô hình lỗi thì coi như KHÔNG qua: thà mất một câu đúng còn hơn để lọt một
     câu sai vào ngân hàng đề.
@@ -182,7 +243,7 @@ def _verify(draft: DraftQuestion, excerpt: str) -> bool:
     try:
         message = (VERIFY_PROMPT | get_chat_model(VERIFICATION_TEMPERATURE)).invoke(
             {
-                "excerpt": excerpt,
+                "excerpt": passage,
                 "question": draft.question_text,
                 "answer": answer,
             }
@@ -220,6 +281,14 @@ def generate(request: GenerateQuestionsRequest) -> GenerateQuestionsResponse:
         logger.info("question_generation_no_context", topic=request.topic)
         return _empty(grounded=False)
 
+    # Truy xuất luôn trả về thứ gì đó, kể cả khi corpus không có mảng này —
+    # ngưỡng điểm không tách được trong và ngoài phạm vi. Hỏi mô hình xem tài
+    # liệu vừa lấy có bàn về chủ đề không, trước khi tốn lượt sinh.
+    context = _format_context(documents)
+    if not _covers_topic(request.topic, context):
+        logger.info("question_generation_off_topic", topic=request.topic)
+        return _empty(grounded=False)
+
     chain = PROMPT | get_chat_model(GENERATION_TEMPERATURE).with_structured_output(
         DraftQuestionList
     )
@@ -227,7 +296,7 @@ def generate(request: GenerateQuestionsRequest) -> GenerateQuestionsResponse:
         "language_name": _LANGUAGE_NAMES[request.language],
         "type_rule": _TYPE_RULES[request.question_type],
         "difficulty": request.difficulty.value,
-        "context": _format_context(documents),
+        "context": context,
         "count": request.count,
         "extra": f"\n\nYêu cầu thêm: {request.instructions}" if request.instructions else "",
     }
@@ -261,9 +330,12 @@ def generate(request: GenerateQuestionsRequest) -> GenerateQuestionsResponse:
             continue
 
         source = sources[draft.source_index - 1]
+        # Toàn văn đoạn, không phải source.excerpt: excerpt đã cắt còn 280 ký
+        # tự cho phần hiển thị, đối chiếu trên đó sẽ loại oan câu rút từ đuôi.
+        passage = documents[draft.source_index - 1][0].page_content
 
         # Tầng 3 — đoạn văn có chống lưng đáp án không.
-        if not _verify(draft, source.excerpt):
+        if not _verify(draft, passage):
             logger.info("question_dropped_unverified", chunk_id=source.chunk_id)
             dropped += 1
             continue
