@@ -17,6 +17,7 @@ from ioes_common import (
     register_exception_handlers,
 )
 
+from ml_worker.api.questions import router as questions_router
 from ml_worker.api.rag import router as rag_router
 from ml_worker.core.config import get_settings
 
@@ -51,6 +52,7 @@ add_request_id_middleware(app)
 instrument_fastapi(app)
 
 app.include_router(rag_router)
+app.include_router(questions_router)
 
 
 @app.get("/health")
