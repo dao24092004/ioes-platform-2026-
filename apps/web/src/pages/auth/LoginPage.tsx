@@ -3,33 +3,36 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/app/store/authStore';
 import { Button, Input } from '@/components/common';
+import { authApi } from '@/services/api/auth.api';
+import { ApiError } from '@/config/api.config';
 import type { User } from '@/types/db';
 
-// Mock accounts — match seedUsers in services/api.ts
-const MOCK_ACCOUNTS: Array<{ label: string; email: string; password: string; user: Partial<User> }> = [
+/**
+ * Tài khoản demo, chỉ để điền nhanh biểu mẫu khi chạy local — bấm vào là điền
+ * email/mật khẩu rồi gửi lên auth-service như đăng nhập bình thường, KHÔNG
+ * phải đường tắt bỏ qua xác thực. Nếu backend không có sẵn các tài khoản này
+ * thì sẽ báo sai mật khẩu, đúng như mong đợi.
+ */
+const DEMO_ACCOUNTS: Array<{ label: string; email: string; password: string }> = [
   {
     label: 'Admin',
     email: 'minh.nv@fpt.edu.vn',
     password: 'admin123',
-    user: { id: 'u-001', email: 'minh.nv@fpt.edu.vn', full_name: 'Nguyễn Văn Minh', role: 'admin', avatar_url: 'https://i.pravatar.cc/100?img=1' },
   },
   {
     label: 'Super Admin',
     email: 'super.admin@ioes.vn',
     password: 'super123',
-    user: { id: 'u-002', email: 'super.admin@ioes.vn', full_name: 'Trần Quốc Bảo', role: 'super_admin', avatar_url: null },
   },
   {
     label: 'Instructor',
     email: 'a.nv@fpt.edu.vn',
     password: 'instructor123',
-    user: { id: 'u-003', email: 'a.nv@fpt.edu.vn', full_name: 'TS. Nguyễn Văn A', role: 'instructor', avatar_url: 'https://i.pravatar.cc/100?img=5' },
   },
   {
     label: 'Student',
     email: 'nam.nh@fpt.edu.vn',
     password: 'student123',
-    user: { id: 'u-005', email: 'nam.nh@fpt.edu.vn', full_name: 'Nguyễn Hoàng Nam', role: 'student', avatar_url: 'https://i.pravatar.cc/100?img=11' },
   },
 ];
 
@@ -57,36 +60,48 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleQuickLogin = (account: (typeof MOCK_ACCOUNTS)[0]) => {
-    setEmail(account.email);
-    setPassword(account.password);
-    // auto-login immediately
+  /**
+   * Đăng nhập thật qua auth-service.
+   *
+   * Access token phải vào store trước khi điều hướng: apiClient đọc token từ
+   * đó, nên nếu điều hướng trước thì trang đích gọi API sẽ đi thiếu token.
+   */
+  const signIn = async (emailValue: string, passwordValue: string) => {
     setIsLoading(true);
     setError('');
-    setTimeout(() => {
-      login(account.user as User);
-      navigate(homeForRole((account.user as User).role));
-    }, 600);
+
+    try {
+      const session = await authApi.login({ email: emailValue, password: passwordValue });
+
+      const user: User = {
+        id: session.user.id,
+        email: session.user.email,
+        full_name: session.user.fullName,
+        role: session.user.role,
+        avatar_url: session.user.avatarUrl,
+      } as User;
+
+      login(user, session.accessToken);
+      navigate(homeForRole(user.role));
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : 'Không kết nối được máy chủ. Kiểm tra API Gateway đang chạy chưa.',
+      );
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuickLogin = (account: (typeof DEMO_ACCOUNTS)[0]) => {
+    setEmail(account.email);
+    setPassword(account.password);
+    void signIn(account.email, account.password);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    const matched = MOCK_ACCOUNTS.find(
-      (a) => a.email === email && a.password === password
-    );
-
-    setTimeout(() => {
-      if (matched) {
-        login(matched.user as User);
-        navigate(homeForRole((matched.user as User).role));
-      } else {
-        setError('Email hoặc mật khẩu không đúng.');
-      }
-      setIsLoading(false);
-    }, 800);
+    void signIn(email, password);
   };
 
   return (
@@ -197,11 +212,11 @@ export default function LoginPage() {
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-3">
               <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-              <span className="text-xs text-slate-500 font-medium">Quick Login (Mock)</span>
+              <span className="text-xs text-slate-500 font-medium">Đăng nhập nhanh (tài khoản demo)</span>
               <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
             </div>
             <div className="grid grid-cols-2 gap-2">
-              {MOCK_ACCOUNTS.map((account) => (
+              {DEMO_ACCOUNTS.map((account) => (
                 <button
                   key={account.label}
                   type="button"

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/app/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { useUIStore } from '@/app/store/uiStore';
 
 interface AdminLayoutProps {
@@ -26,7 +27,8 @@ interface NavSection {
 const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, headerActions }) => {
   const { t, i18n } = useTranslation();
   const location = useLocation();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
+  const { signOut } = useAuth();
   const { theme, setTheme } = useUIStore();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -179,7 +181,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, he
               <div className="text-xs text-red-500 font-medium">{roleLabel}</div>
             </div>
             <button
-              onClick={logout}
+              onClick={() => void signOut()}
               title={t('header.logout')}
               className="p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-700 transition-colors opacity-60 hover:opacity-100"
             >

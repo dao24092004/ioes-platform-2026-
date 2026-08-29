@@ -2,11 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/app/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { useUIStore } from '@/app/store/uiStore';
 
 const Header: React.FC = () => {
   const { t } = useTranslation();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
+  const { signOut } = useAuth();
   const { theme, setTheme, sidebarCollapsed } = useUIStore();
 
   return (
@@ -116,7 +118,7 @@ const Header: React.FC = () => {
               </div>
               <div className="border-t border-slate-100 dark:border-slate-700 pt-1">
                 <button
-                  onClick={logout}
+                  onClick={() => void signOut()}
                   className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

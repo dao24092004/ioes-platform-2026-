@@ -46,6 +46,43 @@ apiClient.interceptors.request.use((config) => {
  * Backend vẫn trả HTTP 200 kèm `success: false` ở một số nhánh, nên chỉ dựa
  * vào mã trạng thái là chưa đủ — phải xét cả cờ `success`.
  */
+/** Chuyển lỗi axios thành ApiError. Dùng chung cho unwrap, unwrapVoid và các lời gọi tự bóc vỏ. */
+export function toApiError(err: unknown): ApiError {
+  if (err instanceof ApiError) return err;
+
+  const axiosError = err as AxiosError<ApiEnvelope<unknown>>;
+  if (axiosError.response) {
+    const body = axiosError.response.data;
+    return new ApiError(
+      body?.message || axiosError.message,
+      axiosError.response.status,
+      body?.traceId,
+    );
+  }
+  if (axiosError.code === 'ECONNABORTED') {
+    return new ApiError('Yêu cầu quá thời gian chờ');
+  }
+  return new ApiError(axiosError.message || 'Không kết nối được máy chủ');
+}
+
+/**
+ * Cho endpoint không trả dữ liệu (logout, đổi mật khẩu...).
+ *
+ * Tách riêng khỏi `unwrap` vì `unwrap` coi thiếu `data` là lỗi. Hiện Jackson
+ * vẫn gửi `data: null`, nhưng chỉ cần ai đó bật `default-property-inclusion:
+ * non_null` là trường đó biến mất và mọi lời gọi void sẽ báo lỗi giả.
+ */
+export async function unwrapVoid(promise: Promise<{ data: ApiEnvelope<unknown> }>): Promise<void> {
+  try {
+    const { data: envelope } = await promise;
+    if (!envelope.success) {
+      throw new ApiError(envelope.message || 'Yêu cầu thất bại', undefined, envelope.traceId);
+    }
+  } catch (err) {
+    throw toApiError(err);
+  }
+}
+
 export async function unwrap<T>(promise: Promise<{ data: ApiEnvelope<T> }>): Promise<T> {
   try {
     const { data: envelope } = await promise;
@@ -57,20 +94,6 @@ export async function unwrap<T>(promise: Promise<{ data: ApiEnvelope<T> }>): Pro
     }
     return envelope.data;
   } catch (err) {
-    if (err instanceof ApiError) throw err;
-
-    const axiosError = err as AxiosError<ApiEnvelope<unknown>>;
-    if (axiosError.response) {
-      const body = axiosError.response.data;
-      throw new ApiError(
-        body?.message || axiosError.message,
-        axiosError.response.status,
-        body?.traceId,
-      );
-    }
-    if (axiosError.code === 'ECONNABORTED') {
-      throw new ApiError('Yêu cầu quá thời gian chờ');
-    }
-    throw new ApiError(axiosError.message || 'Không kết nối được máy chủ');
+    throw toApiError(err);
   }
 }

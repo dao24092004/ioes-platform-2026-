@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/utils/logger';
 import { Button, Input } from '@/components/common';
+import { authApi } from '@/services/api/auth.api';
+import { ApiError } from '@/config/api.config';
 
 export default function RegisterPage() {
   const { t } = useTranslation();
@@ -13,6 +15,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const getPasswordStrength = () => {
     let strength = 0;
@@ -28,26 +31,41 @@ export default function RegisterPage() {
   const strengthLevels = ['password.weak', 'password.medium', 'password.strong', 'password.veryStrong'];
   const strengthColors = ['bg-red-500', 'bg-amber-500', 'bg-emerald-500', 'bg-emerald-500'];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
     if (password !== confirmPassword) {
       logger.warn('RegisterPage', 'Password mismatch');
+      setError('Mật khẩu nhập lại không khớp.');
+      return;
+    }
+    // auth-service bắt tối thiểu 8 ký tự; chặn ở đây để khỏi mất một vòng gọi.
+    if (password.length < 8) {
+      setError('Mật khẩu phải có ít nhất 8 ký tự.');
       return;
     }
 
     setLoading(true);
+    // Không log mật khẩu, chỉ log những trường không nhạy cảm.
     logger.info('RegisterPage', 'User attempting to register', {
       email,
       full_name: fullName,
       has_accepted_terms: agreeTerms,
     });
 
-    // Mock flow: simulate API call then redirect to verify-email
-    setTimeout(() => {
-      navigate('/auth/verify-email', {
-        state: { email, fullName },
-      });
-    }, 600);
+    try {
+      await authApi.register({ email, password, fullName });
+      // Đăng ký xong chưa có phiên — backend gửi email xác thực trước.
+      navigate('/auth/verify-email', { state: { email, fullName } });
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : 'Không kết nối được máy chủ. Kiểm tra API Gateway đang chạy chưa.',
+      );
+      setLoading(false);
+    }
   };
 
   const handleGoogleRegister = () => {
@@ -92,6 +110,11 @@ export default function RegisterPage() {
 
           {/* Register Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                <p className="text-sm text-red-600 dark:text-red-400 text-center">{error}</p>
+              </div>
+            )}
             <Input
               label={t('auth.fullName')}
               type="text"

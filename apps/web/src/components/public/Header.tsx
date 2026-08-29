@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '@/app/store/uiStore';
 import { useAuthStore } from '@/app/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 
 interface HeaderProps {
   activeSection?: string;
@@ -15,8 +16,8 @@ const Header: React.FC<HeaderProps> = ({ activeSection: propActiveSection }) => 
   const avatarMenuRef = useRef<HTMLDivElement>(null);
   const [scrollSection, setScrollSection] = useState('home');
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const { signOut } = useAuth();
 
   const theme = useUIStore((s) => s.theme);
   const setTheme = useUIStore((s) => s.setTheme);
@@ -82,9 +83,9 @@ const Header: React.FC<HeaderProps> = ({ activeSection: propActiveSection }) => 
   };
 
   const handleLogout = () => {
-    logout();
     setAvatarMenuOpen(false);
-    navigate('/');
+    // signOut tự điều hướng về trang đăng nhập sau khi thu hồi phiên.
+    void signOut();
   };
 
   const avatarInitial = (user?.full_name || user?.email || '?').trim().charAt(0).toUpperCase();

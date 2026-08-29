@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/app/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 
 interface InstructorLayoutProps {
   title: string;
@@ -26,7 +27,8 @@ interface NavSection {
 const InstructorLayout: React.FC<InstructorLayoutProps> = ({ title, subtitle, children, headerActions }) => {
   const { t, i18n } = useTranslation();
   const location = useLocation();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
+  const { signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(
     typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light',
@@ -203,7 +205,7 @@ const InstructorLayout: React.FC<InstructorLayoutProps> = ({ title, subtitle, ch
               </div>
             </div>
             <button
-              onClick={logout}
+              onClick={() => void signOut()}
               title={t('header.logout')}
               className="p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-700 transition-colors opacity-60 hover:opacity-100"
             >
