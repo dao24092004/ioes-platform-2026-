@@ -165,12 +165,20 @@ const StudentAIAssistantPage: React.FC = () => {
     };
   }, [makeDraftThread, untitled]);
 
+  // Các phiên đang tải dở. `loaded` chỉ bật sau khi fetch xong, nên nếu chỉ
+  // dựa vào nó thì mọi thay đổi khác của `threads` trong lúc chờ sẽ phóng thêm
+  // một lời gọi nữa cho cùng phiên đó.
+  const loadingHistoryRef = useRef<Set<string>>(new Set());
+
   // Tải lịch sử khi mở một phiên chưa có tin nhắn trong bộ nhớ.
   useEffect(() => {
     const thread = threads.find((th) => th.id === activeId);
     if (!thread || thread.loaded || !thread.sessionId) return;
 
     const sessionId = thread.sessionId;
+    if (loadingHistoryRef.current.has(sessionId)) return;
+    loadingHistoryRef.current.add(sessionId);
+
     let cancelled = false;
 
     aiApi
@@ -201,6 +209,9 @@ const StudentAIAssistantPage: React.FC = () => {
           prev.map((th) => (th.id === sessionId ? { ...th, loaded: true } : th)),
         );
         setLoadError(err instanceof ApiError ? err.message : String(err));
+      })
+      .finally(() => {
+        loadingHistoryRef.current.delete(sessionId);
       });
 
     return () => {

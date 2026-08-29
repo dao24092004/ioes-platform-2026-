@@ -24,12 +24,37 @@ src/
 ├── app.module.ts                 # Module gốc
 ├── config/
 │   └── app.config.ts             # Đọc biến môi trường, có mặc định cho local
+├── common/
+│   └── guards/gateway-user.guard.ts   # Đọc X-User-Id mà API Gateway chèn vào
+├── database/
+│   └── database.module.ts        # TypeORM, sở hữu chat_sessions/chat_messages
 ├── modules/
+│   ├── chat/                     # US-017: hỏi đáp, lưu phiên hội thoại
+│   │   ├── chat.controller.ts    # POST /chat, GET /chat/sessions, GET /chat/:id
+│   │   ├── chat.service.ts       # Ghép phiên, gọi ml-worker, lưu tin nhắn
+│   │   ├── ml-worker.client.ts   # Gọi POST /v1/rag/query
+│   │   └── entities/             # ChatSession, ChatMessage
 │   ├── discovery/                # Đăng ký Eureka
 │   └── health/                   # GET /health
 └── types/
     └── eureka-js-client.d.ts     # Khai báo kiểu cho gói không có type
 ```
+
+## API hội thoại
+
+Gateway khai `Path=/api/ai/**` kèm `StripPrefix=2`, nên client gọi
+`/api/ai/chat` còn controller nhận `/chat`.
+
+| Phương thức | Đường dẫn | Việc |
+|---|---|---|
+| POST | `/chat` | Hỏi một câu. Bỏ trống `sessionId` thì tạo phiên mới. Giới hạn 10 lượt/phút mỗi người |
+| GET | `/chat/sessions` | Danh sách phiên của người đang đăng nhập |
+| GET | `/chat/:sessionId` | Toàn bộ tin nhắn của một phiên |
+
+Danh tính đọc từ header `X-User-Id` mà API Gateway chèn sau khi kiểm JWT.
+Service này **không được phơi ra internet**: gọi thẳng cổng 9100 mà tự đặt
+header đó là mạo danh được bất kỳ ai. Trong K8s phải chặn bằng NetworkPolicy,
+chỉ cho gateway gọi tới.
 
 ## Chạy local
 
