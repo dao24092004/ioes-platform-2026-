@@ -8,7 +8,7 @@ import {
   RetrievedSource,
 } from './entities/chat-message.entity';
 import { ChatSession } from './entities/chat-session.entity';
-import { MlRetrievedSource, MlWorkerClient } from './ml-worker.client';
+import { MlRetrievedSource, MlWorkerClient } from '../ml-worker/ml-worker.client';
 
 /** Kết quả một lượt hỏi đáp trả về cho client. */
 export interface ChatTurn {

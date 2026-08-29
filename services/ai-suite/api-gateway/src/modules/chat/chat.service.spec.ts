@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatService } from './chat.service';
-import { MlRagResponse, MlWorkerClient } from './ml-worker.client';
+import { MlRagResponse, MlWorkerClient } from '../ml-worker/ml-worker.client';
 import { ChatMessage, ChatMessageRole } from './entities/chat-message.entity';
 import { ChatSession } from './entities/chat-session.entity';
 

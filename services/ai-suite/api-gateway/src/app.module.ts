@@ -6,6 +6,7 @@ import { DatabaseModule } from './database/database.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { DiscoveryModule } from './modules/discovery/discovery.module';
 import { HealthModule } from './modules/health/health.module';
+import { QuestionsModule } from './modules/questions/questions.module';
 import { throttleConfig } from './config/app.config';
 
 @Module({
@@ -18,6 +19,7 @@ import { throttleConfig } from './config/app.config';
     DatabaseModule,
     DiscoveryModule,
     ChatModule,
+    QuestionsModule,
     HealthModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

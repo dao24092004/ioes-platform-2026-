@@ -71,6 +71,12 @@ export const throttleConfig = {
 export const mlWorkerConfig = {
   baseUrl: required('ML_WORKER_URL', 'http://localhost:9101'),
   timeoutMs: int('ML_WORKER_TIMEOUT_MS', 60_000),
+  /**
+   * Sinh câu hỏi gọi mô hình nhiều lượt — một lượt soạn cộng một lượt đối
+   * chiếu cho mỗi câu — nên xin 10 câu là 11 lần gọi. Timeout của hỏi đáp
+   * (60s) sẽ cắt ngang giữa chừng.
+   */
+  generateTimeoutMs: int('ML_WORKER_GENERATE_TIMEOUT_MS', 180_000),
 };
 
 export const kafkaConfig = {
