@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/components/layout/AdminLayout';
 import {
   notificationsApi,
@@ -9,8 +9,28 @@ import {
   type NotifChannel,
   type NotifTemplate,
 } from '@/services/api';
+import { notificationApi, type NotificationType } from '@/services/api/notification.api';
+import { ApiError } from '@/config/api.config';
 import { formatRelative } from '@/utils/time';
 import { ANIMATION, TEST_IDS } from '@/constants/ui';
+
+/**
+ * Kênh hiển thị trên giao diện sang enum `NotificationType` phía Java. Sai
+ * chữ là backend trả 400 vì `@NotNull` trên enum không parse được.
+ */
+const CHANNEL_TO_TYPE: Record<NotifChannel, NotificationType> = {
+  inApp: 'in_app',
+  email: 'email',
+  push: 'push',
+};
+
+/**
+ * `NotificationService.deliver()` ném `badRequest("Only EMAIL type is
+ * currently supported")` cho mọi kênh khác email, rồi bắt lại và lưu bản ghi
+ * ở trạng thái `failed` — tức HTTP vẫn 200. Khoá sẵn hai kênh kia để người
+ * dùng không bấm gửi vào chỗ chắc chắn hỏng; mở lại khi backend giao được.
+ */
+const SUPPORTED_CHANNELS: readonly NotifChannel[] = ['email'];
 
 const categoryStyles: Record<NotifCategory, { bg: string; text: string; icon: React.ReactNode }> = {
   system: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" /></svg> },
@@ -36,12 +56,16 @@ const NotificationsPage: React.FC = () => {
   const qc = useQueryClient();
 
   const [filter, setFilter] = useState<NotifCategory | 'all' | 'unread'>('all');
-  const [audience, setAudience] = useState<'all' | 'students' | 'instructors' | 'admins'>('all');
-  const [channel, setChannel] = useState<NotifChannel>('inApp');
+  const [recipient, setRecipient] = useState('');
+  const [channel, setChannel] = useState<NotifChannel>('email');
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [sentFlash, setSentFlash] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
+  // Hộp thư, thống kê và mẫu vẫn là dữ liệu giả: `GET /notifications/user/{id}`
+  // phía Java mới là chỗ để tạm, trả `List.of()`, còn `stats`/`templates` thì
+  // chưa có endpoint nào. Chỉ ô soạn thông báo bên dưới là gọi thật.
   const { data: stats } = useQuery({ queryKey: ['notif', 'stats'], queryFn: () => notificationsApi.stats() });
   const { data: inbox, isLoading } = useQuery({ queryKey: ['notif', 'inbox'], queryFn: () => notificationsApi.inbox() });
   const { data: templates } = useQuery({ queryKey: ['notif', 'templates'], queryFn: () => notificationsApi.templates() });
@@ -62,12 +86,42 @@ const NotificationsPage: React.FC = () => {
     qc.setQueryData(['notif', 'stats'], (prev: typeof stats) => prev ? { ...prev, unread: 0 } : prev);
   };
 
+  /**
+   * `POST /notifications/send` trả HTTP 200 kèm `status: 'failed'` khi khâu
+   * gửi hỏng — service bắt exception rồi vẫn lưu bản ghi. Nên chỉ dựa vào
+   * `onSuccess` là chưa đủ, phải xét `status` trong bản ghi trả về.
+   */
+  const sendMutation = useMutation({
+    mutationFn: () =>
+      notificationApi.send({
+        type: CHANNEL_TO_TYPE[channel],
+        recipient: recipient.trim(),
+        subject: title.trim(),
+        content: message.trim(),
+      }),
+    onSuccess: (sent) => {
+      if (sent.status === 'failed') {
+        setSendError(t('notificationsAdmin.broadcast.failed'));
+        return;
+      }
+      setSendError(null);
+      setSentFlash(true);
+      setTitle('');
+      setMessage('');
+      setTimeout(() => setSentFlash(false), 2400);
+    },
+    onError: (err: unknown) => {
+      setSendError(err instanceof ApiError ? err.message : t('notificationsAdmin.broadcast.failed'));
+    },
+  });
+
+  const canSend =
+    Boolean(recipient.trim() && title.trim() && message.trim()) && !sendMutation.isPending;
+
   const handleSend = () => {
-    if (!title.trim() || !message.trim()) return;
-    setSentFlash(true);
-    setTitle('');
-    setMessage('');
-    setTimeout(() => setSentFlash(false), 2400);
+    if (!canSend) return;
+    setSendError(null);
+    sendMutation.mutate();
   };
 
   const statCards = [
@@ -283,19 +337,18 @@ const NotificationsPage: React.FC = () => {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label htmlFor="broadcast-audience" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">{t('notificationsAdmin.broadcast.audience')}</label>
-                <select
-                  id="broadcast-audience"
-                  data-testid={TEST_IDS.BROADCAST_AUDIENCE}
-                  aria-label={t('aria.selectAudience')}
-                  value={audience}
-                  onChange={e => setAudience(e.target.value as typeof audience)}
-                  className="w-full px-3 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
-                >
-                  {(['all', 'students', 'instructors', 'admins'] as const).map(a => (
-                    <option key={a} value={a}>{t(`notificationsAdmin.broadcast.audiences.${a}`)}</option>
-                  ))}
-                </select>
+                <label htmlFor="broadcast-recipient" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">{t('notificationsAdmin.broadcast.recipient')}</label>
+                <input
+                  id="broadcast-recipient"
+                  type="text"
+                  data-testid={TEST_IDS.BROADCAST_RECIPIENT}
+                  aria-label={t('aria.enterRecipient')}
+                  value={recipient}
+                  onChange={e => setRecipient(e.target.value)}
+                  placeholder={t('notificationsAdmin.broadcast.recipient_placeholder')}
+                  className="w-full px-3 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                />
+                <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">{t('notificationsAdmin.broadcast.recipient_hint')}</p>
               </div>
 
               <div>
@@ -303,6 +356,7 @@ const NotificationsPage: React.FC = () => {
                 <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t('aria.selectChannel')}>
                   {(['inApp', 'email', 'push'] as NotifChannel[]).map(c => {
                     const active = channel === c;
+                    const supported = SUPPORTED_CHANNELS.includes(c);
                     return (
                       <button
                         key={c}
@@ -311,8 +365,10 @@ const NotificationsPage: React.FC = () => {
                         aria-checked={active}
                         aria-label={t(`shared.channels.${c}`)}
                         data-testid={TEST_IDS.BROADCAST_CHANNEL}
+                        disabled={!supported}
+                        title={supported ? undefined : t('notificationsAdmin.broadcast.channel_unsupported')}
                         onClick={() => setChannel(c)}
-                        className={`flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl border transition-all ${
+                        className={`flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                           active
                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                             : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
@@ -324,6 +380,7 @@ const NotificationsPage: React.FC = () => {
                     );
                   })}
                 </div>
+                <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">{t('notificationsAdmin.broadcast.channel_unsupported')}</p>
               </div>
 
               <div>
@@ -354,14 +411,20 @@ const NotificationsPage: React.FC = () => {
                 />
               </div>
 
+              {sendError && (
+                <p role="alert" className="text-sm text-red-600 dark:text-red-400">{sendError}</p>
+              )}
+
               <button
                 onClick={handleSend}
-                disabled={!title.trim() || !message.trim()}
+                disabled={!canSend}
                 aria-label={t('aria.sendBroadcast')}
                 data-testid={TEST_IDS.BROADCAST_SEND}
                 className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               >
-                {sentFlash ? (
+                {sendMutation.isPending ? (
+                  t('notificationsAdmin.broadcast.sending')
+                ) : sentFlash ? (
                   <>
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
                     {t('shared.sent')}

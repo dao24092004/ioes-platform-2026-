@@ -4,17 +4,28 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import InstructorLayout from '@/components/layout/InstructorLayout';
 import PaginationBar from '@/components/common/PaginationBar';
-import { instructorApi, type InstructorExamRow } from '@/services/api';
-import { formatRelative } from '@/utils/time';
+import { examApi, type Exam } from '@/services/api/exam.api';
 
 type StatusFilter = 'all' | 'active' | 'scheduled' | 'completed' | 'draft';
 
-const statusStyles: Record<string, { bg: string; text: string; dot: string }> = {
-  active: { bg: 'bg-emerald-50 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500 animate-pulse' },
-  scheduled: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', dot: 'bg-blue-500' },
-  completed: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400', dot: 'bg-slate-400' },
-  draft: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' },
-};
+/** Ô chưa có nguồn dữ liệu thật thì hiện dấu này thay vì bịa số. */
+const EMPTY = '—';
+
+/**
+ * Bảng dưới đây lấy từ `GET /exams` (exam-suite) nên các cột đã có nguồn thật
+ * là tiêu đề và mã đề. Entity `Exam` chưa có trường lịch thi, trạng thái, tên
+ * khoá học, số người dự thi hay số bài chờ chấm — mấy cột đó để trống cho tới
+ * khi backend bổ sung, chứ không suy diễn từ dữ liệu đang có.
+ *
+ * `ExamService.list()` cũng mới trả dữ liệu thật cho vai trò INSTRUCTOR;
+ * STUDENT và ADMIN còn rơi vào nhánh trả mảng rỗng.
+ */
+const UNAVAILABLE_STATUS_FILTERS: readonly StatusFilter[] = [
+  'active',
+  'scheduled',
+  'completed',
+  'draft',
+];
 
 const ExamsPage: React.FC = () => {
   const { t } = useTranslation();
@@ -25,18 +36,19 @@ const ExamsPage: React.FC = () => {
 
   const { data: exams = [], isLoading } = useQuery({
     queryKey: ['instructor', 'exams', 'list'],
-    queryFn: () => instructorApi.upcomingExams(),
+    queryFn: () => examApi.listExams(),
   });
 
   const filtered = useMemo(() => {
+    // Không lọc theo trạng thái được: entity chưa có trường đó, mà lọc theo
+    // giá trị rỗng thì bảng sẽ trắng trơn. Các nút lọc kia cũng bị khoá.
     let arr = exams;
-    if (status !== 'all') arr = arr.filter((e: InstructorExamRow) => e.status === status);
     if (search.trim()) {
       const q = search.toLowerCase();
-      arr = arr.filter((e: InstructorExamRow) => e.title.toLowerCase().includes(q) || e.course.toLowerCase().includes(q));
+      arr = arr.filter((e: Exam) => e.title.toLowerCase().includes(q));
     }
     return arr;
-  }, [exams, status, search]);
+  }, [exams, search]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
@@ -48,13 +60,8 @@ const ExamsPage: React.FC = () => {
     setPage(1);
   }, [status, search, pageSize]);
 
-  const stats = useMemo(() => {
-    const total = exams.length;
-    const active = exams.filter((e: InstructorExamRow) => e.status === 'active').length;
-    const pending = exams.reduce((acc: number, e: InstructorExamRow) => acc + e.pending_grading, 0);
-    const participants = exams.reduce((acc: number, e: InstructorExamRow) => acc + e.participants, 0);
-    return { total, active, pending, participants };
-  }, [exams]);
+  // Chỉ tổng số đề là đếm được từ dữ liệu thật; ba ô còn lại chưa có nguồn.
+  const totalExams = exams.length;
 
   return (
     <InstructorLayout
@@ -70,28 +77,33 @@ const ExamsPage: React.FC = () => {
       }
     >
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatBox color="blue" label={t('instructor.exams.stats.total')} value={stats.total} icon={<ExamSvg />} />
-        <StatBox color="emerald" label={t('instructor.exams.stats.active')} value={stats.active} icon={<BoltSvg />} />
-        <StatBox color="amber" label={t('instructor.exams.stats.pendingGrading')} value={stats.pending} icon={<ClipboardSvg />} />
-        <StatBox color="cyan" label={t('instructor.exams.stats.participants')} value={stats.participants.toLocaleString('en-US')} icon={<UsersSvg />} />
+        <StatBox color="blue" label={t('instructor.exams.stats.total')} value={totalExams} icon={<ExamSvg />} />
+        <StatBox color="emerald" label={t('instructor.exams.stats.active')} value={EMPTY} icon={<BoltSvg />} />
+        <StatBox color="amber" label={t('instructor.exams.stats.pendingGrading')} value={EMPTY} icon={<ClipboardSvg />} />
+        <StatBox color="cyan" label={t('instructor.exams.stats.participants')} value={EMPTY} icon={<UsersSvg />} />
       </section>
 
       <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-wrap gap-3 items-center justify-between">
           <div className="flex flex-wrap gap-2">
-            {(['all', 'active', 'scheduled', 'completed', 'draft'] as StatusFilter[]).map((s) => (
-              <button
-                key={s}
-                onClick={() => setStatus(s)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                  status === s
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                {t(`instructor.exams.filter.${s}`)}
-              </button>
-            ))}
+            {(['all', 'active', 'scheduled', 'completed', 'draft'] as StatusFilter[]).map((s) => {
+              const unavailable = UNAVAILABLE_STATUS_FILTERS.includes(s);
+              return (
+                <button
+                  key={s}
+                  onClick={() => setStatus(s)}
+                  disabled={unavailable}
+                  title={unavailable ? t('instructor.exams.statusUnavailable') : undefined}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                    status === s
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  {t(`instructor.exams.filter.${s}`)}
+                </button>
+              );
+            })}
           </div>
           <div className="relative">
             <input
@@ -127,6 +139,9 @@ const ExamsPage: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
+            <p className="px-6 py-3 text-xs text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
+              {t('instructor.exams.columnsPending')}
+            </p>
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase tracking-wider text-slate-500">
@@ -140,57 +155,27 @@ const ExamsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {paged.map((e: InstructorExamRow) => {
-                  const ss = statusStyles[e.status] ?? statusStyles.draft;
-                  return (
-                    <tr key={e.id} className="border-t border-slate-100 dark:border-slate-800 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-sm">{e.title}</div>
-                        <div className="text-xs text-slate-500">#{e.id}</div>
-                      </td>
-                      <td className="px-6 py-4 text-sm">{e.course}</td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="inline-flex items-center gap-1 text-sm font-semibold">
-                          <UsersSvg /> {e.participants}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        {e.pending_grading > 0 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
-                            {e.pending_grading}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-slate-400">—</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-500">{e.expires_at ? formatRelative(e.expires_at) : '—'}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold ${ss.bg} ${ss.text}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${ss.dot}`} />
-                          {t(`instructor.exams.status.${e.status}`)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {e.pending_grading > 0 && (
-                            <Link
-                              to="/instructor/grading"
-                              className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-100 transition-colors"
-                            >
-                              {t('instructor.exams.gradeNow')}
-                            </Link>
-                          )}
-                          <button
-                            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors"
-                            title={t('instructor.exams.table.actions')}
-                          >
-                            <MoreSvg />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {paged.map((e: Exam) => (
+                  <tr key={e.id} className="border-t border-slate-100 dark:border-slate-800 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-sm">{e.title}</div>
+                      <div className="text-xs text-slate-500">#{e.id}</div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-400">{EMPTY}</td>
+                    <td className="px-6 py-4 text-center text-sm text-slate-400">{EMPTY}</td>
+                    <td className="px-6 py-4 text-center text-xs text-slate-400">{EMPTY}</td>
+                    <td className="px-6 py-4 text-sm text-slate-400">{EMPTY}</td>
+                    <td className="px-6 py-4 text-sm text-slate-400">{EMPTY}</td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors"
+                        title={t('instructor.exams.table.actions')}
+                      >
+                        <MoreSvg />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

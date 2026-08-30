@@ -2110,6 +2110,8 @@
       },
       "gradeNow": "Chấm ngay",
       "empty": "Chưa có bài thi nào.",
+      "statusUnavailable": "Backend chưa có trường trạng thái cho đề thi.",
+      "columnsPending": "Khóa học, thí sinh, chờ chấm, hết hạn và trạng thái để trống vì exam-suite chưa có các trường này.",
       "pagination": {
         "range": "Hiển thị {{from}}–{{to}} trong tổng {{total}}",
         "prev": "Trước",
@@ -3385,14 +3387,10 @@
       }
     },
     "broadcast": {
-      "title": "Gửi thông báo broadcast",
-      "audience": "Đối tượng",
-      "audiences": {
-        "all": "Tất cả user",
-        "students": "Students",
-        "instructors": "Instructors",
-        "admins": "Admins"
-      },
+      "title": "Gửi thông báo",
+      "recipient": "Người nhận",
+      "recipient_placeholder": "email hoặc token thiết bị",
+      "recipient_hint": "Backend gửi tới đúng một người nhận, chưa hỗ trợ gửi theo nhóm.",
       "channel": "Kênh",
       "channels": {
         "inApp": "In-App",
@@ -3402,7 +3400,10 @@
       "title_placeholder": "Tiêu đề thông báo",
       "message": "Nội dung",
       "message_placeholder": "Nhập nội dung thông báo...",
+      "channel_unsupported": "Hiện backend chỉ giao được qua email.",
       "send": "Gửi ngay",
+      "sending": "Đang gửi...",
+      "failed": "Gửi thất bại",
       "preview": "Xem trước"
     },
     "templates": {
@@ -3426,8 +3427,8 @@
     "dismiss": "Bỏ qua",
     "saveConfig": "Lưu cấu hình",
     "runBackup": "Chạy sao lưu ngay",
-    "sendBroadcast": "Gửi thông báo broadcast",
-    "selectAudience": "Chọn đối tượng",
+    "sendBroadcast": "Gửi thông báo",
+    "enterRecipient": "Nhập người nhận",
     "selectChannel": "Chọn kênh",
     "searchExam": "Tìm bài thi",
     "filterSeverity": "Lọc theo mức độ",

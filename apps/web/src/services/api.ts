@@ -726,7 +726,7 @@ export interface AnalyticsTopCourse {
   rating: number;
 }
 
-export const analyticsApi = {
+export const adminAnalyticsMockApi = {
   async kpi(): Promise<AnalyticsKpi> {
     await sleep(150);
     return {
@@ -828,7 +828,14 @@ export interface ExamStats {
   flagged: number;
 }
 
-export const examApi = {
+/**
+ * Dữ liệu giả cho trang quản trị bài thi. Chưa thay được bằng exam-suite:
+ * `ExamService.list()` chỉ truy vấn thật cho vai trò INSTRUCTOR, còn ADMIN rơi
+ * vào nhánh trả mảng rỗng; và không có endpoint nào cho cụm số ở `stats()`.
+ * Đường thật nằm ở `services/api/exam.api.ts` — tên khác nhau để khỏi import
+ * nhầm cái này tưởng cái kia.
+ */
+export const adminExamMockApi = {
   async list(): Promise<ExamItem[]> {
     await sleep(120);
     const now = new Date();
