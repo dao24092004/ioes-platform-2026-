@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/components/layout/AdminLayout';
 import {
-  analyticsApi,
+  adminAnalyticsMockApi,
   type AnalyticsPoint,
   type AnalyticsTopCourse,
 } from '@/services/api';
@@ -156,37 +156,37 @@ const AnalyticsPage: React.FC = () => {
 
   const { data: kpi } = useQuery({
     queryKey: ['analytics', 'kpi'],
-    queryFn: () => analyticsApi.kpi(),
+    queryFn: () => adminAnalyticsMockApi.kpi(),
   });
 
   const { data: userGrowth } = useQuery({
     queryKey: ['analytics', 'userGrowth', range],
-    queryFn: () => analyticsApi.userGrowth(range),
+    queryFn: () => adminAnalyticsMockApi.userGrowth(range),
   });
 
   const { data: enrollments } = useQuery({
     queryKey: ['analytics', 'enrollments', range],
-    queryFn: () => analyticsApi.enrollments(range),
+    queryFn: () => adminAnalyticsMockApi.enrollments(range),
   });
 
   const { data: examCompletion } = useQuery({
     queryKey: ['analytics', 'examCompletion', range],
-    queryFn: () => analyticsApi.examCompletion(range),
+    queryFn: () => adminAnalyticsMockApi.examCompletion(range),
   });
 
   const { data: passRate } = useQuery({
     queryKey: ['analytics', 'passRate'],
-    queryFn: () => analyticsApi.passRate(),
+    queryFn: () => adminAnalyticsMockApi.passRate(),
   });
 
   const { data: topCourses } = useQuery({
     queryKey: ['analytics', 'topCourses'],
-    queryFn: () => analyticsApi.topCourses(),
+    queryFn: () => adminAnalyticsMockApi.topCourses(),
   });
 
   const { data: roles } = useQuery({
     queryKey: ['analytics', 'roles'],
-    queryFn: () => analyticsApi.roleDistribution(),
+    queryFn: () => adminAnalyticsMockApi.roleDistribution(),
   });
 
   const kpiCards = useMemo(

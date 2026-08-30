@@ -3,10 +3,10 @@ import { apiClient, toApiError, unwrap, type ApiEnvelope } from '@/config/api.co
 /**
  * Epic 7 — bảng xếp hạng và thống kê học tập.
  *
- * Gateway khai `Path=/api/analytics/**` kèm `StripPrefix=2`, nên
- * `/api/analytics/analytics/leaderboard` là sai: controller đã nằm dưới
- * `@RequestMapping("/analytics")`, mà StripPrefix chỉ cắt hai đoạn đầu. Đường
- * dẫn đúng là `/api/analytics/leaderboard`.
+ * Gateway khai `Path=/api/analytics/**` kèm `StripPrefix=1`, nên chỉ đoạn
+ * `/api` bị cắt và service nhận đúng `/analytics/...` như `@RequestMapping`
+ * của `AnalyticsController` mong đợi. Đường dẫn ở đây giữ nguyên một lần
+ * `/analytics`; viết `/api/analytics/analytics/...` là thừa.
  */
 
 const BASE = '/api/analytics';

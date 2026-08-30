@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/components/layout/AdminLayout';
-import { examApi, type ExamItem, type ExamStatus } from '@/services/api';
+import { adminExamMockApi, type ExamItem, type ExamStatus } from '@/services/api';
 import { formatRelative } from '@/utils/time';
 import { ANIMATION, TEST_IDS } from '@/constants/ui';
 
@@ -19,8 +19,8 @@ const ExamManagementPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<ExamStatus | 'all'>('all');
 
-  const { data: stats } = useQuery({ queryKey: ['exams', 'stats'], queryFn: () => examApi.stats() });
-  const { data: exams, isLoading } = useQuery({ queryKey: ['exams', 'list'], queryFn: () => examApi.list() });
+  const { data: stats } = useQuery({ queryKey: ['exams', 'stats'], queryFn: () => adminExamMockApi.stats() });
+  const { data: exams, isLoading } = useQuery({ queryKey: ['exams', 'list'], queryFn: () => adminExamMockApi.list() });
 
   const filtered = useMemo(() => {
     let arr = exams ?? [];

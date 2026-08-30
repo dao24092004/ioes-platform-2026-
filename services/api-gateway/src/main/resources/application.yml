@@ -63,13 +63,21 @@ spring.cloud.gateway:
       filters:
         - StripPrefix=2
 
-    # Exam Service (REST endpoints: /api/exam, /api/exams, /api/questions)
+    # Exam Service (controllers @Controller('exams') / @Controller('attempts'),
+    # nên chỉ cắt đoạn /api)
     - id: exam-suite
       uri: http://localhost:9005
       predicates:
-        - Path=/api/exam/**,/api/exams/**,/api/questions/**
+        - Path=/api/exams/**,/api/attempts/**
       filters:
-        - StripPrefix=2
+        - StripPrefix=1
+
+    # Exam session: @Controller('api/v1/exam-attempts') đã tự mang tiền tố
+    # /api/v1, nên không cắt đoạn nào.
+    - id: exam-session
+      uri: http://localhost:9005
+      predicates:
+        - Path=/api/v1/exam-attempts/**
 
     # Question Bank (nested path, strip only 1 segment)
     - id: question-bank
@@ -79,21 +87,21 @@ spring.cloud.gateway:
       filters:
         - StripPrefix=1
 
-    # Analytics Service
+    # Analytics Service (controller @RequestMapping("/analytics"), strip only 1)
     - id: analytics-service
       uri: lb://analytics-service
       predicates:
         - Path=/api/analytics/**
       filters:
-        - StripPrefix=2
+        - StripPrefix=1
 
-    # Notification Service
+    # Notification Service (controller @RequestMapping("/notifications"), strip only 1)
     - id: notification-service
       uri: lb://notification-service
       predicates:
         - Path=/api/notifications/**
       filters:
-        - StripPrefix=2
+        - StripPrefix=1
 
     # Blockchain Service
     - id: blockchain-suite

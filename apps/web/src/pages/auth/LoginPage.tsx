@@ -12,7 +12,13 @@ import type { User } from '@/types/db';
  * email/mật khẩu rồi gửi lên auth-service như đăng nhập bình thường, KHÔNG
  * phải đường tắt bỏ qua xác thực. Nếu backend không có sẵn các tài khoản này
  * thì sẽ báo sai mật khẩu, đúng như mong đợi.
+ *
+ * Khối này chỉ hiện khi `import.meta.env.DEV`, để mật khẩu không lọt vào gói
+ * build production. `database/seeds` hiện đang trống nên các nút này chưa đăng
+ * nhập được cho tới khi có seed tạo đúng bốn tài khoản dưới đây.
  */
+const SHOW_DEMO_ACCOUNTS = import.meta.env.DEV;
+
 const DEMO_ACCOUNTS: Array<{ label: string; email: string; password: string }> = [
   {
     label: 'Admin',
@@ -208,26 +214,28 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          {/* Quick-fill Mock Accounts */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-              <span className="text-xs text-slate-500 font-medium">Đăng nhập nhanh (tài khoản demo)</span>
-              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+          {/* Quick-fill demo accounts — chỉ dựng khi chạy dev */}
+          {SHOW_DEMO_ACCOUNTS && (
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+                <span className="text-xs text-slate-500 font-medium">Đăng nhập nhanh (tài khoản demo)</span>
+                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {DEMO_ACCOUNTS.map((account) => (
+                  <button
+                    key={account.label}
+                    type="button"
+                    onClick={() => handleQuickLogin(account)}
+                    className="py-2 px-3 text-xs font-medium rounded-lg border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
+                  >
+                    {account.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              {DEMO_ACCOUNTS.map((account) => (
-                <button
-                  key={account.label}
-                  type="button"
-                  onClick={() => handleQuickLogin(account)}
-                  className="py-2 px-3 text-xs font-medium rounded-lg border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
-                >
-                  {account.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-5">

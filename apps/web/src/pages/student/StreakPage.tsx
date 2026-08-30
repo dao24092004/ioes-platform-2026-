@@ -36,14 +36,19 @@ const emptyYear = (): DayActivity[] => {
 
 const ACTIVITY: DayActivity[] = emptyYear();
 
-const MOCK_WEEK = [
-  { day: 'streak.weekMon', minutes: 45 },
-  { day: 'streak.weekTue', minutes: 75 },
-  { day: 'streak.weekWed', minutes: 30 },
-  { day: 'streak.weekThu', minutes: 90 },
-  { day: 'streak.weekFri', minutes: 60 },
-  { day: 'streak.weekSat', minutes: 20 },
-  { day: 'streak.weekSun', minutes: 55 },
+/**
+ * Nhãn i18n cho bảy cột của biểu đồ tuần, xếp theo `Date.getDay()`
+ * (0 = Chủ nhật) để cột luôn khớp đúng thứ của ngày nó biểu diễn.
+ * Số phút lấy từ `ACTIVITY`.
+ */
+const WEEK_DAY_LABELS = [
+  'streak.weekSun',
+  'streak.weekMon',
+  'streak.weekTue',
+  'streak.weekWed',
+  'streak.weekThu',
+  'streak.weekFri',
+  'streak.weekSat',
 ];
 
 /** Ngưỡng cố định; phần đạt hay chưa tính từ chuỗi ngày thật. */
@@ -82,8 +87,8 @@ const StreakPage: React.FC = () => {
 
   const lastWeek = useMemo(() => {
     const week = ACTIVITY.slice(-7);
-    return week.map((d, i) => ({
-      day: MOCK_WEEK[i].day,
+    return week.map((d) => ({
+      day: WEEK_DAY_LABELS[new Date(d.date).getDay()],
       minutes: d.studyMinutes,
       date: d.date,
     }));

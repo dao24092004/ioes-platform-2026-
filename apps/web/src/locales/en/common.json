@@ -2127,6 +2127,8 @@
       },
       "gradeNow": "Grade now",
       "empty": "No exams yet.",
+      "statusUnavailable": "The backend has no status field for exams yet.",
+      "columnsPending": "Course, candidates, pending grading, expiry and status are blank because exam-suite does not carry those fields yet.",
       "pagination": {
         "range": "Showing {{from}}–{{to}} of {{total}}",
         "prev": "Prev",
@@ -3340,14 +3342,10 @@
       }
     },
     "broadcast": {
-      "title": "Send broadcast notification",
-      "audience": "Audience",
-      "audiences": {
-        "all": "All users",
-        "students": "Students",
-        "instructors": "Instructors",
-        "admins": "Admins"
-      },
+      "title": "Send notification",
+      "recipient": "Recipient",
+      "recipient_placeholder": "Email or device token",
+      "recipient_hint": "The backend delivers to exactly one recipient; group sending is not supported yet.",
       "channel": "Channel",
       "channels": {
         "inApp": "In-App",
@@ -3357,7 +3355,10 @@
       "title_placeholder": "Notification title",
       "message": "Message",
       "message_placeholder": "Type your message...",
+      "channel_unsupported": "The backend can only deliver over email right now.",
       "send": "Send now",
+      "sending": "Sending...",
+      "failed": "Send failed",
       "preview": "Preview"
     },
     "templates": {
@@ -3439,8 +3440,8 @@
     "dismiss": "Dismiss",
     "saveConfig": "Save configuration",
     "runBackup": "Run backup now",
-    "sendBroadcast": "Send broadcast notification",
-    "selectAudience": "Select audience",
+    "sendBroadcast": "Send notification",
+    "enterRecipient": "Enter recipient",
     "selectChannel": "Select channel",
     "searchExam": "Search exam",
     "filterSeverity": "Filter by severity",

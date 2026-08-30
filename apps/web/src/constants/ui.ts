@@ -35,7 +35,7 @@ export const TEST_IDS = {
   // Notifications
   NOTIF_ITEM: 'admin-notif-item',
   NOTIF_FILTER_PILL: 'admin-notif-filter',
-  BROADCAST_AUDIENCE: 'admin-broadcast-audience',
+  BROADCAST_RECIPIENT: 'admin-broadcast-recipient',
   BROADCAST_CHANNEL: 'admin-broadcast-channel',
   BROADCAST_TITLE: 'admin-broadcast-title',
   BROADCAST_MESSAGE: 'admin-broadcast-message',
