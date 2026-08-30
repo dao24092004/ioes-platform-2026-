@@ -1,7 +1,9 @@
 """Nạp corpus học liệu vào Milvus.
 
-Đọc file Markdown trong ``data/corpus/``, tách frontmatter lấy ``title`` và
-``doc_id``, cắt thành đoạn, nhúng, rồi ghi vào vectorstore.
+Đọc Markdown, PDF và DOCX trong ``data/corpus*/``, cắt thành đoạn, nhúng, rồi
+ghi vào vectorstore. Markdown lấy ``title``/``doc_id`` từ frontmatter; PDF và
+DOCX lấy tiêu đề từ metadata của chính file, ``doc_id`` từ tên file — xem
+``services/document_loaders.py`` để biết vì sao DOCX cho kết quả tốt hơn PDF.
 
 Nạp lại luôn xoá collection cũ trước. Ghi đè lên collection đang có sẽ nhân đôi
 dữ liệu vì mỗi lần chạy sinh khoá mới, khiến kết quả truy xuất bị trùng lặp.
@@ -19,6 +21,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from ml_worker.core.config import get_settings
 from ml_worker.db import milvus
+from ml_worker.services import document_loaders
 
 logger = get_logger(__name__)
 
@@ -75,6 +78,48 @@ def _lang_of(directory: Path) -> str:
     return "vi" if directory.name.endswith("-vi") else "en"
 
 
+def _iter_corpus_files(directory: Path) -> list[Path]:
+    """Mọi file corpus đọc được trong một thư mục."""
+    return [
+        path
+        for path in directory.iterdir()
+        if path.is_file() and path.suffix.lower() in document_loaders.SUPPORTED_SUFFIXES
+    ]
+
+
+def _load_one(path: Path, lang: str) -> Document | None:
+    """Đọc một file thành Document, hoặc None nếu không dùng được.
+
+    Markdown mang sẵn frontmatter nên ``title``/``doc_id`` lấy từ đó. PDF và
+    DOCX không có chỗ đặt metadata theo quy ước của corpus, nên ``doc_id`` lấy
+    tên file — vì thế **tên file quyết định mã trích dẫn**, đổi tên file là đổi
+    luôn ``chunk_id`` của mọi đoạn trong đó.
+    """
+    if path.suffix.lower() == document_loaders.MARKDOWN_SUFFIX:
+        raw = path.read_text(encoding="utf-8")
+        meta, body = _parse_frontmatter(raw, path.stem)
+        title, doc_id = meta["title"], meta["doc_id"]
+    else:
+        try:
+            title, body = document_loaders.extract(path)
+        except Exception as exc:  # noqa: BLE001 - một file hỏng không chặn cả lần nạp
+            logger.warning("corpus_file_unreadable", file=path.name, error=str(exc))
+            return None
+        doc_id = path.stem
+
+    body = body.strip()
+    if not body:
+        # PDF quét ảnh trích ra chuỗi rỗng. Nạp bản rỗng thì nó vẫn chiếm chỗ
+        # trong kết quả truy xuất mà chẳng có gì để đọc, nên bỏ hẳn.
+        logger.warning("corpus_file_empty", file=path.name)
+        return None
+
+    return Document(
+        page_content=body,
+        metadata={"doc_id": doc_id, "title": title, "lang": lang},
+    )
+
+
 def load_corpus(corpus_dir: Path | None = None) -> list[Document]:
     """Đọc học liệu.
 
@@ -95,21 +140,20 @@ def load_corpus(corpus_dir: Path | None = None) -> list[Document]:
     documents: list[Document] = []
     for directory in directories:
         found = 0
-        for path in sorted(directory.glob("*.md")):
-            raw = path.read_text(encoding="utf-8")
-            meta, body = _parse_frontmatter(raw, path.stem)
-            documents.append(
-                Document(
-                    page_content=body.strip(),
-                    metadata={
-                        "doc_id": meta["doc_id"],
-                        "title": meta["title"],
-                        "lang": _lang_of(directory),
-                    },
-                )
-            )
+        skipped = 0
+        for path in sorted(_iter_corpus_files(directory)):
+            loaded = _load_one(path, _lang_of(directory))
+            if loaded is None:
+                skipped += 1
+                continue
+            documents.append(loaded)
             found += 1
-        logger.info("corpus_dir_loaded", directory=str(directory), documents=found)
+        logger.info(
+            "corpus_dir_loaded",
+            directory=str(directory),
+            documents=found,
+            skipped=skipped,
+        )
 
     logger.info("corpus_loaded", documents=len(documents))
     return documents

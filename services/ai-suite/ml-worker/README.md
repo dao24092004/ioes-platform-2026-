@@ -25,18 +25,23 @@ Thuộc **Epic 5 — AI-Powered Learning**. Story đang thi công: **US-017 Chat
 src/ml_worker/
 ├── main.py                  FastAPI app
 ├── api/rag.py               POST /v1/rag/query, /v1/rag/ingest, GET /v1/rag/status
+├── api/questions.py         POST /v1/questions/generate
 ├── core/config.py           Pydantic settings
 ├── db/milvus.py             Vectorstore, tạo collection
 ├── schemas/rag.py           Request/response models
+├── schemas/questions.py     Request/response models cho sinh câu hỏi
 └── services/
     ├── embeddings.py        Mô hình nhúng, nạp một lần
     ├── llm.py               Chọn nhà cung cấp theo LLM_PROVIDER
+    ├── document_loaders.py  Trích văn bản từ PDF và DOCX
     ├── ingest.py            Đọc corpus, cắt đoạn, nạp vào Milvus
+    ├── questions.py         Soạn câu hỏi kiểm tra từ học liệu
     └── rag.py               Chuỗi truy xuất rồi sinh câu trả lời
 scripts/crawl_corpus.py      Thu thập học liệu từ MDN
 scripts/eval_retrieval.py    Đo chất lượng truy xuất trên bộ câu hỏi chuẩn
 data/eval/                   20 câu hỏi chuẩn + đáp án, hai bản có dấu và không dấu
-data/corpus/                 Học liệu dạng Markdown
+data/corpus/                 Học liệu tiếng Anh (Markdown, do crawl sinh ra)
+data/corpus-vi/              Học liệu tiếng Việt viết tay và tài liệu tự nộp
 ```
 
 ## Chạy local
@@ -61,12 +66,108 @@ curl -X POST http://localhost:9101/v1/rag/query \
   -d '{"question":"Flexbox khác Grid thế nào?"}'
 ```
 
+## API
+
+| Phương thức | Đường dẫn | Việc |
+|---|---|---|
+| POST | `/v1/rag/query` | Trả lời câu hỏi dựa trên corpus |
+| POST | `/v1/rag/ingest` | Nạp lại corpus. Xoá collection cũ trước |
+| GET | `/v1/rag/status` | Tình trạng tầng truy xuất |
+| POST | `/v1/questions/generate` | Soạn câu hỏi kiểm tra từ corpus |
+| POST | `/v1/embeddings` | Nhúng danh sách văn bản |
+
+### Sinh câu hỏi
+
+```bash
+curl -X POST http://localhost:9101/v1/questions/generate \
+  -H "Content-Type: application/json" \
+  -d '{"topic":"Box model trong CSS","question_type":"multiple_choice",
+       "difficulty":"medium","count":3,"language":"vi"}'
+```
+
+Câu hỏi **chỉ soạn từ học liệu đã nạp**, không lấy từ kiến thức nền của mô
+hình. Năm tầng chặn, chi tiết trong docstring `services/questions.py`:
+
+1. `topic` chỉ dùng để truy xuất, không vào lời nhắc sinh
+2. Cổng lọc lạc đề — truy xuất luôn trả về thứ gì đó nên phải hỏi riêng xem tài
+   liệu có bàn về chủ đề không
+3. Mỗi câu phải khai đoạn tài liệu chứa đáp án, khai sai thì loại
+4. Một lượt đối chiếu riêng kiểm đoạn đó có chống lưng đáp án không
+5. `count` là **trần chứ không phải chỉ tiêu**
+
+Đọc kết quả:
+
+- `grounded=false` với `questions` rỗng nghĩa là học liệu chưa phủ chủ đề. **Không
+  phải lỗi** — đừng hiện "thất bại", hãy bảo người dùng đổi chủ đề hoặc nạp thêm.
+- `returned` nhỏ hơn `requested` là bình thường. So hai số này cùng
+  `dropped_unverified` để biết học liệu đáp ứng tới đâu.
+
+Mỗi câu kéo thêm một lượt gọi mô hình để đối chiếu, nên xin 10 câu là 11 lần
+gọi — vì thế `count` chặn ở 20.
+
 ## Corpus
 
-`data/corpus/` chứa hai nhóm:
+Hai thư mục, tách nhau có chủ đích:
 
-- **8 tài liệu tiếng Việt** viết tay, bám lộ trình Full-Stack trong `BA_DOCUMENT §11.4`
-- **88 tài liệu tiếng Anh** thu thập từ MDN Web Docs
+| Thư mục | Nội dung | Ai quản |
+|---|---|---|
+| `data/corpus/` | 88 tài liệu tiếng Anh từ MDN Web Docs | `scripts/crawl_corpus.py` — **xoá sạch trước mỗi lần chạy** |
+| `data/corpus-vi/` | 8 tài liệu tiếng Việt viết tay, bám lộ trình Full-Stack trong `BA_DOCUMENT §11.4` | viết tay, không ai xoá |
+
+> Học liệu tự nộp phải để `corpus-vi/`. Bỏ vào `corpus/` là mất trắng lần crawl
+> kế tiếp.
+
+Nhãn ngôn ngữ suy ra từ tên thư mục: đuôi `-vi` là tiếng Việt, còn lại tiếng Anh.
+
+### Định dạng nhận vào
+
+`.md`, `.docx`, `.pdf`. Đuôi khác bị bỏ qua, không báo lỗi.
+
+**Markdown** — mang metadata trong frontmatter:
+
+```markdown
+---
+title: Git và GitHub
+doc_id: vi-git
+source_url: local
+license: IOES nội bộ
+---
+
+# Git và GitHub
+
+## Ba vùng làm việc
+
+Working directory là file đang sửa...
+```
+
+**DOCX và PDF** — không có chỗ đặt metadata theo quy ước này, nên:
+
+- `doc_id` lấy **tên file**. Đổi tên file là đổi `chunk_id` của mọi đoạn trong đó
+- `title` lấy thuộc tính tài liệu, không có thì lấy tiêu đề mức 1 đầu tiên
+  (DOCX), cuối cùng mới lấy tên file
+
+**DOCX cho chất lượng truy xuất tốt hơn PDF rõ rệt.** Bộ cắt ưu tiên tách theo
+`\n## `, mà DOCX giữ style nên khôi phục được `Heading 1/2/3` thành `#`, `##`,
+`###`; PDF không có khái niệm tiêu đề, chỉ có chữ đặt ở toạ độ nào đó nên cả bài
+thành một khối văn xuôi, bị cắt ở mốc 800 ký tự bất kể đang giữa ý nào. Khuyên
+giảng viên nộp DOCX khi có cả hai bản.
+
+Bảng trong DOCX được giữ, đổi sang bảng Markdown và **nằm đúng vị trí** giữa các
+đoạn văn — bảng hay chứa đúng loại nội dung ra đề được.
+
+Giới hạn đã biết của PDF: bản quét ảnh trích ra chuỗi rỗng nên **bị bỏ qua kèm
+cảnh báo** thay vì nạp bản rỗng (cần OCR, ngoài phạm vi); đầu trang, chân trang,
+số trang lẫn vào nội dung; bố cục nhiều cột dễ đọc sai thứ tự.
+
+### Cách viết cho cắt đoạn tốt
+
+Cỡ đoạn 800 ký tự, gối đầu 120, và ranh giới cắt tốt nhất là tiêu đề `##`. Nên
+mỗi mục khoảng **400–800 ký tự**. Một khối văn dài không tiêu đề sẽ bị cắt giữa
+chừng một ý.
+
+Tiếng Việt **viết có dấu đầy đủ** — pipeline tự nhân bản thêm một bản không dấu
+vì học viên gõ không dấu rất nhiều (đo trên bộ 20 câu chuẩn: bỏ dấu làm tỉ lệ
+trúng tụt từ 0,900 xuống 0,650).
 
 Thu thập lại:
 
