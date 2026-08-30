@@ -51,11 +51,14 @@ Ngoài phạm vi, có lý do:
 `number`. Bổ sung hai hàm thuần, không gọi mạng:
 
 ```ts
-export function toStudentExamView(exam: Exam): StudentExamView
+export function toStudentExamView(exam: Exam, attempts: ExamAttempt[]): StudentExamView
 export function toResultView(attempt: ExamAttempt, exam?: Exam): ResultView
 ```
 
-Đặt trong `exam.api.ts` để chỗ lệch tên trường nằm một nơi thay vì rải khắp JSX.
+`StudentExamView` và `ResultView` khai ngay trong `exam.api.ts`, cạnh hai hàm này.
+Chúng chỉ chứa những trường JSX thật sự đọc tới, không phải bản sao của
+`StudentExam` cũ. Đặt cùng file để chỗ lệch tên trường nằm một nơi thay vì rải
+khắp JSX.
 
 ### Trường mock không có nguồn thật
 
@@ -78,9 +81,11 @@ Bỏ trường nghĩa là xoá phần JSX hiển thị nó, không để nhãn r
 
 Mock luôn trả dữ liệu sau `sleep()`, nên ba page này chưa có nhánh loading, lỗi,
 rỗng. Mỗi page bổ sung cả ba, dùng đúng component đang có trong `src/components`.
-Lỗi 401 do token hết hạn hiện ra thành "Network Error" (xem
-`docs/04-operations/known-issues`, gateway trả 401 thiếu header CORS) — page chỉ
-hiện thông báo lỗi chung, không cố phân biệt.
+Lỗi 401 do token hết hạn hiện ra thành "Network Error": api-gateway trả 401 mà
+không kèm `Access-Control-Allow-Origin`, trình duyệt chặn nên axios không thấy
+status (phát hiện ngày 2026-08-30, chưa có trong
+`docs/04-operations/known-issues/`). Page chỉ hiện thông báo lỗi chung, không cố
+phân biệt; sửa gốc nằm ở gateway, ngoài phạm vi tài liệu này.
 
 ### Dọn mock
 
