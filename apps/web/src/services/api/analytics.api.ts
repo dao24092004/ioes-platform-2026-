@@ -16,7 +16,8 @@ export type LeaderboardPeriod = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'ALL_TIME';
 /** Ánh xạ 1-1 với record `LeaderboardEntryResponse` phía Java. */
 export interface LeaderboardEntry {
   userId: string;
-  displayName: string;
+  /** Có thể null — hàng seed/demo thiếu hồ sơ vẫn được xếp hạng. */
+  displayName: string | null;
   avatarUrl: string | null;
   score: number;
   rank: number;

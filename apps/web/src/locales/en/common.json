@@ -1622,7 +1622,8 @@
       "all": "All-time",
       "weekly": "Weekly",
       "monthly": "Monthly",
-      "yearly": "Yearly"
+      "yearly": "Yearly",
+      "unknownLearner": "Anonymous learner"
     },
     "courseDiscussion": {
       "title": "Course Discussion",

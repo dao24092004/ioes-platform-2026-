@@ -23,13 +23,32 @@ type Period = 'weekly' | 'monthly' | 'allTime';
 interface LeaderboardEntry {
   rank: number;
   user_id: string;
-  full_name: string;
+  /** analytics-service có thể trả null cho hàng seed/demo thiếu hồ sơ. */
+  full_name: string | null;
   avatar: string | null;
   points: number;
   courses_completed: number;
   streak_days: number;
   badge: 'gold' | 'silver' | 'bronze' | null;
 }
+
+/**
+ * Chữ cái đầu để hiển thị khi không có ảnh đại diện.
+ *
+ * An toàn với `full_name: null` (analytics-service trả null cho hàng
+ * seed/demo thiếu hồ sơ) và với chuỗi toàn khoảng trắng.
+ */
+export const getInitials = (fullName: string | null): string => {
+  const trimmed = fullName?.trim();
+  if (!trimmed) return '?';
+  return trimmed
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s) => s.charAt(0))
+    .join('')
+    .toUpperCase();
+};
 
 const PERIOD_PARAM: Record<Period, LeaderboardPeriod> = {
   weekly: 'WEEKLY',
@@ -122,21 +141,22 @@ const LeaderboardPage: React.FC = () => {
               { bg: 'bg-gradient-to-b from-amber-400 to-yellow-500', text: 'text-amber-900' },
               { bg: 'bg-gradient-to-b from-orange-400 to-amber-600', text: 'text-orange-900' },
             ];
+            const displayName = entry.full_name ?? t('student.leaderboard.unknownLearner', 'Học viên ẩn danh');
             return (
               <div key={entry.user_id} className="flex flex-col items-center text-center">
                 <div className="relative mb-2">
                   {entry.avatar ? (
-                    <img src={entry.avatar} alt={entry.full_name} className="w-16 h-16 rounded-full border-4 border-white dark:border-slate-800 shadow-md" />
+                    <img src={entry.avatar} alt={displayName} className="w-16 h-16 rounded-full border-4 border-white dark:border-slate-800 shadow-md" />
                   ) : (
                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center font-bold text-lg border-4 border-white dark:border-slate-800 shadow-md">
-                      {entry.full_name.split(' ').slice(0, 2).map((s: string) => s.charAt(0)).join('').toUpperCase()}
+                      {getInitials(entry.full_name)}
                     </div>
                   )}
                   <span className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full ${podiumColors[idx].bg} ${podiumColors[idx].text} flex items-center justify-center font-bold text-sm shadow-md`}>
                     {actualRank}
                   </span>
                 </div>
-                <div className="text-sm font-bold text-slate-900 dark:text-white mt-2">{entry.full_name}</div>
+                <div className="text-sm font-bold text-slate-900 dark:text-white mt-2">{displayName}</div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{entry.points} {t('student.leaderboard.points_unit')}</div>
                 <div className={`w-full ${podiumColors[idx].bg} mt-3 rounded-t-xl flex items-center justify-center text-white font-bold`} style={{ height: heights[idx] }}>
                   {entry.points}
@@ -161,6 +181,7 @@ const LeaderboardPage: React.FC = () => {
           <tbody>
             {rest.map((entry: LeaderboardEntry) => {
               const badge = entry.badge ? badgeStyles[entry.badge] : badgeStyles.none;
+              const displayName = entry.full_name ?? t('student.leaderboard.unknownLearner', 'Học viên ẩn danh');
               return (
                 <tr key={entry.user_id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40">
                   <td className="px-6 py-3 text-center">
@@ -171,13 +192,13 @@ const LeaderboardPage: React.FC = () => {
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-3">
                       {entry.avatar ? (
-                        <img src={entry.avatar} alt={entry.full_name} className="w-9 h-9 rounded-full" />
+                        <img src={entry.avatar} alt={displayName} className="w-9 h-9 rounded-full" />
                       ) : (
                         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center font-semibold text-xs">
-                          {entry.full_name.split(' ').slice(0, 2).map((s: string) => s.charAt(0)).join('').toUpperCase()}
+                          {getInitials(entry.full_name)}
                         </div>
                       )}
-                      <div className="font-semibold text-sm">{entry.full_name}</div>
+                      <div className="font-semibold text-sm">{displayName}</div>
                     </div>
                   </td>
                   <td className="px-6 py-3 text-center font-bold text-blue-600 dark:text-blue-400">{entry.points.toLocaleString('en-US')}</td>

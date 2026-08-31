@@ -1605,7 +1605,8 @@
       "all": "Tất cả",
       "weekly": "Tuần",
       "monthly": "Tháng",
-      "yearly": "Năm"
+      "yearly": "Năm",
+      "unknownLearner": "Học viên ẩn danh"
     },
     "courseDiscussion": {
       "title": "Thảo luận khóa học",
