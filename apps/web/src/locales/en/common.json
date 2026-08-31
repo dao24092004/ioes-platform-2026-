@@ -1421,7 +1421,9 @@
       "retakeExam": "Retake",
       "breakdown": "Breakdown",
       "feedback": "Instructor feedback",
-      "previousResults": "Previous attempts"
+      "previousResults": "Previous attempts",
+      "questionCount": "Questions",
+      "empty": "No submitted exams yet."
     },
     "practice": {
       "title": "Practice",

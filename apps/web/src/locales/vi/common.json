@@ -1404,7 +1404,9 @@
       "retakeExam": "Làm lại",
       "breakdown": "Phân tích chi tiết",
       "feedback": "Phản hồi từ giảng viên",
-      "previousResults": "Lần thi trước"
+      "previousResults": "Lần thi trước",
+      "questionCount": "Số câu",
+      "empty": "Chưa có bài thi nào đã nộp."
     },
     "practice": {
       "title": "Luyện tập",
