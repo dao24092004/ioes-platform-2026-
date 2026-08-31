@@ -38,33 +38,46 @@ import static org.mockito.Mockito.mock;
  * {@code NotificationJpaRepositoryTest} in the sibling
  * {@code infrastructure.persistence.repository} package, including reading
  * connection details from environment variables rather than hardcoding them
- * (PROJECT_RULES.md section I.3). Only {@link EmailSender} is mocked, since
- * exercising real SMTP delivery is not what this test is proving.
+ * (PROJECT_RULES.md section I.3) — no default fallback values are kept for
+ * any of them; if one is missing, the class is skipped the same way it is
+ * skipped when the database is unreachable. Only {@link EmailSender} is
+ * mocked, since exercising real SMTP delivery is not what this test is
+ * proving.
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${NOTIFICATION_DB_NAME:ioes_notification}",
-        "spring.datasource.username=${POSTGRES_USER:ioes}",
-        "spring.datasource.password=${POSTGRES_PASSWORD:ioes_dev_password}",
+        "spring.datasource.url=jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${NOTIFICATION_DB_NAME}",
+        "spring.datasource.username=${POSTGRES_USER}",
+        "spring.datasource.password=${POSTGRES_PASSWORD}",
         "spring.datasource.driver-class-name=org.postgresql.Driver",
         "spring.jpa.hibernate.ddl-auto=none",
         "spring.flyway.enabled=false"
 })
 class NotificationServiceSendPathIntegrationTest {
 
-    private static String env(String key, String defaultValue) {
+    private static String env(String key) {
         String value = System.getenv(key);
-        return (value != null && !value.isBlank()) ? value : defaultValue;
+        return (value != null && !value.isBlank()) ? value : null;
     }
 
-    private static final String JDBC_URL = "jdbc:postgresql://" + env("POSTGRES_HOST", "localhost")
-            + ":" + env("POSTGRES_PORT", "5433") + "/" + env("NOTIFICATION_DB_NAME", "ioes_notification");
-    private static final String JDBC_USERNAME = env("POSTGRES_USER", "ioes");
-    private static final String JDBC_PASSWORD = env("POSTGRES_PASSWORD", "ioes_dev_password");
+    private static final String POSTGRES_HOST = env("POSTGRES_HOST");
+    private static final String POSTGRES_PORT = env("POSTGRES_PORT");
+    private static final String NOTIFICATION_DB_NAME = env("NOTIFICATION_DB_NAME");
+    private static final String JDBC_USERNAME = env("POSTGRES_USER");
+    private static final String JDBC_PASSWORD = env("POSTGRES_PASSWORD");
+    private static final String JDBC_URL =
+            (POSTGRES_HOST != null && POSTGRES_PORT != null && NOTIFICATION_DB_NAME != null)
+                    ? "jdbc:postgresql://" + POSTGRES_HOST + ":" + POSTGRES_PORT + "/" + NOTIFICATION_DB_NAME
+                    : null;
 
     @BeforeAll
     static void assumeDatabaseIsReachable() {
+        Assumptions.assumeTrue(JDBC_URL != null && JDBC_USERNAME != null && JDBC_PASSWORD != null,
+                "Skipping NotificationServiceSendPathIntegrationTest: one or more of POSTGRES_HOST, "
+                        + "POSTGRES_PORT, NOTIFICATION_DB_NAME, POSTGRES_USER, POSTGRES_PASSWORD is not set. "
+                        + "This is a dev/CI-optional live-DB test; set these env vars (see .env.example) and "
+                        + "run the local ioes-postgres container to exercise it.");
         try (Connection ignored = DriverManager.getConnection(JDBC_URL, JDBC_USERNAME, JDBC_PASSWORD)) {
             // reachable: proceed with the class
         } catch (SQLException e) {
