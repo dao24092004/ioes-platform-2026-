@@ -169,6 +169,79 @@ export async function cancelAttempt(id: string): Promise<ExamAttempt> {
   );
 }
 
+/**
+ * Hình dạng mà bảng danh sách bài thi của học viên thật sự đọc tới.
+ *
+ * Không phải bản sao của `StudentExam` cũ: những trường mock từng có mà API
+ * không cung cấp (tên khoá học, hạn nộp, số câu hỏi) đã bỏ hẳn thay vì điền
+ * giá trị giả.
+ */
+export interface StudentExamView {
+  id: string;
+  title: string;
+  examType: ExamType;
+  timeLimitMinutes: number | null;
+  maxAttempts: number | null;
+  attempts: number;
+  bestScore: number | null;
+  status: 'available' | 'in_progress' | 'completed';
+}
+
+export interface ResultView {
+  attemptId: string;
+  examId: string;
+  examTitle: string | null;
+  submittedAt: string | null;
+  score: number | null;
+  maxScore: number | null;
+  percentageScore: number | null;
+  passed: boolean | null;
+  questionCount: number | null;
+  timeLimitMinutes: number | null;
+}
+
+/**
+ * `Exam` không mang trạng thái của người học, nên trạng thái và điểm cao nhất
+ * phải suy từ danh sách lượt làm bài. Nhận cả danh sách rồi lọc tại đây để
+ * phía gọi khỏi lặp lại phép lọc ở từng chỗ dùng.
+ */
+export function toStudentExamView(exam: Exam, attempts: ExamAttempt[]): StudentExamView {
+  const mine = attempts.filter(a => a.examId === exam.id);
+  const scored = mine.map(a => a.percentageScore).filter((s): s is number => s !== null);
+  const status = mine.some(a => a.status === 'in_progress')
+    ? 'in_progress'
+    : mine.length > 0
+      ? 'completed'
+      : 'available';
+
+  return {
+    id: exam.id,
+    title: exam.title,
+    examType: exam.examType,
+    timeLimitMinutes: exam.timeLimitMinutes,
+    maxAttempts: exam.maxAttempts,
+    attempts: mine.length,
+    bestScore: scored.length > 0 ? Math.max(...scored) : null,
+    status,
+  };
+}
+
+/** `exam` là tuỳ chọn vì trang kết quả nạp tiêu đề bằng lời gọi riêng. */
+export function toResultView(attempt: ExamAttempt, exam?: Exam): ResultView {
+  return {
+    attemptId: attempt.id,
+    examId: attempt.examId,
+    examTitle: exam?.title ?? null,
+    submittedAt: attempt.submittedAt,
+    score: attempt.score,
+    maxScore: attempt.maxScore,
+    percentageScore: attempt.percentageScore,
+    passed: attempt.passed,
+    questionCount: attempt.questionIds?.length ?? null,
+    timeLimitMinutes: exam?.timeLimitMinutes ?? null,
+  };
+}
+
 export const examApi = {
   listExams,
   getExam,
@@ -176,4 +249,6 @@ export const examApi = {
   listAttempts,
   getAttempt,
   cancelAttempt,
+  toStudentExamView,
+  toResultView,
 };
