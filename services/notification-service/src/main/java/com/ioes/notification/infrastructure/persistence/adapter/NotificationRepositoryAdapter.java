@@ -40,8 +40,9 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
     }
 
     @Override
-    public List<Notification> findByUserId(UUID userId) {
-        return jpaRepository.findByUserIdOrderByCreatedAtDesc(userId)
+    public List<Notification> findByUserId(UUID userId, int limit) {
+        return jpaRepository.findByUserIdOrderByCreatedAtDesc(userId,
+                org.springframework.data.domain.Pageable.ofSize(limit))
                 .stream()
                 .map(this::toDomain)
                 .toList();
