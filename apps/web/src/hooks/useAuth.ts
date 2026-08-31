@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/app/store/authStore';
 import { authApi } from '@/services/api/auth.api';
 import { logger } from '@/utils/logger';
@@ -13,6 +14,7 @@ import { logger } from '@/utils/logger';
  */
 export function useAuth() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -23,6 +25,11 @@ export function useAuth() {
    *
    * Lỗi mạng không được chặn việc đăng xuất — người dùng bấm đăng xuất thì
    * phiên trên máy họ phải biến mất, kể cả khi máy chủ không phản hồi.
+   *
+   * Cũng phải xoá sạch React Query cache: nếu không, dữ liệu của người dùng
+   * cũ (hồ sơ, danh sách bài thi, lượt làm bài) vẫn còn trong cache — vì
+   * staleTime 5 phút — và sẽ hiển thị nhầm cho người dùng tiếp theo đăng
+   * nhập trên cùng máy trước khi có refetch.
    */
   const signOut = useCallback(async () => {
     try {
@@ -33,9 +40,10 @@ export function useAuth() {
       });
     } finally {
       clearSession();
+      queryClient.clear();
       navigate('/auth/login', { replace: true });
     }
-  }, [clearSession, navigate]);
+  }, [clearSession, navigate, queryClient]);
 
   return { user, accessToken, isAuthenticated, signOut };
 }
