@@ -146,6 +146,7 @@ const ProfilePage: React.FC = () => {
                   onSubmit={e => {
                     e.preventDefault();
                     setPwError(null);
+                    changePassword.reset();
                     if (newPassword !== confirmPassword) {
                       setPwError('Mật khẩu xác nhận không khớp.');
                       return;
