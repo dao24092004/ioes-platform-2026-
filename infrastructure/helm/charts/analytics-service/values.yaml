@@ -67,6 +67,7 @@ env:
   MONGO_PASSWORD: ""
   MONGO_AUTH_SOURCE: "admin"
   EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-service:9999/eureka/"
+  JWT_SECRET: ""  # From secret
   JAVA_OPTS: "-Xms512m -Xmx1536m -XX:+UseG1GC"
 
 secrets:
