@@ -2,7 +2,8 @@
 --   docker exec -i ioes-postgres psql -U ioes -d ioes_exam < database/seeds/exam-service/dev-seed.sql
 --
 -- instructor_id 00000000-0000-0000-0000-000000000003 = instructor@ioes.com trong ioes_auth.
--- user_id      c7017348-2cfb-47ef-8389-1efe64def86f = runsmoke2@ioes.local.
+-- user_id      00000000-0000-0000-0000-000000000005 = student@ioes.com (role student) trong
+--              ioes_auth, được seed sẵn ở auth-service V1__init_schema.sql.
 -- Hai database tách rời nên không có khoá ngoại giữa chúng.
 
 INSERT INTO exams (id, course_id, instructor_id, title, description, exam_type,
@@ -70,7 +71,7 @@ INSERT INTO exam_attempts (id, exam_id, user_id, status, started_at, submitted_a
 VALUES
   ('44444444-4444-4444-8444-000000000001',
    '11111111-1111-4111-8111-000000000001',
-   'c7017348-2cfb-47ef-8389-1efe64def86f',
+   '00000000-0000-0000-0000-000000000005',
    'graded',
    now() - interval '2 days',
    now() - interval '2 days' + interval '18 minutes',
