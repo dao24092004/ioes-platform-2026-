@@ -138,7 +138,7 @@ const ExamsPage: React.FC = () => {
                   <th className="text-left px-6 py-3 font-semibold">{t('student.exams.title')}</th>
                   <th className="text-center px-6 py-3 font-semibold">{t('student.exams.duration')}</th>
                   <th className="text-center px-6 py-3 font-semibold">{t('student.exams.attempts', { done: 0, max: 0 })}</th>
-                  <th className="text-left px-6 py-3 font-semibold">{t('student.exams.status.upcoming')}</th>
+                  <th className="text-left px-6 py-3 font-semibold">{t('student.exams.statusColumn')}</th>
                   <th className="text-left px-6 py-3 font-semibold">{t('student.exams.bestScore')}</th>
                   <th className="px-6 py-3"></th>
                 </tr>

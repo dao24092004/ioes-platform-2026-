@@ -1161,15 +1161,12 @@
         "upcoming": "Sắp tới",
         "available": "Có thể làm",
         "in_progress": "Đang làm",
-        "completed": "Hoàn thành",
-        "missed": "Đã bỏ lỡ"
+        "completed": "Hoàn thành"
       },
       "filter": {
         "all": "Tất cả",
-        "upcoming": "Sắp tới",
         "available": "Có thể làm",
         "completed": "Hoàn thành",
-        "missed": "Đã bỏ lỡ",
         "in_progress": "Đang làm"
       },
       "searchPlaceholder": "Tìm bài thi...",
@@ -1177,6 +1174,7 @@
       "duration": "phút",
       "attempts": "{{done}}/{{max}} lần",
       "bestScore": "Điểm cao nhất",
+      "statusColumn": "Trạng thái",
       "viewResult": "Xem kết quả",
       "pagination": {
         "range": "{{from}}-{{to}} / {{total}}",
@@ -1188,7 +1186,6 @@
       "stats": {
         "avgScore": "Điểm trung bình",
         "total": "Tổng bài thi",
-        "upcoming": "Sắp tới",
         "completed": "Đã hoàn thành"
       },
       "sort": {
@@ -1396,14 +1393,10 @@
       "failed": "CHƯA ĐẠT",
       "outOf": "/{{total}} điểm",
       "score": "Điểm số",
-      "rank": "Xếp hạng",
-      "timeUsed": "Thời gian làm bài",
       "backToExams": "Quay lại danh sách bài thi",
       "reviewAnswers": "Xem lại đáp án",
       "share": "Chia sẻ",
       "retakeExam": "Làm lại",
-      "breakdown": "Phân tích chi tiết",
-      "feedback": "Phản hồi từ giảng viên",
       "previousResults": "Lần thi trước",
       "questionCount": "Số câu",
       "empty": "Chưa có bài thi nào đã nộp."
