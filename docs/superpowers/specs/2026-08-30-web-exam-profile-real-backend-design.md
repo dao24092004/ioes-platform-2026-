@@ -49,8 +49,10 @@ Trong phạm vi:
 - `student/ExamResultsPage.tsx` — `studentApi.recentResults()` → `examApi.listAttempts()`
 - `student/DashboardPage.tsx` — chỉ query `exams`, hai query còn lại (`dashboardStats`,
   `myCourses`) giữ mock vì phụ thuộc content-service
-- `student/ProfilePage.tsx` — hiện không gọi API nào, đổi sang `authApi.me()`
-- `student/SettingsPage.tsx` — form đổi mật khẩu gọi `authApi.changePassword()`
+- `student/ProfilePage.tsx` — hiện không gọi API nào, đổi sang `authApi.me()`; form
+  đổi mật khẩu nằm ở tab bảo mật của chính trang này (ba ô nhập không có state),
+  nối vào `authApi.changePassword()`. `SettingsPage.tsx` chỉ có giao diện, thông báo
+  và quyền riêng tư, không có form mật khẩu, nên không đụng tới.
 - Seed dữ liệu mẫu cho `ioes_exam` (hiện `exams=0, attempts=0, questions=0`)
 
 Ngoài phạm vi, có lý do:
