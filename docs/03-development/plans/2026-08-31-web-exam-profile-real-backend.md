@@ -8,7 +8,7 @@
 
 **Tech Stack:** NestJS + TypeORM + jest (exam-suite); React 18 + TanStack Query + axios + vitest (web); PostgreSQL (seed SQL).
 
-**Spec:** `docs/superpowers/specs/2026-08-30-web-exam-profile-real-backend-design.md`
+**Spec:** `docs/03-development/specs/2026-08-30-web-exam-profile-real-backend-design.md`
 
 ## Global Constraints
 
