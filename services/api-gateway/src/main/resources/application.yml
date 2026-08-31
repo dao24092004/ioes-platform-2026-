@@ -103,13 +103,26 @@ spring.cloud.gateway:
       filters:
         - StripPrefix=1
 
-    # Blockchain Service
-    - id: blockchain-suite
+    # Certificates (blockchain-suite controller @Controller('certificates'),
+    # no global prefix, so only /api needs stripping)
+    - id: certificates
       uri: lb://blockchain-suite
       predicates:
-        - Path=/api/blockchain/**,/api/certificates/**
+        - Path=/api/certificates/**
       filters:
-        - StripPrefix=2
+        - StripPrefix=1
+
+    # /api/blockchain/** has no matching controller in blockchain-suite (only
+    # 'certificates' and 'health' exist there) — kept as its own route entry,
+    # still 404ing at the service, so it does not ride on certificates' fix
+    # or its future changes. Add a real 'blockchain' controller before
+    # pointing this anywhere else; do not repoint it at 'certificates'.
+    - id: blockchain
+      uri: lb://blockchain-suite
+      predicates:
+        - Path=/api/blockchain/**
+      filters:
+        - StripPrefix=1
 
     # AI Service
     - id: ai-suite
