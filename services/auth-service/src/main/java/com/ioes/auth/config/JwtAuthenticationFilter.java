@@ -18,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Validates the {@code Authorization: Bearer <token>} header on requests made
@@ -37,10 +38,16 @@ import java.util.List;
  * <p>Note: auth-service intentionally does NOT trust the {@code X-User-Id}
  * header for authentication — only api-gateway's own
  * {@code JwtAuthenticationFilter} is trusted to inject that header for
- * downstream services, and controllers here keep reading it for that
- * purpose. This filter independently re-validates the bearer token so that
- * requests reaching auth-service directly (e.g. on port 9000) cannot
- * impersonate a user by setting the header without a valid token.
+ * downstream services. Controllers resolve the acting user from the
+ * {@link org.springframework.security.core.context.SecurityContextHolder}
+ * principal this filter sets, not from the header, so a caller cannot
+ * impersonate another user by setting the header on a direct request.
+ *
+ * <p>Only an access token authenticates. {@code JwtTokenProvider} stamps a
+ * {@code type} claim ({@code "access"} vs {@code "refresh"}) on every token
+ * it issues; a token whose {@code type} is not {@code "access"} (including a
+ * valid, unexpired refresh token) is treated the same as any other invalid
+ * token — the context is left empty, nothing is thrown.
  */
 @Slf4j
 @Component
@@ -59,7 +66,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
             try {
                 Claims claims = jwtTokenProvider.validateToken(token);
-                UserPrincipal principal = jwtTokenProvider.getUserPrincipalFromToken(token);
+
+                if (!"access".equals(claims.get("type", String.class))) {
+                    throw new IllegalArgumentException("Not an access token");
+                }
+
+                UserPrincipal principal = UserPrincipal.builder()
+                        .userId(UUID.fromString(claims.getSubject()))
+                        .email(claims.get("email", String.class))
+                        .role(claims.get("role", String.class))
+                        .fullName(claims.get("name", String.class))
+                        .build();
 
                 List<SimpleGrantedAuthority> authorities = principal.getRole() != null
                         ? List.of(new SimpleGrantedAuthority(principal.getRole()))
