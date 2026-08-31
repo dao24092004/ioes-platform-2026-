@@ -2,6 +2,7 @@
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
+    "loadError": "Could not load data. Try again later.",
     "success": "Success",
     "save": "Save",
     "cancel": "Cancel",
@@ -1212,10 +1213,9 @@
         "score": "Highest score"
       },
       "type": {
-        "midterm": "Midterm",
-        "final": "Final",
-        "quiz": "Quiz",
-        "practice": "Practice"
+        "practice": "Practice",
+        "graded": "Graded",
+        "certification": "Certification"
       }
     },
     "profile": {

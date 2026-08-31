@@ -5,6 +5,7 @@
     "reset": "Khôi phục mặc định",
     "search": "Tìm kiếm...",
     "loading": "Đang tải...",
+    "loadError": "Không tải được dữ liệu. Thử lại sau.",
     "noData": "Chưa có dữ liệu",
     "apply": "Áp dụng",
     "exportCSV": "Xuất CSV",
@@ -1195,10 +1196,9 @@
         "score": "Điểm cao nhất"
       },
       "type": {
-        "midterm": "Giữa kỳ",
-        "final": "Cuối kỳ",
-        "quiz": "Trắc nghiệm",
-        "practice": "Luyện tập"
+        "practice": "Luyện tập",
+        "graded": "Có điểm",
+        "certification": "Chứng chỉ"
       }
     },
     "profile": {
