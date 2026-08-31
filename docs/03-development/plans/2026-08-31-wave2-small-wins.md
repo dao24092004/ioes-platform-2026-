@@ -31,7 +31,7 @@ Completed by the coordinator on this branch (commit `5f729bc`): the two research
 `docs/03-development/research/` and `docs/superpowers/` is gone from `develop`.
 
 Still outstanding, and NOT part of this branch: the spec and plan from the previous wave live at
-`docs/superpowers/specs/` and `docs/superpowers/plans/` on branch
+`docs/03-development/specs/` and `docs/03-development/plans/` on branch
 `feature/web-exam-profile-real-backend` (PR #9). They have to be relocated there, or after that
 PR merges, or the forbidden directory comes back with the merge.
 
