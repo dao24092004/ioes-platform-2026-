@@ -48,22 +48,35 @@ import static org.assertj.core.api.Assertions.assertThat;
  * whole class via {@link Assumptions#assumeTrue} (reported as
  * <i>skipped</i>, not failed) before Spring ever attempts the connection
  * itself.
+ *
+ * <p>Connection details are read from the same environment variables (and
+ * the same local-dev fallback defaults) as {@code application.yml}'s
+ * {@code spring.datasource.*} block, rather than being hardcoded here, per
+ * {@code PROJECT_RULES.md} section I.3. Override {@code POSTGRES_HOST},
+ * {@code POSTGRES_PORT}, {@code NOTIFICATION_DB_NAME}, {@code POSTGRES_USER}
+ * and {@code POSTGRES_PASSWORD} to point this test at a different instance.
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:postgresql://localhost:5433/ioes_notification",
-        "spring.datasource.username=ioes",
-        "spring.datasource.password=ioes_dev_password",
+        "spring.datasource.url=jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${NOTIFICATION_DB_NAME:ioes_notification}",
+        "spring.datasource.username=${POSTGRES_USER:ioes}",
+        "spring.datasource.password=${POSTGRES_PASSWORD:ioes_dev_password}",
         "spring.datasource.driver-class-name=org.postgresql.Driver",
         "spring.jpa.hibernate.ddl-auto=none",
         "spring.flyway.enabled=false"
 })
 class NotificationJpaRepositoryTest {
 
-    private static final String JDBC_URL = "jdbc:postgresql://localhost:5433/ioes_notification";
-    private static final String JDBC_USERNAME = "ioes";
-    private static final String JDBC_PASSWORD = "ioes_dev_password";
+    private static String env(String key, String defaultValue) {
+        String value = System.getenv(key);
+        return (value != null && !value.isBlank()) ? value : defaultValue;
+    }
+
+    private static final String JDBC_URL = "jdbc:postgresql://" + env("POSTGRES_HOST", "localhost")
+            + ":" + env("POSTGRES_PORT", "5433") + "/" + env("NOTIFICATION_DB_NAME", "ioes_notification");
+    private static final String JDBC_USERNAME = env("POSTGRES_USER", "ioes");
+    private static final String JDBC_PASSWORD = env("POSTGRES_PASSWORD", "ioes_dev_password");
 
     @BeforeAll
     static void assumeDatabaseIsReachable() {
