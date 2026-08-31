@@ -13,6 +13,22 @@ import java.util.UUID;
 /**
  * Endpoint để các services khác trigger analytics events (internal use).
  * Thường được gọi từ notification-service hoặc exam-suite nếu cần direct call.
+ *
+ * <p><b>Access control:</b> every path under {@code /analytics/internal/**}
+ * requires an authenticated token carrying the {@code admin} or
+ * {@code super_admin} authority — enforced by {@code SecurityConfig}, not by
+ * this controller. This previously declared an {@code X-Internal-Key}
+ * header that nothing ever read, so any caller (including an unauthenticated
+ * one, since the whole service was {@code permitAll()}) could reset any
+ * user's streak or enrolment data. No service currently calls this endpoint
+ * (repo-wide search found zero callers), so there is no existing
+ * service-to-service credential to preserve; reusing the admin-authority
+ * check already established for {@code /leaderboard/{period}/reset} avoids
+ * inventing and distributing a new shared secret whose value would have to
+ * live in {@code infrastructure/helm} / env files outside this change's
+ * scope. If a real service-to-service caller is wired up later, prefer a
+ * validated {@code X-Internal-Key} (or mTLS) over asking a background job to
+ * hold an admin user token.
  */
 @Slf4j
 @RestController
@@ -30,8 +46,7 @@ public class AnalyticsInternalController {
     public ResponseEntity<ApiResponse<Void>> updateStreak(
             @RequestParam UUID userId,
             @RequestParam int streak,
-            @RequestParam(required = false) String email,
-            @RequestHeader(value = "X-Internal-Key", required = false) String internalKey
+            @RequestParam(required = false) String email
     ) {
         log.info("[Internal] Update streak: userId={}, streak={}", userId, streak);
         analyticsUseCase.updateStreak(new AnalyticsUseCase.UpdateStreakCommand(userId, streak, email));
