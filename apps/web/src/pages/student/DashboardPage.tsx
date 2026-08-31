@@ -31,8 +31,18 @@ const DashboardPage: React.FC = () => {
 
   const { data: stats } = useQuery({ queryKey: ['student', 'dashboard', 'stats'], queryFn: () => studentApi.dashboardStats() });
   const { data: courses = [] } = useQuery({ queryKey: ['student', 'dashboard', 'courses'], queryFn: () => studentApi.myCourses() });
-  const { data: examList = [] } = useQuery({ queryKey: ['student', 'exams', 'list'], queryFn: () => examApi.listExams() });
-  const { data: attempts = [] } = useQuery({ queryKey: ['student', 'attempts'], queryFn: () => examApi.listAttempts() });
+  const {
+    data: examList = [],
+    isLoading: examListLoading,
+    error: examListError,
+  } = useQuery({ queryKey: ['student', 'exams', 'list'], queryFn: () => examApi.listExams() });
+  const {
+    data: attempts = [],
+    isLoading: attemptsLoading,
+    error: attemptsError,
+  } = useQuery({ queryKey: ['student', 'attempts'], queryFn: () => examApi.listAttempts() });
+  const examsLoading = examListLoading || attemptsLoading;
+  const examsError = examListError ?? attemptsError;
   const exams = useMemo(() => examList.map(e => toStudentExamView(e, attempts)), [examList, attempts]);
 
   const greetingHour = new Date().getHours();
@@ -132,35 +142,43 @@ const DashboardPage: React.FC = () => {
               </Link>
             }
           >
-            <ul className="space-y-3">
-              {upcomingExams.map((exam: StudentExamView) => {
-                const ss = examStatusStyles[exam.status];
-                return (
-                  <li key={exam.id} className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                    <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
-                      <ExamIcon />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{exam.title}</h3>
-                      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        <span>{exam.timeLimitMinutes ?? '—'} min</span>
+            {examsError ? (
+              <div className="p-6 text-center text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</div>
+            ) : examsLoading ? (
+              <div className="p-6 text-center"><div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
+            ) : upcomingExams.length === 0 ? (
+              <div className="p-6 text-center text-sm text-slate-500">{t('student.exams.empty')}</div>
+            ) : (
+              <ul className="space-y-3">
+                {upcomingExams.map((exam: StudentExamView) => {
+                  const ss = examStatusStyles[exam.status];
+                  return (
+                    <li key={exam.id} className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                      <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
+                        <ExamIcon />
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={`px-2 py-1 rounded-md text-xs font-semibold ${ss.bg} ${ss.text}`}>
-                        {t(ss.label)}
-                      </span>
-                      <Link
-                        to={`/student/exams/${exam.id}`}
-                        className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                      >
-                        {exam.status === 'in_progress' ? t('student.exams.resumeBtn') : t('student.exams.startBtn')}
-                      </Link>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{exam.title}</h3>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          <span>{exam.timeLimitMinutes ?? '—'} min</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`px-2 py-1 rounded-md text-xs font-semibold ${ss.bg} ${ss.text}`}>
+                          {t(ss.label)}
+                        </span>
+                        <Link
+                          to={`/student/exams/${exam.id}/take`}
+                          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                        >
+                          {exam.status === 'in_progress' ? t('student.exams.resumeBtn') : t('student.exams.startBtn')}
+                        </Link>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </Card>
         </div>
 
