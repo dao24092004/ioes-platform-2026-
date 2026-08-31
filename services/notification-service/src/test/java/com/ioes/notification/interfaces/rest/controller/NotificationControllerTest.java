@@ -7,9 +7,11 @@ import com.ioes.notification.domain.model.NotificationStatus;
 import com.ioes.notification.domain.model.NotificationType;
 import com.ioes.notification.domain.port.in.NotificationUseCase;
 import com.ioes.notification.interfaces.rest.dto.NotificationResponse;
+import com.ioes.notification.interfaces.rest.dto.SendNotificationRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,11 +20,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -133,5 +137,52 @@ class NotificationControllerTest {
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody().getData()).hasSize(1);
+    }
+
+    @Test
+    void should_PassRequestUserId_When_Sending() {
+        UUID userId = UUID.randomUUID();
+        SendNotificationRequest request = new SendNotificationRequest(
+                NotificationType.email, userId, "student@ioes.com", "Subject", "Body", null, null);
+        when(notificationUseCase.send(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(notification(userId));
+
+        controller.send(request);
+
+        ArgumentCaptor<NotificationUseCase.SendCommand> captor =
+                ArgumentCaptor.forClass(NotificationUseCase.SendCommand.class);
+        verify(notificationUseCase).send(captor.capture());
+        assertThat(captor.getValue().userId()).isEqualTo(userId);
+    }
+
+    @Test
+    void should_PassNullUserId_When_SendingWithoutOne() {
+        SendNotificationRequest request = new SendNotificationRequest(
+                NotificationType.email, null, "external@example.com", "Subject", "Body", null, null);
+        when(notificationUseCase.send(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(notification(null));
+
+        controller.send(request);
+
+        ArgumentCaptor<NotificationUseCase.SendCommand> captor =
+                ArgumentCaptor.forClass(NotificationUseCase.SendCommand.class);
+        verify(notificationUseCase).send(captor.capture());
+        assertThat(captor.getValue().userId()).isNull();
+    }
+
+    @Test
+    void should_PassRequestUserId_When_SendingTemplated() {
+        UUID userId = UUID.randomUUID();
+        SendNotificationRequest request = new SendNotificationRequest(
+                NotificationType.email, userId, "student@ioes.com", "Subject", null, "welcome", Map.of());
+        when(notificationUseCase.sendTemplated(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(notification(userId));
+
+        controller.sendTemplated(request);
+
+        ArgumentCaptor<NotificationUseCase.TemplatedCommand> captor =
+                ArgumentCaptor.forClass(NotificationUseCase.TemplatedCommand.class);
+        verify(notificationUseCase).sendTemplated(captor.capture());
+        assertThat(captor.getValue().userId()).isEqualTo(userId);
     }
 }

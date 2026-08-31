@@ -31,7 +31,7 @@ public class NotificationController {
         log.info("Sending notification: type={}, recipient={}", request.type(), request.recipient());
 
         NotificationUseCase.SendCommand command = new NotificationUseCase.SendCommand(
-                null,
+                request.userId(),
                 request.type(),
                 request.recipient(),
                 request.subject(),
@@ -47,7 +47,7 @@ public class NotificationController {
         log.info("Sending templated notification: template={}, recipient={}", request.template(), request.recipient());
 
         NotificationUseCase.TemplatedCommand command = new NotificationUseCase.TemplatedCommand(
-                null,
+                request.userId(),
                 request.type(),
                 request.recipient(),
                 request.template(),
