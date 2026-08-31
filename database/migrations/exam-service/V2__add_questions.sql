@@ -16,7 +16,7 @@ CREATE TYPE question_status AS ENUM ('draft', 'published', 'archived');
 -- QUESTIONS TABLE
 -- ============================================
 
-CREATE TABLE questions (
+CREATE TABLE IF NOT EXISTS questions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
     -- Content
@@ -70,16 +70,16 @@ CREATE TABLE questions (
 
 CREATE INDEX idx_questions_topic ON questions(topic_id) WHERE deleted_at IS NULL;
 CREATE INDEX idx_questions_difficulty ON questions(difficulty) WHERE deleted_at IS NULL;
-CREATE INDEX idx_questions_type ON questions(question_type) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_questions_type ON questions(question_type) WHERE deleted_at IS NULL;
 CREATE INDEX idx_questions_status ON questions(status) WHERE deleted_at IS NULL;
 CREATE INDEX idx_questions_created_by ON questions(created_by) WHERE deleted_at IS NULL;
-CREATE INDEX idx_questions_tags ON questions USING GIN(tags) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_questions_tags ON questions USING GIN(tags) WHERE deleted_at IS NULL;
 
 -- ============================================
 -- QUESTION OPTIONS (for MCQ)
 -- ============================================
 
-CREATE TABLE question_options (
+CREATE TABLE IF NOT EXISTS question_options (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     question_id UUID NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
     option_text VARCHAR(500) NOT NULL,
@@ -89,7 +89,7 @@ CREATE TABLE question_options (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_question_options_question ON question_options(question_id);
+CREATE INDEX IF NOT EXISTS idx_question_options_question ON question_options(question_id);
 
 -- ============================================
 -- CODING TEST CASES

@@ -9,9 +9,11 @@ import { apiClient, unwrap, type ApiEnvelope } from '@/config/api.config';
  *
  * Lưu ý về phạm vi dữ liệu thật, xem `ExamService.list()`:
  * - INSTRUCTOR: trả về exam do chính họ tạo, truy vấn thật.
- * - STUDENT và ADMIN: rơi vào nhánh `return ApiResponse.success([])`, tức
- *   luôn rỗng cho tới khi có bước kiểm tra ghi danh qua content-service.
- * Vậy nên chỉ trang của giảng viên là dùng được `listExams()` lúc này.
+ * - STUDENT: trả về mọi exam có `exam_type = 'practice'` (`findPractice()`).
+ *   Lọc theo lớp đã ghi danh qua content-service vẫn là TODO trong
+ *   exam-suite, nên học viên tạm thời thấy hết bài luyện tập chứ chưa bị
+ *   giới hạn theo khoá đã ghi danh; exam `graded`/`certification` không lộ
+ *   ra qua nhánh này.
  */
 
 const EXAMS = '/api/exams';
@@ -169,6 +171,84 @@ export async function cancelAttempt(id: string): Promise<ExamAttempt> {
   );
 }
 
+/**
+ * Hình dạng mà bảng danh sách bài thi của học viên thật sự đọc tới.
+ *
+ * Không phải bản sao của `StudentExam` cũ: những trường mock từng có mà API
+ * không cung cấp (tên khoá học, hạn nộp, số câu hỏi) đã bỏ hẳn thay vì điền
+ * giá trị giả.
+ */
+export interface StudentExamView {
+  id: string;
+  title: string;
+  examType: ExamType;
+  timeLimitMinutes: number | null;
+  maxAttempts: number | null;
+  attempts: number;
+  bestScore: number | null;
+  status: 'available' | 'in_progress' | 'completed';
+}
+
+export interface ResultView {
+  attemptId: string;
+  examId: string;
+  examTitle: string | null;
+  submittedAt: string | null;
+  score: number | null;
+  maxScore: number | null;
+  percentageScore: number | null;
+  passed: boolean | null;
+  questionCount: number | null;
+  timeLimitMinutes: number | null;
+}
+
+/**
+ * `Exam` không mang trạng thái của người học, nên trạng thái và điểm cao nhất
+ * phải suy từ danh sách lượt làm bài. Nhận cả danh sách rồi lọc tại đây để
+ * phía gọi khỏi lặp lại phép lọc ở từng chỗ dùng.
+ */
+export function toStudentExamView(exam: Exam, attempts: ExamAttempt[]): StudentExamView {
+  const mine = attempts.filter(a => a.examId === exam.id);
+  // `cancelled` và `expired` không phải là đã hoàn thành — chỉ `submitted` và
+  // `graded` mới tính. Nếu không, huỷ một lượt làm bài sẽ khoá exam ở trạng
+  // thái "completed" vĩnh viễn (nút hành động đổi thành "Xem kết quả", exam
+  // biến mất khỏi "Bài thi sắp tới") dù người học chưa từng nộp bài nào.
+  const completed = mine.filter(a => a.status === 'submitted' || a.status === 'graded');
+  const scored = completed.map(a => a.percentageScore).filter((s): s is number => s !== null);
+  const status = mine.some(a => a.status === 'in_progress')
+    ? 'in_progress'
+    : completed.length > 0
+      ? 'completed'
+      : 'available';
+
+  return {
+    id: exam.id,
+    title: exam.title,
+    examType: exam.examType,
+    timeLimitMinutes: exam.timeLimitMinutes,
+    maxAttempts: exam.maxAttempts,
+    attempts: completed.length,
+    bestScore: scored.length > 0 ? Math.max(...scored) : null,
+    status,
+  };
+}
+
+/** `exam` là tuỳ chọn vì trang kết quả nạp tiêu đề bằng lời gọi riêng. */
+export function toResultView(attempt: ExamAttempt, exam?: Exam): ResultView {
+  return {
+    attemptId: attempt.id,
+    examId: attempt.examId,
+    examTitle: exam?.title ?? null,
+    submittedAt: attempt.submittedAt,
+    score: attempt.score,
+    maxScore: attempt.maxScore,
+    percentageScore: attempt.percentageScore,
+    passed: attempt.passed,
+    questionCount: attempt.questionIds?.length ?? null,
+    timeLimitMinutes: exam?.timeLimitMinutes ?? null,
+  };
+}
+
 export const examApi = {
   listExams,
   getExam,
@@ -176,4 +256,6 @@ export const examApi = {
   listAttempts,
   getAttempt,
   cancelAttempt,
+  toStudentExamView,
+  toResultView,
 };

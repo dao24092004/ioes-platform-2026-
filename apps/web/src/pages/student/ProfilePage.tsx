@@ -1,20 +1,38 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import StudentLayout from '@/components/layout/StudentLayout';
 import { Card } from '@/components/common/Card';
 import { StatCard } from '@/components/common/StatCard';
-import { useAuthStore } from '@/app/store/authStore';
+import { authApi } from '@/services/api/auth.api';
 
 type Tab = 'overview' | 'edit' | 'achievements' | 'security';
 
 const ProfilePage: React.FC = () => {
   const { t } = useTranslation();
-  const { user } = useAuthStore();
+  const { data: profile, isLoading: profileLoading, error: profileError } = useQuery({ queryKey: ['auth', 'me'], queryFn: () => authApi.me() });
   const [tab, setTab] = useState<Tab>('overview');
-  const [name, setName] = useState(user?.full_name || 'Nguyễn Hoàng Nam');
-  const [phone, setPhone] = useState('+84-905-777-888');
-  const [bio, setBio] = useState('Sinh viên năm 3 chuyên ngành CNTT. Đam mê lập trình web và AI.');
-  const [saved, setSaved] = useState(false);
+  const [name, setName] = useState('');
+
+  React.useEffect(() => {
+    if (profile) setName(profile.fullName);
+  }, [profile]);
+
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [pwError, setPwError] = useState<string | null>(null);
+
+  const changePassword = useMutation({
+    mutationFn: (vars: { oldPassword: string; newPassword: string }) =>
+      authApi.changePassword(vars.oldPassword, vars.newPassword),
+    onSuccess: () => {
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    },
+    onError: () => setPwError('Đổi mật khẩu thất bại. Kiểm tra lại mật khẩu hiện tại.'),
+  });
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'overview', label: t('student.profile.tabs.overview') },
@@ -24,6 +42,22 @@ const ProfilePage: React.FC = () => {
   ];
 
   const initials = (name).split(' ').slice(0, 2).map(s => s.charAt(0)).join('').toUpperCase();
+
+  if (profileLoading) {
+    return (
+      <StudentLayout title={t('student.profile.title')} subtitle={t('student.profile.subtitle')}>
+        <div className="p-12 text-center"><div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
+      </StudentLayout>
+    );
+  }
+
+  if (profileError) {
+    return (
+      <StudentLayout title={t('student.profile.title')} subtitle={t('student.profile.subtitle')}>
+        <div className="p-12 text-center text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</div>
+      </StudentLayout>
+    );
+  }
 
   return (
     <StudentLayout title={t('student.profile.title')} subtitle={t('student.profile.subtitle')}>
@@ -39,8 +73,7 @@ const ProfilePage: React.FC = () => {
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{name}</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{user?.email || 'nam.nh@fpt.edu.vn'}</p>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">{bio}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{profile?.email ?? '—'}</p>
           </div>
         </div>
       </Card>
@@ -75,8 +108,7 @@ const ProfilePage: React.FC = () => {
                 <h3 className="font-bold text-slate-900 dark:text-white mb-3">Thông tin cá nhân</h3>
                 <div className="space-y-3 text-sm">
                   <Field label={t('student.profile.fields.fullName')} value={name} />
-                  <Field label={t('student.profile.fields.email')} value={user?.email || 'nam.nh@fpt.edu.vn'} />
-                  <Field label={t('student.profile.fields.phone')} value={phone} />
+                  <Field label={t('student.profile.fields.email')} value={profile?.email ?? '—'} />
                   <Field label={t('student.profile.fields.studentId')} value="SE173001" />
                   <Field label={t('student.profile.fields.department')} value="Công nghệ thông tin" />
                 </div>
@@ -95,27 +127,8 @@ const ProfilePage: React.FC = () => {
 
           {tab === 'edit' && (
             <div className="max-w-2xl space-y-4">
-              <FieldInput label={t('student.profile.fields.fullName')} value={name} onChange={setName} />
-              <FieldInput label={t('student.profile.fields.phone')} value={phone} onChange={setPhone} />
-              <FieldInput label={t('student.profile.fields.email')} value={user?.email || 'nam.nh@fpt.edu.vn'} disabled />
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">{t('student.profile.fields.bio')}</label>
-                <textarea
-                  rows={4}
-                  value={bio}
-                  onChange={e => setBio(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:border-blue-500 resize-none"
-                />
-              </div>
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  onClick={() => { setSaved(true); setTimeout(() => setSaved(false), 2000); }}
-                  className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors"
-                >
-                  {t('student.profile.save')}
-                </button>
-                {saved && <span className="text-sm text-emerald-600 dark:text-emerald-400">✓ {t('student.profile.saved')}</span>}
-              </div>
+              <FieldInput label={t('student.profile.fields.fullName')} value={name} onChange={setName} disabled />
+              <FieldInput label={t('student.profile.fields.email')} value={profile?.email ?? '—'} disabled />
             </div>
           )}
 
@@ -144,21 +157,32 @@ const ProfilePage: React.FC = () => {
             <div className="max-w-2xl space-y-4">
               <Card padding="md">
                 <h3 className="font-bold text-slate-900 dark:text-white mb-3">Đổi mật khẩu</h3>
-                <div className="space-y-3">
-                  <input type="password" placeholder="Mật khẩu hiện tại" className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
-                  <input type="password" placeholder="Mật khẩu mới" className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
-                  <input type="password" placeholder="Xác nhận mật khẩu mới" className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
-                  <button className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
-                    Cập nhật mật khẩu
+                <form
+                  className="space-y-3"
+                  onSubmit={e => {
+                    e.preventDefault();
+                    setPwError(null);
+                    changePassword.reset();
+                    if (newPassword !== confirmPassword) {
+                      setPwError('Mật khẩu xác nhận không khớp.');
+                      return;
+                    }
+                    if (newPassword.length < 8) {
+                      setPwError('Mật khẩu mới phải từ 8 ký tự.');
+                      return;
+                    }
+                    changePassword.mutate({ oldPassword, newPassword });
+                  }}
+                >
+                  <input type="password" placeholder="Mật khẩu hiện tại" value={oldPassword} onChange={e => setOldPassword(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
+                  <input type="password" placeholder="Mật khẩu mới" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
+                  <input type="password" placeholder="Xác nhận mật khẩu mới" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
+                  {pwError && <p className="text-sm text-red-600 dark:text-red-400">{pwError}</p>}
+                  {changePassword.isSuccess && <p className="text-sm text-emerald-600 dark:text-emerald-400">Đã đổi mật khẩu.</p>}
+                  <button type="submit" disabled={changePassword.isPending} className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold transition-colors">
+                    {changePassword.isPending ? 'Đang cập nhật…' : 'Cập nhật mật khẩu'}
                   </button>
-                </div>
-              </Card>
-              <Card padding="md">
-                <h3 className="font-bold text-slate-900 dark:text-white mb-3">Xác thực 2 yếu tố (2FA)</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">Bảo vệ tài khoản với lớp bảo mật bổ sung.</p>
-                <button className="px-4 py-2 rounded-lg border border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-sm font-semibold transition-colors">
-                  Kích hoạt 2FA
-                </button>
+                </form>
               </Card>
             </div>
           )}

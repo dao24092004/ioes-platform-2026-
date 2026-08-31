@@ -5,23 +5,20 @@ import { useQuery } from '@tanstack/react-query';
 import StudentLayout from '@/components/layout/StudentLayout';
 import { StatCard } from '@/components/common/StatCard';
 import PaginationBar from '@/components/common/PaginationBar';
-import { studentApi, type StudentExam } from '@/services/api';
+import { examApi, toStudentExamView, type StudentExamView } from '@/services/api/exam.api';
 
-type StatusFilter = 'all' | 'upcoming' | 'available' | 'in_progress' | 'completed' | 'missed';
+type StatusFilter = 'all' | 'available' | 'in_progress' | 'completed';
 
-const statusStyles: Record<StudentExam['status'], { bg: string; text: string; dot: string; label: string }> = {
-  upcoming: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', dot: 'bg-blue-500', label: 'student.exams.status.upcoming' },
+const statusStyles: Record<StudentExamView['status'], { bg: string; text: string; dot: string; label: string }> = {
   available: { bg: 'bg-emerald-50 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500 animate-pulse', label: 'student.exams.status.available' },
   in_progress: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500', label: 'student.exams.status.in_progress' },
   completed: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400', dot: 'bg-slate-400', label: 'student.exams.status.completed' },
-  missed: { bg: 'bg-red-50 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', dot: 'bg-red-500', label: 'student.exams.status.missed' },
 };
 
-const typeStyles: Record<StudentExam['type'], { bg: string; text: string; label: string }> = {
-  midterm: { bg: 'bg-purple-50 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400', label: 'student.exams.type.midterm' },
-  final: { bg: 'bg-red-50 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', label: 'student.exams.type.final' },
-  quiz: { bg: 'bg-cyan-50 dark:bg-cyan-900/30', text: 'text-cyan-600 dark:text-cyan-400', label: 'student.exams.type.quiz' },
+const typeStyles: Record<StudentExamView['examType'], { bg: string; text: string; label: string }> = {
   practice: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400', label: 'student.exams.type.practice' },
+  graded: { bg: 'bg-purple-50 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400', label: 'student.exams.type.graded' },
+  certification: { bg: 'bg-red-50 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', label: 'student.exams.type.certification' },
 };
 
 const ExamsPage: React.FC = () => {
@@ -32,20 +29,26 @@ const ExamsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const { data: exams = [], isLoading } = useQuery({
-    queryKey: ['student', 'exams', 'list'],
-    queryFn: () => studentApi.upcomingExams(),
-  });
+  const examsQuery = useQuery({ queryKey: ['student', 'exams', 'list'], queryFn: () => examApi.listExams() });
+  const attemptsQuery = useQuery({ queryKey: ['student', 'attempts'], queryFn: () => examApi.listAttempts() });
+
+  const isLoading = examsQuery.isLoading || attemptsQuery.isLoading;
+  const error = examsQuery.error ?? attemptsQuery.error;
+
+  const exams = useMemo<StudentExamView[]>(
+    () => (examsQuery.data ?? []).map(e => toStudentExamView(e, attemptsQuery.data ?? [])),
+    [examsQuery.data, attemptsQuery.data],
+  );
 
   const filtered = useMemo(() => {
     let arr = exams;
-    if (status !== 'all') arr = arr.filter((e: StudentExam) => e.status === status);
+    if (status !== 'all') arr = arr.filter((e: StudentExamView) => e.status === status);
     if (search.trim()) {
       const q = search.toLowerCase();
-      arr = arr.filter((e: StudentExam) => e.title.toLowerCase().includes(q) || e.course.toLowerCase().includes(q));
+      arr = arr.filter((e: StudentExamView) => e.title.toLowerCase().includes(q));
     }
-    if (sort === 'score') arr = [...arr].sort((a, b) => (b.best_score ?? 0) - (a.best_score ?? 0));
-    else arr = [...arr].sort((a, b) => +new Date(b.scheduled_at ?? 0) - +new Date(a.scheduled_at ?? 0));
+    if (sort === 'score') arr = [...arr].sort((a, b) => (b.bestScore ?? 0) - (a.bestScore ?? 0));
+    else arr = [...arr];
     return arr;
   }, [exams, status, search, sort]);
 
@@ -60,12 +63,12 @@ const ExamsPage: React.FC = () => {
   }, [status, search, sort, pageSize]);
 
   const stats = useMemo(() => {
-    const completed = exams.filter((e: StudentExam) => e.status === 'completed' && e.best_score !== null);
-    const avg = completed.length > 0 ? Math.round(completed.reduce((s: number, e: StudentExam) => s + (e.best_score ?? 0), 0) / completed.length) : 0;
+    const scored = exams.filter((e: StudentExamView) => e.bestScore !== null);
+    const avg = scored.length > 0 ? Math.round(scored.reduce((s: number, e: StudentExamView) => s + (e.bestScore ?? 0), 0) / scored.length) : 0;
     return {
       total: exams.length,
-      upcoming: exams.filter((e: StudentExam) => e.status === 'upcoming' || e.status === 'available' || e.status === 'in_progress').length,
-      completed: exams.filter((e: StudentExam) => e.status === 'completed').length,
+      available: exams.filter((e: StudentExamView) => e.status === 'available' || e.status === 'in_progress').length,
+      completed: exams.filter((e: StudentExamView) => e.status === 'completed').length,
       avgScore: avg,
     };
   }, [exams]);
@@ -77,7 +80,7 @@ const ExamsPage: React.FC = () => {
     >
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard color="blue" icon={<ExamIcon />} value={stats.total} label={t('student.exams.stats.total')} />
-        <StatCard color="amber" icon={<ClockIcon />} value={stats.upcoming} label={t('student.exams.stats.upcoming')} />
+        <StatCard color="amber" icon={<ClockIcon />} value={stats.available} label={t('student.exams.filter.available')} />
         <StatCard color="emerald" icon={<CheckIcon />} value={stats.completed} label={t('student.exams.stats.completed')} />
         <StatCard color="purple" icon={<TrophyIcon />} value={stats.avgScore} label={t('student.exams.stats.avgScore')} />
       </section>
@@ -85,7 +88,7 @@ const ExamsPage: React.FC = () => {
       <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-wrap gap-3 items-center justify-between">
           <div className="flex flex-wrap gap-2">
-            {(['all', 'upcoming', 'available', 'in_progress', 'completed', 'missed'] as StatusFilter[]).map(s => (
+            {(['all', 'available', 'in_progress', 'completed'] as StatusFilter[]).map(s => (
               <button
                 key={s}
                 onClick={() => setStatus(s)}
@@ -121,7 +124,9 @@ const ExamsPage: React.FC = () => {
           </div>
         </div>
 
-        {isLoading ? (
+        {error ? (
+          <div className="p-12 text-center text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</div>
+        ) : isLoading ? (
           <div className="p-12 text-center"><div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-sm text-slate-500">{t('student.exams.empty')}</div>
@@ -131,18 +136,17 @@ const ExamsPage: React.FC = () => {
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase tracking-wider text-slate-500">
                   <th className="text-left px-6 py-3 font-semibold">{t('student.exams.title')}</th>
-                  <th className="text-left px-6 py-3 font-semibold">{t('student.courses.title')}</th>
                   <th className="text-center px-6 py-3 font-semibold">{t('student.exams.duration')}</th>
                   <th className="text-center px-6 py-3 font-semibold">{t('student.exams.attempts', { done: 0, max: 0 })}</th>
-                  <th className="text-left px-6 py-3 font-semibold">{t('student.exams.status.upcoming')}</th>
+                  <th className="text-left px-6 py-3 font-semibold">{t('student.exams.statusColumn')}</th>
                   <th className="text-left px-6 py-3 font-semibold">{t('student.exams.bestScore')}</th>
                   <th className="px-6 py-3"></th>
                 </tr>
               </thead>
               <tbody>
-                {paged.map((exam: StudentExam) => {
+                {paged.map((exam: StudentExamView) => {
                   const ss = statusStyles[exam.status];
-                  const ts = typeStyles[exam.type];
+                  const ts = typeStyles[exam.examType];
                   return (
                     <tr key={exam.id} className="border-t border-slate-100 dark:border-slate-800 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors">
                       <td className="px-6 py-4">
@@ -153,33 +157,28 @@ const ExamsPage: React.FC = () => {
                           <span className="font-semibold text-sm">{exam.title}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm">{exam.course}</td>
                       <td className="px-6 py-4 text-center">
-                        <div className="text-sm font-semibold">{exam.duration_min} min</div>
-                        <div className="text-xs text-slate-500">{exam.questions} câu</div>
+                        <div className="text-sm font-semibold">{exam.timeLimitMinutes ?? '—'} min</div>
                       </td>
                       <td className="px-6 py-4 text-center text-sm">
-                        {exam.attempts}/{exam.max_attempts}
+                        {exam.attempts}/{exam.maxAttempts ?? '∞'}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold ${ss.bg} ${ss.text}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${ss.dot}`} />
                           {t(ss.label)}
                         </span>
-                        {exam.due_in && (
-                          <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{exam.due_in}</div>
-                        )}
                       </td>
                       <td className="px-6 py-4">
-                        {exam.best_score !== null ? (
+                        {exam.bestScore !== null ? (
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold ${
-                            exam.best_score >= 80
+                            exam.bestScore >= 80
                               ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
-                              : exam.best_score >= 60
+                              : exam.bestScore >= 60
                               ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
                               : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400'
                           }`}>
-                            {exam.best_score}
+                            {exam.bestScore}
                           </span>
                         ) : (
                           <span className="text-xs text-slate-400">—</span>
@@ -193,8 +192,6 @@ const ExamsPage: React.FC = () => {
                           >
                             {t('student.exams.viewResult')}
                           </Link>
-                        ) : exam.status === 'missed' ? (
-                          <span className="text-xs text-slate-400">—</span>
                         ) : (
                           <Link
                             to={`/student/exams/${exam.id}/take`}
@@ -216,7 +213,7 @@ const ExamsPage: React.FC = () => {
           </div>
         )}
 
-        {!isLoading && filtered.length > 0 && (
+        {!error && !isLoading && filtered.length > 0 && (
           <PaginationBar
             i18nKey="student.exams"
             page={safePage}

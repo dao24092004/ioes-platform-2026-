@@ -1,5 +1,7 @@
 package com.ioes.content.domain.event;
 
+import com.ioes.content.domain.model.Topic;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

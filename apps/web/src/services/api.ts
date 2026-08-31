@@ -1368,36 +1368,6 @@ export interface StudentEnrolledCourse {
   status: 'in_progress' | 'completed' | 'not_started';
 }
 
-export interface StudentExam {
-  id: string;
-  title: string;
-  course: string;
-  type: 'midterm' | 'final' | 'quiz' | 'practice';
-  duration_min: number;
-  questions: number;
-  status: 'upcoming' | 'available' | 'in_progress' | 'completed' | 'missed';
-  scheduled_at: string | null;
-  attempts: number;
-  max_attempts: number;
-  best_score: number | null;
-  due_in: string | null;
-}
-
-export interface StudentExamResult {
-  exam_id: string;
-  exam_title: string;
-  course: string;
-  submitted_at: string;
-  score: number;
-  max_score: number;
-  passed: boolean;
-  time_used_min: number;
-  duration_min: number;
-  rank: number;
-  total_participants: number;
-  breakdown: { section: string; score: number; max: number }[];
-  feedback: string;
-}
 
 export interface StudentCertificate {
   id: string;
@@ -1559,32 +1529,6 @@ export const studentApi = {
       { id: 'sc-006', title: 'Cybersecurity Basics', instructor: 'Phạm Văn Quang', thumbnail_color: 'cyan', category: 'Security', lessons_total: 20, lessons_done: 0, progress: 0, next_lesson: 'OWASP Top 10', last_accessed: ago(168), rating: 4.5, duration_hours: 24, status: 'not_started' },
       { id: 'sc-007', title: 'Database Systems', instructor: 'Lê Minh Hằng', thumbnail_color: 'blue', category: 'Database', lessons_total: 26, lessons_done: 26, progress: 100, next_lesson: '', last_accessed: ago(336), rating: 4.7, duration_hours: 30, status: 'completed' },
       { id: 'sc-008', title: 'Modern Web Development', instructor: 'Trần Thị Hương', thumbnail_color: 'purple', category: 'Web Dev', lessons_total: 32, lessons_done: 32, progress: 100, next_lesson: '', last_accessed: ago(720), rating: 4.9, duration_hours: 38, status: 'completed' },
-    ];
-  },
-
-  async upcomingExams(): Promise<StudentExam[]> {
-    await sleep(120);
-    const now = Date.now();
-    const iso = (offsetHours: number) => new Date(now + offsetHours * 3600000).toISOString();
-    const ago = (hours: number) => new Date(now - hours * 3600000).toISOString();
-    return [
-      { id: 'se-001', title: 'React.js — Kiểm tra giữa kỳ', course: 'Lập trình Web với React.js', type: 'midterm', duration_min: 90, questions: 40, status: 'available', scheduled_at: null, attempts: 0, max_attempts: 1, best_score: null, due_in: 'Còn 2 ngày' },
-      { id: 'se-002', title: 'AWS — Pop Quiz 3', course: 'Cloud Computing với AWS', type: 'quiz', duration_min: 20, questions: 15, status: 'upcoming', scheduled_at: iso(26), attempts: 0, max_attempts: 3, best_score: null, due_in: 'Còn 26 giờ' },
-      { id: 'se-003', title: 'UI/UX Final Project', course: 'UI/UX Design Fundamentals', type: 'final', duration_min: 180, questions: 5, status: 'in_progress', scheduled_at: ago(1), attempts: 1, max_attempts: 1, best_score: null, due_in: 'Còn 1 giờ 24 phút' },
-      { id: 'se-004', title: 'ML Mid-term — Practice', course: 'Machine Learning Fundamentals', type: 'practice', duration_min: 60, questions: 30, status: 'completed', scheduled_at: ago(72), attempts: 2, max_attempts: 5, best_score: 88, due_in: null },
-      { id: 'se-005', title: 'DSA Weekly Quiz', course: 'Data Structures & Algorithms', type: 'quiz', duration_min: 30, questions: 20, status: 'completed', scheduled_at: ago(168), attempts: 1, max_attempts: 3, best_score: 92, due_in: null },
-      { id: 'se-006', title: 'Database Final', course: 'Database Systems', type: 'final', duration_min: 120, questions: 50, status: 'completed', scheduled_at: ago(720), attempts: 1, max_attempts: 1, best_score: 94, due_in: null },
-      { id: 'se-007', title: 'OWASP Quiz', course: 'Cybersecurity Basics', type: 'quiz', duration_min: 15, questions: 10, status: 'missed', scheduled_at: ago(96), attempts: 0, max_attempts: 1, best_score: null, due_in: null },
-    ];
-  },
-
-  async recentResults(): Promise<StudentExamResult[]> {
-    await sleep(100);
-    const ago = (hours: number) => new Date(Date.now() - hours * 3600000).toISOString();
-    return [
-      { exam_id: 'se-006', exam_title: 'Database Final', course: 'Database Systems', submitted_at: ago(720), score: 94, max_score: 100, passed: true, time_used_min: 98, duration_min: 120, rank: 3, total_participants: 156, breakdown: [{ section: 'SQL', score: 38, max: 40 }, { section: 'Normalization', score: 28, max: 30 }, { section: 'Indexing', score: 18, max: 20 }, { section: 'Transactions', score: 10, max: 10 }], feedback: 'Excellent work! Bạn nắm rất chắc lý thuyết và áp dụng tốt vào thực hành.' },
-      { exam_id: 'se-005', exam_title: 'DSA Weekly Quiz', course: 'Data Structures & Algorithms', submitted_at: ago(168), score: 92, max_score: 100, passed: true, time_used_min: 22, duration_min: 30, rank: 12, total_participants: 198, breakdown: [{ section: 'Linked List', score: 28, max: 30 }, { section: 'Trees', score: 32, max: 35 }, { section: 'Sorting', score: 32, max: 35 }], feedback: 'Tốt! Cần ôn thêm phần cây nhị phân và heap.' },
-      { exam_id: 'se-004', exam_title: 'ML Mid-term — Practice', course: 'Machine Learning Fundamentals', submitted_at: ago(72), score: 88, max_score: 100, passed: true, time_used_min: 54, duration_min: 60, rank: 24, total_participants: 312, breakdown: [{ section: 'Regression', score: 38, max: 40 }, { section: 'Classification', score: 30, max: 35 }, { section: 'Evaluation', score: 20, max: 25 }], feedback: 'Bài làm tốt. Chú ý phần precision/recall.' },
     ];
   },
 

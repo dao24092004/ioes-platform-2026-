@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import StudentLayout from '@/components/layout/StudentLayout';
 import { StatCard } from '@/components/common/StatCard';
 import { Card, CardTitleWithIcon } from '@/components/common/Card';
-import { studentApi, type StudentEnrolledCourse, type StudentExam } from '@/services/api';
+import { studentApi, type StudentEnrolledCourse } from '@/services/api';
+import { examApi, toStudentExamView, type StudentExamView } from '@/services/api/exam.api';
 import { useAuthStore } from '@/app/store/authStore';
 import { formatRelative } from '@/utils/time';
 
@@ -18,12 +19,10 @@ const colorMap: Record<StudentEnrolledCourse['thumbnail_color'], string> = {
   cyan: 'from-cyan-500 to-sky-500',
 };
 
-const examStatusStyles: Record<StudentExam['status'], { bg: string; text: string; label: string }> = {
-  upcoming: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', label: 'student.exams.status.upcoming' },
+const examStatusStyles: Record<StudentExamView['status'], { bg: string; text: string; label: string }> = {
   available: { bg: 'bg-emerald-50 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400', label: 'student.exams.status.available' },
   in_progress: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', label: 'student.exams.status.in_progress' },
   completed: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400', label: 'student.exams.status.completed' },
-  missed: { bg: 'bg-red-50 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', label: 'student.exams.status.missed' },
 };
 
 const DashboardPage: React.FC = () => {
@@ -32,13 +31,25 @@ const DashboardPage: React.FC = () => {
 
   const { data: stats } = useQuery({ queryKey: ['student', 'dashboard', 'stats'], queryFn: () => studentApi.dashboardStats() });
   const { data: courses = [] } = useQuery({ queryKey: ['student', 'dashboard', 'courses'], queryFn: () => studentApi.myCourses() });
-  const { data: exams = [] } = useQuery({ queryKey: ['student', 'dashboard', 'exams'], queryFn: () => studentApi.upcomingExams() });
+  const {
+    data: examList = [],
+    isLoading: examListLoading,
+    error: examListError,
+  } = useQuery({ queryKey: ['student', 'exams', 'list'], queryFn: () => examApi.listExams() });
+  const {
+    data: attempts = [],
+    isLoading: attemptsLoading,
+    error: attemptsError,
+  } = useQuery({ queryKey: ['student', 'attempts'], queryFn: () => examApi.listAttempts() });
+  const examsLoading = examListLoading || attemptsLoading;
+  const examsError = examListError ?? attemptsError;
+  const exams = useMemo(() => examList.map(e => toStudentExamView(e, attempts)), [examList, attempts]);
 
   const greetingHour = new Date().getHours();
   const greetingKey = greetingHour < 12 ? 'student.dashboard.welcomeGreeting' : 'student.dashboard.welcomeTitle';
 
   const inProgress = courses.filter((c: StudentEnrolledCourse) => c.status === 'in_progress').slice(0, 4);
-  const upcomingExams = exams.filter((e: StudentExam) => e.status === 'available' || e.status === 'upcoming' || e.status === 'in_progress').slice(0, 4);
+  const upcomingExams = exams.filter(e => e.status === 'available' || e.status === 'in_progress').slice(0, 4);
   const weeklyHours: Array<{ day: string; value: number }> = stats?.weeklyHours ?? [];
 
   const maxHours = Math.max(...weeklyHours.map(h => h.value), 1);
@@ -131,37 +142,43 @@ const DashboardPage: React.FC = () => {
               </Link>
             }
           >
-            <ul className="space-y-3">
-              {upcomingExams.map((exam: StudentExam) => {
-                const ss = examStatusStyles[exam.status];
-                return (
-                  <li key={exam.id} className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                    <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
-                      <ExamIcon />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{exam.title}</h3>
-                      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        <span>{exam.course}</span>
-                        <span>•</span>
-                        <span>{exam.duration_min} min · {exam.questions} {t('student.dashboard.lessons')}</span>
+            {examsError ? (
+              <div className="p-6 text-center text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</div>
+            ) : examsLoading ? (
+              <div className="p-6 text-center"><div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
+            ) : upcomingExams.length === 0 ? (
+              <div className="p-6 text-center text-sm text-slate-500">{t('student.exams.empty')}</div>
+            ) : (
+              <ul className="space-y-3">
+                {upcomingExams.map((exam: StudentExamView) => {
+                  const ss = examStatusStyles[exam.status];
+                  return (
+                    <li key={exam.id} className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                      <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
+                        <ExamIcon />
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={`px-2 py-1 rounded-md text-xs font-semibold ${ss.bg} ${ss.text}`}>
-                        {t(ss.label)}
-                      </span>
-                      <Link
-                        to={`/student/exams/${exam.id}`}
-                        className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                      >
-                        {exam.status === 'in_progress' ? t('student.exams.resumeBtn') : t('student.exams.startBtn')}
-                      </Link>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{exam.title}</h3>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          <span>{exam.timeLimitMinutes ?? '—'} min</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`px-2 py-1 rounded-md text-xs font-semibold ${ss.bg} ${ss.text}`}>
+                          {t(ss.label)}
+                        </span>
+                        <Link
+                          to={`/student/exams/${exam.id}/take`}
+                          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                        >
+                          {exam.status === 'in_progress' ? t('student.exams.resumeBtn') : t('student.exams.startBtn')}
+                        </Link>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </Card>
         </div>
 

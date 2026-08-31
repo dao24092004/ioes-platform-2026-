@@ -2,6 +2,7 @@
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
+    "loadError": "Could not load data. Try again later.",
     "success": "Success",
     "save": "Save",
     "cancel": "Cancel",
@@ -1177,15 +1178,12 @@
         "upcoming": "Upcoming",
         "available": "Available",
         "in_progress": "In Progress",
-        "completed": "Completed",
-        "missed": "Missed"
+        "completed": "Completed"
       },
       "filter": {
         "all": "All",
-        "upcoming": "Upcoming",
         "available": "Available",
         "completed": "Completed",
-        "missed": "Missed",
         "in_progress": "In progress"
       },
       "searchPlaceholder": "Search exams...",
@@ -1193,6 +1191,7 @@
       "duration": "min",
       "attempts": "{{done}}/{{max}} attempts",
       "bestScore": "Best score",
+      "statusColumn": "Status",
       "viewResult": "View result",
       "pagination": {
         "range": "{{from}}-{{to}} of {{total}}",
@@ -1204,7 +1203,6 @@
       "stats": {
         "avgScore": "Average score",
         "total": "Total",
-        "upcoming": "Upcoming",
         "completed": "Completed"
       },
       "sort": {
@@ -1212,10 +1210,9 @@
         "score": "Highest score"
       },
       "type": {
-        "midterm": "Midterm",
-        "final": "Final",
-        "quiz": "Quiz",
-        "practice": "Practice"
+        "practice": "Practice",
+        "graded": "Graded",
+        "certification": "Certification"
       }
     },
     "profile": {
@@ -1413,15 +1410,13 @@
       "failed": "FAILED",
       "outOf": "/{{total}} pts",
       "score": "Score",
-      "rank": "Rank",
-      "timeUsed": "Time used",
       "backToExams": "Back to exams",
       "reviewAnswers": "Review answers",
       "share": "Share",
       "retakeExam": "Retake",
-      "breakdown": "Breakdown",
-      "feedback": "Instructor feedback",
-      "previousResults": "Previous attempts"
+      "previousResults": "Previous attempts",
+      "questionCount": "Questions",
+      "empty": "No submitted exams yet."
     },
     "practice": {
       "title": "Practice",

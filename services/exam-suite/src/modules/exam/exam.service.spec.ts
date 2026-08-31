@@ -45,6 +45,7 @@ describe('ExamService - Start exam flow', () => {
       findByIdForUpdate: jest.fn(),
       findByIdInTx: jest.fn(),
       findByInstructor: jest.fn(),
+      findPractice: jest.fn(),
       findQuestionsByExamIdInTx: jest.fn(),
       save: jest.fn(),
     } as any;
@@ -228,6 +229,23 @@ describe('ExamService - Start exam flow', () => {
       await expect(
         service.cancelAttempt('att-1', 'user-1'),
       ).rejects.toThrow('Forbidden');
+    });
+  });
+
+  describe('list', () => {
+    it('instructor thấy exam của chính mình', async () => {
+      (examRepo.findByInstructor as jest.Mock).mockResolvedValue([sampleExam]);
+      const res = await service.list('instructor-1', 'INSTRUCTOR');
+      expect(examRepo.findByInstructor).toHaveBeenCalledWith('instructor-1');
+      expect(res.data).toEqual([sampleExam]);
+    });
+
+    it('student thấy danh sách practice exam', async () => {
+      (examRepo.findPractice as jest.Mock).mockResolvedValue([sampleExam]);
+      const res = await service.list('student-1', 'STUDENT');
+      expect(examRepo.findPractice).toHaveBeenCalled();
+      expect(examRepo.findByInstructor).not.toHaveBeenCalled();
+      expect(res.data).toEqual([sampleExam]);
     });
   });
 });

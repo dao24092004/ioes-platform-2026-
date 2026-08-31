@@ -10,6 +10,7 @@ import { QuestionBankModule } from './modules/question-bank/question-bank.module
 import { ExamEventsModule } from './modules/exam-events/exam-events.module';
 import { DgraphSyncConsumer } from './modules/question-bank/dgraph-sync.consumer';
 import { dbConfig } from './config/app.config';
+import { SnakeCaseNamingStrategy } from './config/snake-case.naming-strategy';
 
 @Module({
   imports: [
@@ -32,6 +33,11 @@ import { dbConfig } from './config/app.config';
         // Dev mode: synchronize=true để bạn test không cần Flyway.
         // Production: set TYPEORM_SYNCHRONIZE=false (mặc định false).
         synchronize: process.env.TYPEORM_SYNCHRONIZE === 'true',
+        // Flyway schema (database/migrations/exam-service/) uses snake_case
+        // columns; without this, TypeORM derives camelCase column names from
+        // entity properties and queries fail with "column X.propertyName
+        // does not exist".
+        namingStrategy: new SnakeCaseNamingStrategy(),
       }),
     }),
     ExamModule,

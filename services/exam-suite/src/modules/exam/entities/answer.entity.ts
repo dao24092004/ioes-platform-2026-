@@ -72,6 +72,6 @@ export class Answer {
   @ManyToOne(() => ExamAttempt, (attempt) => attempt.answers, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'attemptId' })
+  @JoinColumn({ name: 'attempt_id' })
   attempt?: ExamAttempt;
 }

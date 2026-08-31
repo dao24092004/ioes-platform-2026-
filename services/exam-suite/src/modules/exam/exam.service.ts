@@ -59,9 +59,10 @@ export class ExamService {
       const exams = await this.examRepo.findByInstructor(userId);
       return ApiResponse.success(exams);
     }
-    // TODO: content-service enrollment check
-    // Tạm thời: trả về list practice exams
-    return ApiResponse.success([]);
+    // TODO: lọc theo lớp đã ghi danh khi content-service chạy được.
+    // Tới lúc đó học viên chỉ thấy exam practice.
+    const exams = await this.examRepo.findPractice();
+    return ApiResponse.success(exams);
   }
 
   /**

@@ -16,7 +16,7 @@ import java.util.Map;
 
 @RestControllerAdvice
 @Slf4j
-public class GlobalExceptionHandler {
+public class ContentExceptionHandler {
 
     @ExceptionHandler(TopicNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleTopicNotFound(TopicNotFoundException ex) {

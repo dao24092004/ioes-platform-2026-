@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, EntityManager } from 'typeorm';
-import { Exam } from '../entities/exam.entity';
+import { Repository, EntityManager, IsNull } from 'typeorm';
+import { Exam, ExamType } from '../entities/exam.entity';
 import { Question } from '../../question-bank/entities/question.entity';
 
 /**
@@ -63,6 +63,21 @@ export class ExamRepository {
   findByInstructor(instructorId: string): Promise<Exam[]> {
     return this.repo.find({
       where: { instructorId },
+      order: { createdAt: 'DESC' },
+      take: 100,
+    });
+  }
+
+  /**
+   * List exam dạng practice cho học viên.
+   *
+   * Chưa lọc theo lớp đã ghi danh: việc đó cần content-service, mà service
+   * đó chưa chạy được. Practice là tập an toàn nhất để mở cho học viên
+   * trong lúc chờ.
+   */
+  findPractice(): Promise<Exam[]> {
+    return this.repo.find({
+      where: { examType: ExamType.PRACTICE, deletedAt: IsNull() },
       order: { createdAt: 'DESC' },
       take: 100,
     });

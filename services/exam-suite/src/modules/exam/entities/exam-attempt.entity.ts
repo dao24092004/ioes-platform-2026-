@@ -96,7 +96,7 @@ export class ExamAttempt {
   version!: number;
 
   @ManyToOne(() => Exam, (exam) => exam.attempts, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'examId' })
+  @JoinColumn({ name: 'exam_id' })
   exam?: Exam;
 
   @OneToMany(() => Answer, (answer) => answer.attempt)
