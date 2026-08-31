@@ -25,41 +25,15 @@ Every task inherits these. They come from `docs/01-business/PROJECT_RULES.md`.
 
 ---
 
-### Task 1: Move planning docs into the sanctioned tree
+### Task 1: Move planning docs into the sanctioned tree — DONE
 
-**Files:**
-- Move: `docs/superpowers/specs/2026-08-30-web-exam-profile-real-backend-design.md` → `docs/03-development/specs/`
-- Move: `docs/superpowers/plans/2026-08-31-web-exam-profile-real-backend.md` → `docs/03-development/plans/`
-- Move: `docs/03-development/research/2026-08-31-backend-endpoint-inventory.md` and `2026-08-31-repo-rules-checklist.md` → `docs/03-development/research/`
-- Delete: the now-empty `docs/superpowers/` tree
+Completed by the coordinator on this branch (commit `5f729bc`): the two research notes moved to
+`docs/03-development/research/` and `docs/superpowers/` is gone from `develop`.
 
-**Interfaces:** none — documentation only.
-
-- [ ] **Step 1: Move the files with git so history follows**
-
-```bash
-cd "D:/EPU/NCKH/1 ti 5/Code"
-mkdir -p docs/03-development/specs docs/03-development/plans docs/03-development/research
-git mv docs/superpowers/specs/*.md docs/03-development/specs/
-git mv docs/superpowers/plans/*.md docs/03-development/plans/
-git mv docs/03-development/research/*.md docs/03-development/research/
-```
-
-- [ ] **Step 2: Fix every reference to the old paths**
-
-Run `grep -rn "docs/superpowers" --include=*.md . | grep -v node_modules` and update each hit to the new location. The plan and spec cross-reference each other, and this plan file itself names the research doc.
-
-- [ ] **Step 3: Confirm nothing is left behind**
-
-Run: `ls docs/superpowers 2>/dev/null; git status --short`
-Expected: the directory is gone, and `git status` shows only renames.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add -A docs
-git commit -m "docs: move planning docs under the sanctioned docs tree"
-```
+Still outstanding, and NOT part of this branch: the spec and plan from the previous wave live at
+`docs/superpowers/specs/` and `docs/superpowers/plans/` on branch
+`feature/web-exam-profile-real-backend` (PR #9). They have to be relocated there, or after that
+PR merges, or the forbidden directory comes back with the merge.
 
 ---
 
