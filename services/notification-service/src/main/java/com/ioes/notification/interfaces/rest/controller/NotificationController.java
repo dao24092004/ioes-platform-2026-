@@ -84,7 +84,10 @@ public class NotificationController {
      */
     private void requireOwnerOrAdmin(UUID userId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UUID callerId = (UUID) authentication.getPrincipal();
+
+        if (!(authentication.getPrincipal() instanceof UUID callerId)) {
+            throw ApiException.forbidden("Cannot view another user's notifications");
+        }
 
         boolean isAdmin = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
