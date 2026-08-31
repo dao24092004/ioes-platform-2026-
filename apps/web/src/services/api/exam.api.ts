@@ -9,9 +9,11 @@ import { apiClient, unwrap, type ApiEnvelope } from '@/config/api.config';
  *
  * Lưu ý về phạm vi dữ liệu thật, xem `ExamService.list()`:
  * - INSTRUCTOR: trả về exam do chính họ tạo, truy vấn thật.
- * - STUDENT và ADMIN: rơi vào nhánh `return ApiResponse.success([])`, tức
- *   luôn rỗng cho tới khi có bước kiểm tra ghi danh qua content-service.
- * Vậy nên chỉ trang của giảng viên là dùng được `listExams()` lúc này.
+ * - STUDENT: trả về mọi exam có `exam_type = 'practice'` (`findPractice()`).
+ *   Lọc theo lớp đã ghi danh qua content-service vẫn là TODO trong
+ *   exam-suite, nên học viên tạm thời thấy hết bài luyện tập chứ chưa bị
+ *   giới hạn theo khoá đã ghi danh; exam `graded`/`certification` không lộ
+ *   ra qua nhánh này.
  */
 
 const EXAMS = '/api/exams';

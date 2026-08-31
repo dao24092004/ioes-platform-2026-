@@ -7,9 +7,11 @@ import type { UserRole, UserStatus } from '@/types/db';
  * Gateway khai `Path=/api/auth/**` kèm `StripPrefix=2`, nên `/api/auth/login`
  * tới auth-service thành `/login`.
  *
- * `logout`, `me` và `changePassword` cần gateway chèn `X-User-Id`, tức là phải
- * gọi kèm access token hợp lệ; gọi thẳng auth-service sẽ trả 400 vì thiếu
- * header đó.
+ * `logout`, `me` và `changePassword` cần access token hợp lệ trong header
+ * `Authorization: Bearer`. auth-service tự xác thực token và lấy user từ đó
+ * (`@AuthenticationPrincipal`) — không còn phụ thuộc gateway chèn `X-User-Id`
+ * như trước; gọi thẳng auth-service (bỏ qua gateway) vẫn hoạt động miễn có
+ * token hợp lệ.
  */
 
 const BASE = '/api/auth';
