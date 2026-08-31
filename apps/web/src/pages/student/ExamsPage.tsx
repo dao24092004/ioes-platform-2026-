@@ -213,7 +213,7 @@ const ExamsPage: React.FC = () => {
           </div>
         )}
 
-        {!isLoading && filtered.length > 0 && (
+        {!error && !isLoading && filtered.length > 0 && (
           <PaginationBar
             i18nKey="student.exams"
             page={safePage}
