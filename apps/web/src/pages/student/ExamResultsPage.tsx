@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import StudentLayout from '@/components/layout/StudentLayout';
@@ -8,6 +8,7 @@ import { examApi, toResultView, type ResultView } from '@/services/api/exam.api'
 
 const ExamResultsPage: React.FC = () => {
   const { t } = useTranslation();
+  const { examId } = useParams<{ examId: string }>();
   const attemptsQuery = useQuery({
     queryKey: ['student', 'attempts'],
     queryFn: () => examApi.listAttempts(),
@@ -29,7 +30,21 @@ const ExamResultsPage: React.FC = () => {
   );
 
   const results: ResultView[] = attempts.map(a => toResultView(a, examById.get(a.examId)));
-  const r = results[0];
+
+  // Route là /student/exams/:examId/result, và ExamsPage liên kết theo từng
+  // exam — nếu chọn results[0] một cách vô điều kiện thì bấm "Xem kết quả"
+  // của exam A có thể ra kết quả của exam B. Khi có examId, chọn kết quả mới
+  // nhất khớp đúng exam đó (theo submittedAt); danh sách "kết quả trước đây"
+  // ở cột bên phải vẫn giữ nguyên, không lọc theo examId.
+  const forThisExam = examId ? results.filter(res => res.examId === examId) : [];
+  const newestForThisExam = forThisExam.length > 0
+    ? [...forThisExam].sort((a, b) => {
+        const at = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+        const bt = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+        return bt - at;
+      })[0]
+    : undefined;
+  const r = examId ? newestForThisExam : results[0];
 
   return (
     <StudentLayout title={t('student.results.title')} subtitle={t('student.results.subtitle')}>
