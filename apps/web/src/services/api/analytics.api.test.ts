@@ -56,4 +56,12 @@ describe('analytics.api', () => {
     await getUserAnalytics('u-7');
     expect(get).toHaveBeenCalledWith('/api/analytics/users/u-7');
   });
+
+  it('giữ nguyên displayName null của hàng seed/demo thiếu hồ sơ', async () => {
+    // analytics-service trả full_name null cho một số hàng seed; client
+    // không được tự ý thay thế hay ném lỗi, phần hiển thị tự lo fallback.
+    get.mockResolvedValue(ok([{ userId: 'u1', rank: 1, displayName: null }]));
+    const [entry] = await getLeaderboard();
+    expect(entry.displayName).toBeNull();
+  });
 });

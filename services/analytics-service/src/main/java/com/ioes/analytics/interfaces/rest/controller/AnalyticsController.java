@@ -7,12 +7,17 @@ import com.ioes.analytics.domain.port.in.AnalyticsUseCase;
 import com.ioes.analytics.interfaces.rest.dto.LeaderboardEntryResponse;
 import com.ioes.analytics.interfaces.rest.dto.UserAnalyticsResponse;
 import com.ioes.common.dto.ApiResponse;
+import com.ioes.common.exception.ApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -24,12 +29,30 @@ import java.util.stream.Collectors;
  *   GET  /analytics/leaderboard/me?period=WEEKLY       — my rank
  *   GET  /analytics/users/{userId}                     — user analytics
  *   POST /analytics/leaderboard/{period}/reset         — admin reset (BR-016)
+ *
+ * <p>The caller's identity and role are always taken from the
+ * {@link SecurityContextHolder} principal/authorities that
+ * {@code com.ioes.common.security.JwtAuthenticationFilter} populates from
+ * the validated bearer token — never from the client-controllable
+ * {@code X-User-Id} / {@code X-User-Role} headers, which any caller hitting
+ * this service directly (bypassing the gateway) could forge.
+ * {@code SecurityConfig}'s {@code anyRequest().authenticated()} rule
+ * guarantees {@code authentication} is non-null here for every endpoint
+ * except the public leaderboard read.
+ *
+ * <p>Role strings are compared against the lower-case values tokens really
+ * carry ({@code student}, {@code instructor}, {@code admin},
+ * {@code super_admin}, {@code guest} — see {@code UserRole} in auth-service);
+ * {@code super_admin} passes wherever {@code admin} does.
  */
 @Slf4j
 @RestController
 @RequestMapping("/analytics")
 @RequiredArgsConstructor
 public class AnalyticsController {
+
+    private static final String ROLE_STUDENT = "student";
+    private static final Set<String> ADMIN_ROLES = Set.of("admin", "super_admin");
 
     private final AnalyticsUseCase analyticsUseCase;
 
@@ -56,19 +79,16 @@ public class AnalyticsController {
 
     /**
      * GET /analytics/leaderboard/me
-     * Lấy rank của current user (inject từ X-User-Id header bởi API Gateway).
+     * Lấy rank của current user (userId lấy từ SecurityContext, không phải header).
      */
     @GetMapping("/leaderboard/me")
     public ResponseEntity<ApiResponse<LeaderboardEntryResponse>> getMyRank(
-            @RequestHeader(value = "X-User-Id", required = false) String userId,
             @RequestParam(defaultValue = "WEEKLY") LeaderboardPeriod period
     ) {
-        if (userId == null) {
-            return ResponseEntity.ok(ApiResponse.success("Not ranked yet", null));
-        }
+        UUID userId = callerId();
 
         return analyticsUseCase
-                .getUserRank(UUID.fromString(userId), period)
+                .getUserRank(userId, period)
                 .map(entry -> ResponseEntity.ok(ApiResponse.success("User rank retrieved", toResponse(entry))))
                 .orElse(ResponseEntity.ok(ApiResponse.success("Not ranked yet", null)));
     }
@@ -76,19 +96,11 @@ public class AnalyticsController {
     /**
      * GET /analytics/users/{userId}
      * Lấy thống kê analytics của user.
-     * Instructor/Admin có thể xem bất kỳ user nào; Student chỉ xem mình.
+     * Instructor/Admin/Super_admin có thể xem bất kỳ user nào; Student chỉ xem mình.
      */
     @GetMapping("/users/{userId}")
-    public ResponseEntity<ApiResponse<UserAnalyticsResponse>> getUserAnalytics(
-            @PathVariable UUID userId,
-            @RequestHeader(value = "X-User-Id", required = false) String currentUserId,
-            @RequestHeader(value = "X-User-Role", required = false) String role
-    ) {
-        // Simple RBAC check: students chỉ xem của mình
-        if ("STUDENT".equals(role) && !userId.toString().equals(currentUserId)) {
-            return ResponseEntity.status(403)
-                    .body(ApiResponse.error("Access denied: students can only view their own analytics"));
-        }
+    public ResponseEntity<ApiResponse<UserAnalyticsResponse>> getUserAnalytics(@PathVariable UUID userId) {
+        requireSelfIfStudent(userId);
 
         UserAnalytics analytics = analyticsUseCase.getUserAnalytics(userId);
         return ResponseEntity.ok(ApiResponse.success("User analytics retrieved", toUserResponse(analytics)));
@@ -99,17 +111,56 @@ public class AnalyticsController {
      * Admin-only: reset leaderboard cho period (BR-016).
      */
     @PostMapping("/leaderboard/{period}/reset")
-    public ResponseEntity<ApiResponse<Void>> resetLeaderboard(
-            @PathVariable LeaderboardPeriod period,
-            @RequestHeader(value = "X-User-Role", required = false) String role
-    ) {
-        if (!"ADMIN".equals(role)) {
-            return ResponseEntity.status(403).body(ApiResponse.error("Admin only"));
-        }
+    public ResponseEntity<ApiResponse<Void>> resetLeaderboard(@PathVariable LeaderboardPeriod period) {
+        requireAdmin();
 
         analyticsUseCase.resetLeaderboard(period);
         log.info("Leaderboard {} reset by admin", period);
         return ResponseEntity.ok(ApiResponse.success("Leaderboard reset successfully", null));
+    }
+
+    // ===== AUTHORIZATION =====
+
+    /**
+     * A student may read only their own analytics; any other authenticated
+     * role (instructor, admin, super_admin) may read anyone's.
+     */
+    private void requireSelfIfStudent(UUID userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (!(authentication.getPrincipal() instanceof UUID callerId)) {
+            throw ApiException.forbidden("Access denied: students can only view their own analytics");
+        }
+
+        boolean isStudent = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(ROLE_STUDENT::equals);
+
+        if (isStudent && !callerId.equals(userId)) {
+            throw ApiException.forbidden("Access denied: students can only view their own analytics");
+        }
+    }
+
+    private void requireAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(ADMIN_ROLES::contains);
+
+        if (!isAdmin) {
+            throw ApiException.forbidden("Admin only");
+        }
+    }
+
+    private UUID callerId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof UUID callerId)) {
+            throw ApiException.unauthorized("Authentication required");
+        }
+
+        return callerId;
     }
 
     // ===== MAPPERS =====

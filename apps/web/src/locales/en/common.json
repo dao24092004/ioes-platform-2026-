@@ -222,7 +222,7 @@
     "forgotPasswordCountdownLabel": "Link expires in",
     "forgotPasswordExpired": "Expired",
     "forgotPasswordResend": "Resend verification email",
-    "forgotPasswordResendCooldown": "Resend in {seconds}s",
+    "forgotPasswordResendCooldown": "Resend in {{seconds}}s",
     "forgotPasswordResendSent": "Resent!",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
@@ -1617,7 +1617,8 @@
       "all": "All-time",
       "weekly": "Weekly",
       "monthly": "Monthly",
-      "yearly": "Yearly"
+      "yearly": "Yearly",
+      "unknownLearner": "Anonymous learner"
     },
     "courseDiscussion": {
       "title": "Course Discussion",
@@ -3126,7 +3127,7 @@
   "systemConfig": {
     "title": "System configuration",
     "subtitle": "Operational parameters for the IOES platform",
-    "savedAt": "Saved at {time}",
+    "savedAt": "Saved at {{time}}",
     "sections": {
       "general": "General",
       "security": "Security & auth",
@@ -3369,9 +3370,9 @@
     "all": "All",
     "none": "—",
     "justNow": "just now",
-    "minutesAgo": "{n}m ago",
-    "hoursAgo": "{n}h ago",
-    "daysAgo": "{n}d ago",
+    "minutesAgo": "{{n}}m ago",
+    "hoursAgo": "{{n}}h ago",
+    "daysAgo": "{{n}}d ago",
     "on": "On",
     "off": "Off",
     "sent": "Sent!",

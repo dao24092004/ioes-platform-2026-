@@ -205,7 +205,7 @@
     "forgotPasswordCountdownLabel": "Liên kết hết hạn sau",
     "forgotPasswordExpired": "Đã hết hạn",
     "forgotPasswordResend": "Gửi lại email xác minh",
-    "forgotPasswordResendCooldown": "Gửi lại sau {seconds}s",
+    "forgotPasswordResendCooldown": "Gửi lại sau {{seconds}}s",
     "forgotPasswordResendSent": "Đã gửi lại!",
     "noAccount": "Chưa có tài khoản?",
     "hasAccount": "Đã có tài khoản?",
@@ -1600,7 +1600,8 @@
       "all": "Tất cả",
       "weekly": "Tuần",
       "monthly": "Tháng",
-      "yearly": "Năm"
+      "yearly": "Năm",
+      "unknownLearner": "Học viên ẩn danh"
     },
     "courseDiscussion": {
       "title": "Thảo luận khóa học",
@@ -2553,9 +2554,9 @@
     "all": "Tất cả",
     "none": "—",
     "justNow": "vừa xong",
-    "minutesAgo": "{n} phút trước",
-    "hoursAgo": "{n} giờ trước",
-    "daysAgo": "{n} ngày trước",
+    "minutesAgo": "{{n}} phút trước",
+    "hoursAgo": "{{n}} giờ trước",
+    "daysAgo": "{{n}} ngày trước",
     "on": "Bật",
     "off": "Tắt",
     "sent": "Đã gửi!",
@@ -3171,7 +3172,7 @@
   "systemConfig": {
     "title": "Cấu hình hệ thống",
     "subtitle": "Thiết lập các tham số vận hành của nền tảng IOES",
-    "savedAt": "Đã lưu lúc {time}",
+    "savedAt": "Đã lưu lúc {{time}}",
     "sections": {
       "general": "Tổng quan",
       "security": "Bảo mật & xác thực",
