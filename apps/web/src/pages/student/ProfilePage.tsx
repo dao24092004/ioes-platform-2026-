@@ -10,7 +10,7 @@ type Tab = 'overview' | 'edit' | 'achievements' | 'security';
 
 const ProfilePage: React.FC = () => {
   const { t } = useTranslation();
-  const { data: profile } = useQuery({ queryKey: ['auth', 'me'], queryFn: () => authApi.me() });
+  const { data: profile, isLoading: profileLoading, error: profileError } = useQuery({ queryKey: ['auth', 'me'], queryFn: () => authApi.me() });
   const [tab, setTab] = useState<Tab>('overview');
   const [name, setName] = useState('');
 
@@ -42,6 +42,22 @@ const ProfilePage: React.FC = () => {
   ];
 
   const initials = (name).split(' ').slice(0, 2).map(s => s.charAt(0)).join('').toUpperCase();
+
+  if (profileLoading) {
+    return (
+      <StudentLayout title={t('student.profile.title')} subtitle={t('student.profile.subtitle')}>
+        <div className="p-12 text-center"><div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
+      </StudentLayout>
+    );
+  }
+
+  if (profileError) {
+    return (
+      <StudentLayout title={t('student.profile.title')} subtitle={t('student.profile.subtitle')}>
+        <div className="p-12 text-center text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</div>
+      </StudentLayout>
+    );
+  }
 
   return (
     <StudentLayout title={t('student.profile.title')} subtitle={t('student.profile.subtitle')}>
@@ -111,7 +127,7 @@ const ProfilePage: React.FC = () => {
 
           {tab === 'edit' && (
             <div className="max-w-2xl space-y-4">
-              <FieldInput label={t('student.profile.fields.fullName')} value={name} onChange={setName} />
+              <FieldInput label={t('student.profile.fields.fullName')} value={name} onChange={setName} disabled />
               <FieldInput label={t('student.profile.fields.email')} value={profile?.email ?? '—'} disabled />
             </div>
           )}
