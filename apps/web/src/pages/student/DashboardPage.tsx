@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import StudentLayout from '@/components/layout/StudentLayout';
 import { StatCard } from '@/components/common/StatCard';
 import { Card, CardTitleWithIcon } from '@/components/common/Card';
-import { studentApi, type StudentEnrolledCourse, type StudentExam } from '@/services/api';
+import { studentApi, type StudentEnrolledCourse } from '@/services/api';
+import { examApi, toStudentExamView, type StudentExamView } from '@/services/api/exam.api';
 import { useAuthStore } from '@/app/store/authStore';
 import { formatRelative } from '@/utils/time';
 
@@ -18,12 +19,10 @@ const colorMap: Record<StudentEnrolledCourse['thumbnail_color'], string> = {
   cyan: 'from-cyan-500 to-sky-500',
 };
 
-const examStatusStyles: Record<StudentExam['status'], { bg: string; text: string; label: string }> = {
-  upcoming: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', label: 'student.exams.status.upcoming' },
+const examStatusStyles: Record<StudentExamView['status'], { bg: string; text: string; label: string }> = {
   available: { bg: 'bg-emerald-50 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400', label: 'student.exams.status.available' },
   in_progress: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', label: 'student.exams.status.in_progress' },
   completed: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400', label: 'student.exams.status.completed' },
-  missed: { bg: 'bg-red-50 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', label: 'student.exams.status.missed' },
 };
 
 const DashboardPage: React.FC = () => {
@@ -32,13 +31,15 @@ const DashboardPage: React.FC = () => {
 
   const { data: stats } = useQuery({ queryKey: ['student', 'dashboard', 'stats'], queryFn: () => studentApi.dashboardStats() });
   const { data: courses = [] } = useQuery({ queryKey: ['student', 'dashboard', 'courses'], queryFn: () => studentApi.myCourses() });
-  const { data: exams = [] } = useQuery({ queryKey: ['student', 'dashboard', 'exams'], queryFn: () => studentApi.upcomingExams() });
+  const { data: examList = [] } = useQuery({ queryKey: ['student', 'exams', 'list'], queryFn: () => examApi.listExams() });
+  const { data: attempts = [] } = useQuery({ queryKey: ['student', 'attempts'], queryFn: () => examApi.listAttempts() });
+  const exams = useMemo(() => examList.map(e => toStudentExamView(e, attempts)), [examList, attempts]);
 
   const greetingHour = new Date().getHours();
   const greetingKey = greetingHour < 12 ? 'student.dashboard.welcomeGreeting' : 'student.dashboard.welcomeTitle';
 
   const inProgress = courses.filter((c: StudentEnrolledCourse) => c.status === 'in_progress').slice(0, 4);
-  const upcomingExams = exams.filter((e: StudentExam) => e.status === 'available' || e.status === 'upcoming' || e.status === 'in_progress').slice(0, 4);
+  const upcomingExams = exams.filter(e => e.status === 'available' || e.status === 'in_progress').slice(0, 4);
   const weeklyHours: Array<{ day: string; value: number }> = stats?.weeklyHours ?? [];
 
   const maxHours = Math.max(...weeklyHours.map(h => h.value), 1);
@@ -132,7 +133,7 @@ const DashboardPage: React.FC = () => {
             }
           >
             <ul className="space-y-3">
-              {upcomingExams.map((exam: StudentExam) => {
+              {upcomingExams.map((exam: StudentExamView) => {
                 const ss = examStatusStyles[exam.status];
                 return (
                   <li key={exam.id} className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
@@ -142,9 +143,7 @@ const DashboardPage: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <h3 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{exam.title}</h3>
                       <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        <span>{exam.course}</span>
-                        <span>•</span>
-                        <span>{exam.duration_min} min · {exam.questions} {t('student.dashboard.lessons')}</span>
+                        <span>{exam.timeLimitMinutes ?? '—'} min</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
