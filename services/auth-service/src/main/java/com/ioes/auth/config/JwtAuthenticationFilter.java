@@ -48,6 +48,16 @@ import java.util.UUID;
  * it issues; a token whose {@code type} is not {@code "access"} (including a
  * valid, unexpired refresh token) is treated the same as any other invalid
  * token — the context is left empty, nothing is thrown.
+ *
+ * <p>The {@link Component} annotation also registers this class with the
+ * servlet container as a plain {@code jakarta.servlet.Filter}, independently
+ * of Spring Security's own filter chain — so it is wired in twice. That
+ * duplicate pass is inert: {@code springSecurityFilterChain} (registered by
+ * Spring Security itself, ordered ahead of the servlet container's own
+ * filter registration) already runs this same instance as part of the
+ * security chain, and {@link OncePerRequestFilter} tracks per-request
+ * execution via a request attribute, so the servlet container's separate
+ * invocation is a no-op.
  */
 @Slf4j
 @Component
