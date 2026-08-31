@@ -22,9 +22,28 @@ không có API liệt kê hay sửa user, nên trang quản lý user của admin
 
 Vì vậy đợt này chỉ nối bài thi và hồ sơ. Phần còn lại giữ mock nguyên trạng.
 
+## Bổ sung 2026-08-31: `GET /exams` không trả gì cho student
+
+`ExamService.list()` (`services/exam-suite/src/modules/exam/exam.service.ts:57`) chỉ
+truy vấn khi vai trò là `INSTRUCTOR`; nhánh còn lại `return ApiResponse.success([])`
+kèm `// TODO: content-service enrollment check` và ghi chú "Tạm thời: trả về list
+practice exams" — ghi chú mô tả ý định, code chưa làm.
+
+Nối `ExamsPage` và `DashboardPage` khi chưa sửa chỗ này sẽ cho ra trang rỗng vĩnh
+viễn. Đã chốt: hiện thực đúng ghi chú đó — student thấy các exam `exam_type = practice`.
+Việc kiểm tra ghi danh thật vẫn để lại TODO vì phụ thuộc content-service.
+
+Hệ quả cho phạm vi: thêm một thay đổi backend nhỏ trong exam-suite
+(`ExamRepository.findPractice()` + nhánh student trong `ExamService.list`), và
+`ExamsPage` chỉ hiển thị exam dạng practice cho tới khi có kiểm tra ghi danh.
+
+`GET /attempts` không vướng gì: `listAttemptsByUser` lọc theo `userId` trong token.
+
 ## Phạm vi
 
 Trong phạm vi:
+
+- exam-suite: `ExamService.list` trả practice exams cho student (kèm unit test)
 
 - `student/ExamsPage.tsx` — `studentApi.upcomingExams()` → `examApi.listExams()`
 - `student/ExamResultsPage.tsx` — `studentApi.recentResults()` → `examApi.listAttempts()`
@@ -111,5 +130,6 @@ và mảng dữ liệu kèm theo. Giữ nguyên phần còn lại của `student
 
 - Sau khi nối, dữ liệu trên UI phụ thuộc seed. Nếu quên chạy seed, ba trang sẽ rỗng
   và trông như hỏng.
-- `GET /exams` lọc theo vai trò trong token. Tài khoản student có thể thấy ít exam
-  hơn seed tạo ra; cần xác nhận khi kiểm tra tay.
+- `GET /exams` lọc theo vai trò trong token: student chỉ thấy exam `practice`, nên
+  seed phải có ít nhất một exam dạng này, và exam `graded` seed ra sẽ không hiện
+  trên trang của student. Đây là hành vi đúng cho tới khi có kiểm tra ghi danh.
