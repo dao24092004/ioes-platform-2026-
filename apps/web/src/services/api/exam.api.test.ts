@@ -132,6 +132,35 @@ describe('toStudentExamView', () => {
   it('giữ nguyên timeLimitMinutes null', () => {
     expect(toStudentExamView({ ...exam, timeLimitMinutes: null }, []).timeLimitMinutes).toBeNull();
   });
+
+  it('lượt bị huỷ không tính là completed, exam vẫn available', () => {
+    const v = toStudentExamView(exam, [
+      attempt({ id: 'a1', status: 'cancelled', percentageScore: null }),
+    ]);
+    expect(v.status).toBe('available');
+    expect(v.attempts).toBe(0);
+    expect(v.bestScore).toBeNull();
+  });
+
+  it('lượt hết hạn không tính là completed, exam vẫn available', () => {
+    const v = toStudentExamView(exam, [
+      attempt({ id: 'a1', status: 'expired', percentageScore: null }),
+    ]);
+    expect(v.status).toBe('available');
+    expect(v.attempts).toBe(0);
+    expect(v.bestScore).toBeNull();
+  });
+
+  it('lượt huỷ/hết hạn không được cộng vào số attempts, chỉ lượt đã chấm mới tính', () => {
+    const v = toStudentExamView(exam, [
+      attempt({ id: 'a1', status: 'cancelled', percentageScore: null }),
+      attempt({ id: 'a2', status: 'expired', percentageScore: null }),
+      attempt({ id: 'a3', status: 'graded', percentageScore: 90 }),
+    ]);
+    expect(v.attempts).toBe(1);
+    expect(v.bestScore).toBe(90);
+    expect(v.status).toBe('completed');
+  });
 });
 
 describe('toResultView', () => {

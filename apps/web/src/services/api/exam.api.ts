@@ -207,10 +207,15 @@ export interface ResultView {
  */
 export function toStudentExamView(exam: Exam, attempts: ExamAttempt[]): StudentExamView {
   const mine = attempts.filter(a => a.examId === exam.id);
-  const scored = mine.map(a => a.percentageScore).filter((s): s is number => s !== null);
+  // `cancelled` và `expired` không phải là đã hoàn thành — chỉ `submitted` và
+  // `graded` mới tính. Nếu không, huỷ một lượt làm bài sẽ khoá exam ở trạng
+  // thái "completed" vĩnh viễn (nút hành động đổi thành "Xem kết quả", exam
+  // biến mất khỏi "Bài thi sắp tới") dù người học chưa từng nộp bài nào.
+  const completed = mine.filter(a => a.status === 'submitted' || a.status === 'graded');
+  const scored = completed.map(a => a.percentageScore).filter((s): s is number => s !== null);
   const status = mine.some(a => a.status === 'in_progress')
     ? 'in_progress'
-    : mine.length > 0
+    : completed.length > 0
       ? 'completed'
       : 'available';
 
@@ -220,7 +225,7 @@ export function toStudentExamView(exam: Exam, attempts: ExamAttempt[]): StudentE
     examType: exam.examType,
     timeLimitMinutes: exam.timeLimitMinutes,
     maxAttempts: exam.maxAttempts,
-    attempts: mine.length,
+    attempts: completed.length,
     bestScore: scored.length > 0 ? Math.max(...scored) : null,
     status,
   };
