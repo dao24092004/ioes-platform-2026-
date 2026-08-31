@@ -1067,19 +1067,7 @@ export const securityApi = {
 // API: NOTIFICATIONS (admin)
 // ============================================
 
-export type NotifCategory = 'system' | 'user' | 'course' | 'exam';
 export type NotifChannel = 'inApp' | 'email' | 'push';
-
-export interface AdminNotification {
-  id: string;
-  category: NotifCategory;
-  channel: NotifChannel;
-  title: string;
-  body: string;
-  read: boolean;
-  created_at: string;
-  audience: string;
-}
 
 export interface NotifTemplate {
   id: string;
@@ -1100,30 +1088,6 @@ export const notificationsApi = {
   async stats(): Promise<NotifStats> {
     await sleep(120);
     return { sent24h: 4218, unread: 17, templates: 24, subscribers: 10_690 };
-  },
-  async inbox(): Promise<AdminNotification[]> {
-    await sleep(120);
-    const now = Date.now();
-    const mk = (i: number, min: number, category: NotifCategory, title: string, body: string, read: boolean): AdminNotification => ({
-      id: `n-${i}`,
-      category,
-      channel: 'inApp',
-      title,
-      body,
-      read,
-      created_at: new Date(now - min * 60000).toISOString(),
-      audience: 'Admin team',
-    });
-    return [
-      mk(1, 2, 'exam', '12 bài thi đang diễn ra', 'Có 12 bài thi đang active trong hệ thống. 3 bài thi có dấu hiệu gian lận.', false),
-      mk(2, 15, 'system', 'AI Suite load cao', 'Response time tăng 12% trong 10 phút qua. Đã tự động scale.', false),
-      mk(3, 45, 'user', 'User mới đăng ký: Nguyễn Bá Khôi', 'Student mới cần phê duyệt thủ công.', false),
-      mk(4, 78, 'course', 'Khóa học mới chờ duyệt', 'TS. Nguyễn Văn A vừa gửi khóa "Machine Learning Fundamentals" để duyệt.', false),
-      mk(5, 180, 'system', 'Backup hoàn tất', 'Sao lưu nightly-backup-2026-08-22 đã chạy thành công.', true),
-      mk(6, 240, 'exam', 'Bài thi e-008 đã bị hủy', 'TS. Bùi Thị H đã hủy bài thi AI Ethics Pop quiz do vi phạm nội quy.', true),
-      mk(7, 360, 'user', '342 user đăng ký trong tuần', 'Tăng 18% so với tuần trước. 8% đến từ FPT University.', true),
-      mk(8, 720, 'system', 'Cập nhật hệ thống v2.4.1', 'Patch bảo mật cho exam-service và content-service. Không downtime.', true),
-    ];
   },
   async templates(): Promise<NotifTemplate[]> {
     await sleep(80);

@@ -1,15 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/components/layout/AdminLayout';
+import { notificationsApi, type NotifChannel, type NotifTemplate } from '@/services/api';
 import {
-  notificationsApi,
-  type AdminNotification,
-  type NotifCategory,
-  type NotifChannel,
-  type NotifTemplate,
-} from '@/services/api';
-import { notificationApi, type NotificationType } from '@/services/api/notification.api';
+  notificationApi,
+  type NotificationRecord,
+  type NotificationStatus,
+  type NotificationType,
+} from '@/services/api/notification.api';
+import { useAuthStore } from '@/app/store/authStore';
 import { ApiError } from '@/config/api.config';
 import { formatRelative } from '@/utils/time';
 import { ANIMATION, TEST_IDS } from '@/constants/ui';
@@ -32,11 +32,24 @@ const CHANNEL_TO_TYPE: Record<NotifChannel, NotificationType> = {
  */
 const SUPPORTED_CHANNELS: readonly NotifChannel[] = ['email'];
 
-const categoryStyles: Record<NotifCategory, { bg: string; text: string; icon: React.ReactNode }> = {
-  system: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" /></svg> },
-  user: { bg: 'bg-emerald-50 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg> },
-  course: { bg: 'bg-purple-50 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" /></svg> },
-  exam: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" /><path d="M9 14l2 2 4-4" /></svg> },
+/**
+ * Kiểu và trạng thái hiển thị cho hộp thư thật: `NotificationResponse` chỉ có
+ * `type` (kênh gửi) và `status` (đã gửi/đang chờ/thất bại), không có khái
+ * niệm "category" hay "đã đọc" — hai thứ đó chỉ tồn tại trong dữ liệu giả cũ
+ * nên bị bỏ hẳn khỏi giao diện.
+ */
+const notifTypeStyles: Record<NotificationType, { bg: string; text: string; icon: React.ReactNode }> = {
+  email: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22 6 12 13 2 6" /></svg> },
+  push: { bg: 'bg-purple-50 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 01-3.46 0" /></svg> },
+  sms: { bg: 'bg-teal-50 dark:bg-teal-900/30', text: 'text-teal-600 dark:text-teal-400', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg> },
+  in_app: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2" /><line x1="12" y1="18" x2="12.01" y2="18" /></svg> },
+};
+
+const notifStatusStyles: Record<NotificationStatus, { bg: string; text: string }> = {
+  sent: { bg: 'bg-emerald-50 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400' },
+  pending: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400' },
+  failed: { bg: 'bg-red-50 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400' },
+  retrying: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400' },
 };
 
 const channelIcons: Record<NotifChannel, React.ReactNode> = {
@@ -53,9 +66,9 @@ const channelStyles: Record<NotifChannel, { bg: string; text: string }> = {
 
 const NotificationsPage: React.FC = () => {
   const { t } = useTranslation();
-  const qc = useQueryClient();
+  const { user } = useAuthStore();
 
-  const [filter, setFilter] = useState<NotifCategory | 'all' | 'unread'>('all');
+  const [filter, setFilter] = useState<NotificationStatus | 'all'>('all');
   const [recipient, setRecipient] = useState('');
   const [channel, setChannel] = useState<NotifChannel>('email');
   const [title, setTitle] = useState('');
@@ -63,28 +76,27 @@ const NotificationsPage: React.FC = () => {
   const [sentFlash, setSentFlash] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
-  // Hộp thư, thống kê và mẫu vẫn là dữ liệu giả: `GET /notifications/user/{id}`
-  // phía Java mới là chỗ để tạm, trả `List.of()`, còn `stats`/`templates` thì
-  // chưa có endpoint nào. Chỉ ô soạn thông báo bên dưới là gọi thật.
+  // Thống kê và mẫu vẫn là dữ liệu giả: `stats`/`templates` chưa có endpoint
+  // nào cả. Hộp thư gọi thật `GET /notifications/user/{userId}` — bằng id
+  // của chính người admin đang đăng nhập, vì backend chỉ cho đọc hộp thư của
+  // mình (admin đọc được của người khác, nhưng trang này không có ô chọn
+  // người dùng để làm việc đó).
   const { data: stats } = useQuery({ queryKey: ['notif', 'stats'], queryFn: () => notificationsApi.stats() });
-  const { data: inbox, isLoading } = useQuery({ queryKey: ['notif', 'inbox'], queryFn: () => notificationsApi.inbox() });
+  const {
+    data: inbox,
+    isLoading: isInboxLoading,
+    isError: isInboxError,
+  } = useQuery({
+    queryKey: ['notif', 'inbox', user?.id],
+    queryFn: () => notificationApi.getUserInbox(user!.id),
+    enabled: Boolean(user?.id),
+  });
   const { data: templates } = useQuery({ queryKey: ['notif', 'templates'], queryFn: () => notificationsApi.templates() });
 
   const filtered = useMemo(() => {
-    let arr = inbox ?? [];
-    if (filter === 'unread') arr = arr.filter((n: AdminNotification) => !n.read);
-    else if (filter !== 'all') arr = arr.filter((n: AdminNotification) => n.category === filter);
-    return arr;
+    const arr = inbox ?? [];
+    return filter === 'all' ? arr : arr.filter((n: NotificationRecord) => n.status === filter);
   }, [inbox, filter]);
-
-  const unread = (inbox ?? []).filter((n: AdminNotification) => !n.read).length;
-
-  const handleMarkAllRead = () => {
-    qc.setQueryData(['notif', 'inbox'], (prev: AdminNotification[] | undefined) =>
-      (prev ?? []).map((n: AdminNotification) => ({ ...n, read: true }))
-    );
-    qc.setQueryData(['notif', 'stats'], (prev: typeof stats) => prev ? { ...prev, unread: 0 } : prev);
-  };
 
   /**
    * `POST /notifications/send` trả HTTP 200 kèm `status: 'failed'` khi khâu
@@ -138,7 +150,7 @@ const NotificationsPage: React.FC = () => {
     purple: 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
   };
 
-  const filterKeys: Array<typeof filter> = ['all', 'unread', 'system', 'user', 'course', 'exam'];
+  const filterKeys: Array<typeof filter> = ['all', 'pending', 'sent', 'failed', 'retrying'];
 
   return (
     <AdminLayout title={t('notificationsAdmin.title')} subtitle={t('notificationsAdmin.subtitle')}>
@@ -168,7 +180,6 @@ const NotificationsPage: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         <div className="xl:col-span-8 space-y-6">
           <div
-            data-testid={TEST_IDS.NOTIF_ITEM}
             className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]"
             style={{ animationDelay: `${2 * ANIMATION.STAGGER_DURATION_S}s` }}
           >
@@ -178,30 +189,14 @@ const NotificationsPage: React.FC = () => {
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
                 </span>
                 {t('notificationsAdmin.inbox.title')}
-                {unread > 0 && (
-                  <span className="ml-1 px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-600 text-white">
-                    {unread}
-                  </span>
-                )}
               </h2>
-              <button
-                onClick={handleMarkAllRead}
-                disabled={unread === 0}
-                aria-label={t('aria.markRead')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
-                {t('notificationsAdmin.inbox.markAllRead')}
-              </button>
             </div>
 
             <div className="px-6 pt-4 flex flex-wrap gap-1.5" role="group" aria-label={t('aria.filterCategory')}>
               {filterKeys.map(k => {
                 const count = k === 'all'
                   ? (inbox?.length ?? 0)
-                  : k === 'unread'
-                    ? (inbox?.filter((n: AdminNotification) => !n.read).length ?? 0)
-                    : (inbox?.filter((n: AdminNotification) => n.category === k).length ?? 0);
+                  : (inbox?.filter((n: NotificationRecord) => n.status === k).length ?? 0);
                 const active = filter === k;
                 return (
                   <button
@@ -225,40 +220,43 @@ const NotificationsPage: React.FC = () => {
             </div>
 
             <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[600px] overflow-y-auto">
-              {isLoading && (
+              {isInboxLoading && (
                 <div className="text-center py-12">
                   <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
-              {!isLoading && filtered.length === 0 && (
+              {isInboxError && (
+                <div className="text-center py-12 text-sm text-red-600 dark:text-red-400">
+                  {t('notificationsAdmin.inbox.error')}
+                </div>
+              )}
+              {!isInboxLoading && !isInboxError && filtered.length === 0 && (
                 <div className="text-center py-12 text-sm text-slate-500">{t('shared.none')}</div>
               )}
-              {filtered.map((n: AdminNotification) => {
-                const cs = categoryStyles[n.category];
-                const ch = channelStyles[n.channel];
+              {!isInboxError && filtered.map((n: NotificationRecord) => {
+                const ts = notifTypeStyles[n.type];
+                const ss = notifStatusStyles[n.status];
                 return (
                   <div
                     key={n.id}
-                    className={`group relative flex items-start gap-4 px-6 py-4 transition-all hover:bg-slate-50 dark:hover:bg-slate-800/30 cursor-pointer ${
-                      !n.read ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''
-                    }`}
+                    data-testid={TEST_IDS.NOTIF_ITEM}
+                    className="group relative flex items-start gap-4 px-6 py-4 transition-all hover:bg-slate-50 dark:hover:bg-slate-800/30"
                   >
-                    {!n.read && <span className="absolute left-2 top-5 w-2 h-2 bg-blue-600 rounded-full animate-pulse" />}
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${cs.bg} ${cs.text} transition-all group-hover:scale-110 group-hover:rotate-[10deg]`}>
-                      {cs.icon}
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${ts.bg} ${ts.text} transition-all group-hover:scale-110 group-hover:rotate-[10deg]`}>
+                      {ts.icon}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={`text-sm font-semibold ${!n.read ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
-                          {n.title}
+                        <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                          {n.subject}
                         </span>
-                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${ch.bg} ${ch.text}`}>
-                          {channelIcons[n.channel]}
-                          {t(`shared.channelShort.${n.channel}`)}
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${ss.bg} ${ss.text}`}>
+                          {t(`notificationsAdmin.inbox.filters.${n.status}`)}
                         </span>
                       </div>
-                      <div className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{n.body}</div>
-                      <div className="text-xs text-slate-400 mt-1">{formatRelative(n.created_at)} · {n.audience}</div>
+                      <div className="text-xs text-slate-400 mt-1">
+                        {formatRelative(n.sentAt ?? n.createdAt)} · {n.recipient}
+                      </div>
                     </div>
                   </div>
                 );

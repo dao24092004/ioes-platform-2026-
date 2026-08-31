@@ -77,6 +77,29 @@ class NotificationServiceTest {
     }
 
     @Test
+    void should_ReturnUserNotifications_When_QueryingInboxCappedAt50() {
+        UUID userId = UUID.randomUUID();
+        Notification n1 = Notification.builder().id(UUID.randomUUID()).userId(userId)
+                .type(NotificationType.email).status(NotificationStatus.sent).build();
+        when(repositoryPort.findByUserId(userId, 50)).thenReturn(java.util.List.of(n1));
+
+        var result = notificationService.getUserNotifications(userId);
+
+        assertThat(result).containsExactly(n1);
+        verify(repositoryPort).findByUserId(userId, 50);
+    }
+
+    @Test
+    void should_ReturnEmptyList_When_UserHasNoNotificationsInInbox() {
+        UUID userId = UUID.randomUUID();
+        when(repositoryPort.findByUserId(userId, 50)).thenReturn(java.util.List.of());
+
+        var result = notificationService.getUserNotifications(userId);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     void should_RenderTemplate_When_SendingTemplatedNotification() {
         NotificationUseCase.TemplatedCommand command = new NotificationUseCase.TemplatedCommand(
                 UUID.randomUUID(),

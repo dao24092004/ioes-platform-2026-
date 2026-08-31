@@ -7,10 +7,10 @@ import { apiClient, unwrap, type ApiEnvelope } from '@/config/api.config';
  * `/api` bị cắt và service nhận đúng `/notifications/...` như
  * `@RequestMapping` của `NotificationController` mong đợi.
  *
- * Chỉ hai endpoint gửi là chạy thật. `GET /notifications/user/{userId}` và
- * `GET /notifications/{id}` phía Java vẫn là chỗ để tạm — cái đầu trả
- * `List.of()`, cái sau trả `null` — nên hộp thư ở trang quản trị vẫn phải
- * dùng dữ liệu giả cho tới khi backend nối vào use case.
+ * `GET /notifications/user/{userId}` giờ trả danh sách thật, mới nhất trước,
+ * tối đa 50 bản ghi — chỉ chủ sở hữu hoặc admin/super_admin mới đọc được,
+ * người khác nhận 403. `GET /notifications/{id}` phía Java vẫn trả `null`
+ * nên chưa có phía gọi nào dùng tới.
  */
 
 const BASE = '/api/notifications';
@@ -64,4 +64,15 @@ export function sendTemplated(body: SendNotificationRequest): Promise<Notificati
   return unwrap(apiClient.post<ApiEnvelope<NotificationRecord>>(`${BASE}/send-templated`, body));
 }
 
-export const notificationApi = { send, sendTemplated };
+/**
+ * Hộp thư thật của một người dùng, mới nhất trước, tối đa 50 bản ghi.
+ *
+ * Backend chỉ cho đọc hộp thư của chính mình; admin/super_admin đọc được của
+ * bất kỳ ai. Gọi với id của người khác mà không phải admin thì `apiClient`
+ * ném `ApiError` với `status` 403.
+ */
+export function getUserInbox(userId: string): Promise<NotificationRecord[]> {
+  return unwrap(apiClient.get<ApiEnvelope<NotificationRecord[]>>(`${BASE}/user/${userId}`));
+}
+
+export const notificationApi = { send, sendTemplated, getUserInbox };

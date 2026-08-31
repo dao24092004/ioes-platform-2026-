@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // vi.mock được kéo lên đầu file, nên biến dùng trong factory phải khai bằng
 // vi.hoisted, không thì gặp "Cannot access 'post' before initialization".
-const { post } = vi.hoisted(() => ({ post: vi.fn() }));
+const { post, get } = vi.hoisted(() => ({ post: vi.fn(), get: vi.fn() }));
 
 vi.mock('@/config/api.config', async () => {
   const actual = await vi.importActual<typeof import('@/config/api.config')>('@/config/api.config');
-  return { ...actual, apiClient: { post } };
+  return { ...actual, apiClient: { post, get } };
 });
 
-import { send, sendTemplated } from './notification.api';
+import { send, sendTemplated, getUserInbox } from './notification.api';
 import { ApiError } from '@/config/api.config';
 
 const ok = <T>(data: T) => ({
@@ -27,7 +27,10 @@ const record = {
   createdAt: '2026-08-30T00:00:00.000Z',
 };
 
-beforeEach(() => post.mockReset());
+beforeEach(() => {
+  post.mockReset();
+  get.mockReset();
+});
 
 describe('notification.api', () => {
   it('gọi đúng đường dẫn gửi thường', async () => {
@@ -77,6 +80,21 @@ describe('notification.api', () => {
       data: { success: false, message: 'recipient must not be blank', timestamp: '' },
     });
     await expect(send({ type: 'email', recipient: '', subject: 's', content: 'c' }))
+      .rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('gọi đúng đường dẫn hộp thư và trả về danh sách thật', async () => {
+    get.mockResolvedValue(ok([record]));
+    await expect(getUserInbox('c7017348-2cfb-47ef-8389-1efe64def86f'))
+      .resolves.toEqual([record]);
+    expect(get).toHaveBeenCalledWith('/api/notifications/user/c7017348-2cfb-47ef-8389-1efe64def86f');
+  });
+
+  it('ném ApiError khi backend từ chối đọc hộp thư người khác', async () => {
+    get.mockResolvedValue({
+      data: { success: false, message: "Cannot view another user's notifications", timestamp: '' },
+    });
+    await expect(getUserInbox('00000000-0000-0000-0000-000000000005'))
       .rejects.toBeInstanceOf(ApiError);
   });
 });

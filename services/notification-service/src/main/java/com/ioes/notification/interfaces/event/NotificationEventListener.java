@@ -7,6 +7,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Listens to events from other services and triggers notifications.
@@ -20,6 +21,31 @@ import java.util.Map;
 public class NotificationEventListener {
 
     private final NotificationUseCase notificationUseCase;
+
+    /**
+     * Every topic this listener consumes carries a top-level {@code userId}
+     * field in its published contract: {@code analytics.streak.milestone}
+     * and {@code analytics.leaderboard.rank_changed} are produced from
+     * {@code StreakMilestoneEvent}/{@code LeaderboardRankChangedEvent}
+     * (both have a {@code userId} component), and {@code auth.user.registered}
+     * / {@code exam.submission.graded} are consumed the same way by
+     * analytics-service's {@code AnalyticsEventListener}, which already
+     * requires {@code userId} for the latter. Missing or malformed values are
+     * tolerated (return {@code null}) rather than failing the whole event,
+     * matching how the rest of this class already treats optional fields.
+     */
+    private UUID readUserId(Map<String, Object> event) {
+        Object raw = event.get("userId");
+        if (raw == null) {
+            return null;
+        }
+        try {
+            return UUID.fromString(raw.toString());
+        } catch (IllegalArgumentException e) {
+            log.warn("Ignoring malformed userId '{}' in event", raw);
+            return null;
+        }
+    }
 
     @KafkaListener(topics = "auth.user.registered", groupId = "notification-service")
     public void onUserRegistered(Map<String, Object> event) {
@@ -35,7 +61,7 @@ public class NotificationEventListener {
             }
 
             NotificationUseCase.TemplatedCommand command = new NotificationUseCase.TemplatedCommand(
-                    null,
+                    readUserId(event),
                     com.ioes.notification.domain.model.NotificationType.email,
                     email,
                     "welcome",
@@ -68,7 +94,7 @@ public class NotificationEventListener {
             }
 
             NotificationUseCase.TemplatedCommand command = new NotificationUseCase.TemplatedCommand(
-                    null,
+                    readUserId(event),
                     com.ioes.notification.domain.model.NotificationType.email,
                     email,
                     passed != null && passed ? "exam-passed" : "exam-failed",
@@ -106,7 +132,7 @@ public class NotificationEventListener {
             }
 
             NotificationUseCase.TemplatedCommand command = new NotificationUseCase.TemplatedCommand(
-                    null,
+                    readUserId(event),
                     com.ioes.notification.domain.model.NotificationType.email,
                     email,
                     "streak-milestone",
@@ -147,7 +173,7 @@ public class NotificationEventListener {
             }
 
             NotificationUseCase.TemplatedCommand command = new NotificationUseCase.TemplatedCommand(
-                    null,
+                    readUserId(event),
                     com.ioes.notification.domain.model.NotificationType.email,
                     email,
                     "leaderboard-top3",

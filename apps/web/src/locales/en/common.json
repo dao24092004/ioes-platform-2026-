@@ -3328,13 +3328,13 @@
       "title": "Notification inbox",
       "markAllRead": "Mark all as read",
       "filter": "Filter",
+      "error": "Couldn't load your notifications.",
       "filters": {
         "all": "All",
-        "unread": "Unread",
-        "system": "System",
-        "user": "User",
-        "course": "Course",
-        "exam": "Exam"
+        "pending": "Pending",
+        "sent": "Sent",
+        "failed": "Failed",
+        "retrying": "Retrying"
       }
     },
     "broadcast": {

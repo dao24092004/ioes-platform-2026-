@@ -3373,13 +3373,13 @@
       "title": "Inbox thông báo",
       "markAllRead": "Đánh dấu tất cả đã đọc",
       "filter": "Lọc",
+      "error": "Không tải được thông báo của bạn.",
       "filters": {
         "all": "Tất cả",
-        "unread": "Chưa đọc",
-        "system": "Hệ thống",
-        "user": "Người dùng",
-        "course": "Khóa học",
-        "exam": "Bài thi"
+        "pending": "Đang chờ",
+        "sent": "Đã gửi",
+        "failed": "Thất bại",
+        "retrying": "Đang thử lại"
       }
     },
     "broadcast": {
