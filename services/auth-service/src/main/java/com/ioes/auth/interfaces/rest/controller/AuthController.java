@@ -9,6 +9,8 @@ import com.ioes.auth.interfaces.rest.dto.UserResponse;
 import com.ioes.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -135,5 +137,8 @@ public class AuthController {
     }
 
     public record RefreshTokenRequest(String refreshToken) {}
-    public record ChangePasswordRequest(String oldPassword, String newPassword) {}
+    public record ChangePasswordRequest(
+            @NotBlank String oldPassword,
+            @NotBlank @Size(min = 8, max = 100) String newPassword
+    ) {}
 }
