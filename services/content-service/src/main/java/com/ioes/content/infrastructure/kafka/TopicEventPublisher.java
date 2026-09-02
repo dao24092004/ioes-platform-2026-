@@ -5,8 +5,8 @@ import com.ioes.content.domain.event.TopicDeletedEvent;
 import com.ioes.content.domain.event.TopicUpdatedEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -15,12 +15,23 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.CompletableFuture;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class TopicEventPublisher {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
+
+    /**
+     * Binds the String-valued template from {@link ContentKafkaConfig}. Without
+     * the qualifier this injection point matches the envelope-typed template
+     * published by {@code common-kafka} and the context fails to start.
+     */
+    public TopicEventPublisher(
+            @Qualifier("stringKafkaTemplate") KafkaTemplate<String, String> kafkaTemplate,
+            ObjectMapper objectMapper) {
+        this.kafkaTemplate = kafkaTemplate;
+        this.objectMapper = objectMapper;
+    }
 
     @Value("${app.kafka.topic-prefix:content}")
     private String topicPrefix;
