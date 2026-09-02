@@ -5,6 +5,7 @@ import com.ioes.notification.domain.model.NotificationStatus;
 import com.ioes.notification.domain.model.NotificationType;
 import com.ioes.notification.domain.port.in.NotificationUseCase;
 import com.ioes.notification.domain.port.out.NotificationRepositoryPort;
+import com.ioes.notification.domain.port.out.NotificationTemplatePort;
 import com.ioes.notification.domain.service.NotificationService;
 import com.ioes.notification.domain.service.EmailSender;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,13 +28,16 @@ class NotificationServiceTest {
     private NotificationRepositoryPort repositoryPort;
 
     @Mock
+    private NotificationTemplatePort templatePort;
+
+    @Mock
     private EmailSender emailSender;
 
     private NotificationService notificationService;
 
     @BeforeEach
     void setUp() {
-        notificationService = new NotificationService(repositoryPort, emailSender);
+        notificationService = new NotificationService(repositoryPort, templatePort, emailSender);
         org.springframework.test.util.ReflectionTestUtils.setField(notificationService, "maxRetryAttempts", 3);
     }
 

@@ -1,5 +1,6 @@
 package com.ioes.notification.domain.service;
 
+import com.ioes.notification.infrastructure.template.ClasspathNotificationTemplateAdapter;
 import com.ioes.notification.domain.model.Notification;
 import com.ioes.notification.domain.model.NotificationType;
 import com.ioes.notification.domain.port.in.NotificationUseCase;
@@ -97,7 +98,8 @@ class NotificationServiceSendPathIntegrationTest {
     void setUp() {
         NotificationRepositoryAdapter adapter = new NotificationRepositoryAdapter(jpaRepository);
         EmailSender emailSender = mock(EmailSender.class);
-        notificationService = new NotificationService(adapter, emailSender);
+        notificationService = new NotificationService(
+                adapter, new ClasspathNotificationTemplateAdapter(), emailSender);
         ReflectionTestUtils.setField(notificationService, "maxRetryAttempts", 3);
     }
 
