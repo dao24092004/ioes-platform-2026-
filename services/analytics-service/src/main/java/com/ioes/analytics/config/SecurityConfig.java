@@ -102,6 +102,10 @@ public class SecurityConfig {
                         // authority only. Must be declared before anyRequest().
                         .requestMatchers("/analytics/internal/**").hasAnyAuthority("admin", "super_admin")
 
+                        // Platform-wide aggregates: every row of every user rolled
+                        // into one number, so admin/super_admin only.
+                        .requestMatchers("/analytics/admin/**").hasAnyAuthority("admin", "super_admin")
+
                         // Tat ca endpoints con lai -- phai authenticated
                         .anyRequest().authenticated()
                 )
