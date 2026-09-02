@@ -50,6 +50,11 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**", "/error").permitAll()
                 .requestMatchers(HttpMethod.POST, "/notifications/send", "/notifications/send-templated")
                     .hasAnyAuthority("admin", "super_admin")
+                // Both are platform-wide views rather than anything a single
+                // recipient owns: stats counts every row in the table, and the
+                // template list is only actionable by someone who may send.
+                .requestMatchers(HttpMethod.GET, "/notifications/stats", "/notifications/templates")
+                    .hasAnyAuthority("admin", "super_admin")
                 .anyRequest().authenticated()
             )
             .formLogin(AbstractHttpConfigurer::disable)
