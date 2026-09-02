@@ -53,7 +53,9 @@ class AuthServiceTest {
                 .passwordHash(passwordEncoder.encode("Password123!"))
                 .fullName("Test User")
                 .role(UserRole.student)
-                .status(UserStatus.pending)
+                // login() rejects a non-active account before it ever checks the
+                // password, so a pending fixture can never exercise the password path.
+                .status(UserStatus.active)
                 .emailVerified(true)
                 .failedLoginAttempts(0)
                 .createdAt(Instant.now())
