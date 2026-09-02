@@ -12,7 +12,15 @@ import { Exam } from './entities/exam.entity';
 import { ExamAttempt, AttemptStatus } from './entities/exam-attempt.entity';
 import { Question } from '../question-bank/entities/question.entity';
 import { ExamRepository } from './repositories/exam.repository';
-import { AttemptRepository } from './repositories/attempt.repository';
+import {
+  AttemptRepository,
+  GradingQueueStats,
+} from './repositories/attempt.repository';
+import {
+  AdminExamRow,
+  AdminExamStats,
+  GradingQueueItem,
+} from './dto/admin-exam.dto';
 import {
   ExamNotFoundError,
   ExamDeletedError,
@@ -52,9 +60,13 @@ export class ExamService {
    * List exams visible cho user.
    * - Student: tất cả exams của courses đã enroll (TODO: filter qua content-service)
    * - Instructor: exams do chính họ tạo
-   * - Admin: tất cả
+   * - Admin: tất cả exam chưa xoá mềm
    */
   async list(userId: string, role: string): Promise<ApiResponse<Exam[]>> {
+    if (role === 'ADMIN') {
+      const exams = await this.examRepo.findAllForAdmin();
+      return ApiResponse.success(exams);
+    }
     if (role === 'INSTRUCTOR') {
       const exams = await this.examRepo.findByInstructor(userId);
       return ApiResponse.success(exams);
@@ -63,6 +75,124 @@ export class ExamService {
     // Tới lúc đó học viên chỉ thấy exam practice.
     const exams = await this.examRepo.findPractice();
     return ApiResponse.success(exams);
+  }
+
+  /**
+   * Bảng giám sát của admin: mỗi đề kèm số người dự thi và điểm trung bình.
+   *
+   * Hai truy vấn: một lấy đề, một gộp attempt theo đề — không phải N+1.
+   *
+   * Không có tên khoá học, tên giảng viên, trạng thái lịch thi hay số lần bị
+   * gắn cờ trong này: exam-suite chỉ giữ `courseId`/`instructorId` (chưa
+   * service nào phân giải được ra tên), bảng `exams` không có cột trạng thái
+   * lịch, còn violation của giám thị nằm trong Redis theo từng phiên nên không
+   * gộp được bằng SQL.
+   */
+  async adminOverview(): Promise<ApiResponse<AdminExamRow[]>> {
+    const exams = await this.examRepo.findAllForAdmin();
+    const aggregates = await this.attemptRepo.aggregateByExam(
+      exams.map((exam) => exam.id),
+    );
+
+    const byExam = new Map(aggregates.map((row) => [row.examId, row]));
+
+    const rows: AdminExamRow[] = exams.map((exam) => {
+      const stats = byExam.get(exam.id);
+      return {
+        id: exam.id,
+        title: exam.title,
+        courseId: exam.courseId ?? null,
+        instructorId: exam.instructorId,
+        examType: exam.examType,
+        timeLimitMinutes: exam.timeLimitMinutes ?? null,
+        passingScore: exam.passingScore ?? null,
+        participants: stats?.participants ?? 0,
+        gradedAttempts: stats?.gradedAttempts ?? 0,
+        avgScore: stats?.avgScore ?? null,
+        createdAt: exam.createdAt,
+      };
+    });
+
+    return ApiResponse.success(rows);
+  }
+
+  /**
+   * Cụm số tổng cho trang quản trị bài thi.
+   *
+   * `passRate` tính trên attempt đã chấm, không phải trên mọi attempt: bài
+   * đang làm dở chưa có kết quả để tính vào tỉ lệ đạt.
+   */
+  async adminStats(): Promise<ApiResponse<AdminExamStats>> {
+    const [totalExams, attempts] = await Promise.all([
+      this.examRepo.countAll(),
+      this.attemptRepo.platformAttemptStats(),
+    ]);
+
+    const passRate =
+      attempts.graded > 0 ? (attempts.passed / attempts.graded) * 100 : null;
+
+    return ApiResponse.success({
+      totalExams,
+      totalAttempts: attempts.totalAttempts,
+      inProgress: attempts.inProgress,
+      awaitingGrading: attempts.submitted,
+      graded: attempts.graded,
+      passed: attempts.passed,
+      passRate,
+      avgScore: attempts.avgScore,
+    });
+  }
+
+  /**
+   * Hàng đợi chấm bài: bài đã nộp còn chờ chấm, cũ nhất trước.
+   *
+   * `waitingSeconds` tính tại thời điểm đọc, nên trang chấm bài thấy ngay bài
+   * nào đang chờ lâu mà không phải tự trừ thời gian.
+   */
+  async gradingQueue(
+    role: string,
+    userId: string,
+    limit = 50,
+  ): Promise<ApiResponse<GradingQueueItem[]>> {
+    const attempts = await this.attemptRepo.findGradingQueue(
+      limit,
+      this.gradingScope(role, userId),
+    );
+    const now = Date.now();
+
+    const items: GradingQueueItem[] = attempts.map((attempt) => ({
+      attemptId: attempt.id,
+      examId: attempt.examId,
+      userId: attempt.userId,
+      submittedAt: attempt.submittedAt ?? null,
+      waitingSeconds: attempt.submittedAt
+        ? Math.max(0, Math.floor((now - attempt.submittedAt.getTime()) / 1000))
+        : null,
+      score: attempt.score ?? null,
+      maxScore: attempt.maxScore ?? null,
+    }));
+
+    return ApiResponse.success(items);
+  }
+
+  /**
+   * Số liệu hàng đợi chấm bài.
+   */
+  async gradingStats(
+    role: string,
+    userId: string,
+  ): Promise<ApiResponse<GradingQueueStats>> {
+    return ApiResponse.success(
+      await this.attemptRepo.gradingQueueStats(this.gradingScope(role, userId)),
+    );
+  }
+
+  /**
+   * Admin thấy hàng đợi của cả nền tảng; ai khác chỉ thấy bài nộp cho đề của
+   * chính mình. Trả về undefined nghĩa là không giới hạn.
+   */
+  private gradingScope(role: string, userId: string): string | undefined {
+    return role === 'ADMIN' ? undefined : userId;
   }
 
   /**
