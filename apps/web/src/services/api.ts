@@ -895,60 +895,6 @@ export interface RewardWeekPoint {
   value: number;
 }
 
-export const blockchainApi = {
-  async tokenStats(): Promise<TokenStats> {
-    await sleep(120);
-    return { totalSupply: 10_000_000, circulating: 6_842_310, minted: 248_120, burned: 12_540, holders: 8420, tx24h: 1284 };
-  },
-  async contract(): Promise<TokenContract> {
-    await sleep(80);
-    return {
-      address: '0x9aBcDeF0123456789aBcDeF0123456789aBcDeF01',
-      network: 'Polygon Amoy Testnet',
-      deploy_block: 5_241_812,
-      version: 'v1.2.0',
-      verified: true,
-    };
-  },
-  async transactions(): Promise<TxRecord[]> {
-    await sleep(120);
-    const now = Date.now();
-    const mk = (i: number, offsetMin: number, type: TxRecord['type'], amount: number, status: TxRecord['status'] = 'confirmed'): TxRecord => ({
-      id: `tx-${i}`,
-      tx_hash: `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`,
-      type,
-      from: `0x${Math.random().toString(16).slice(2, 6)}...${Math.random().toString(16).slice(2, 6)}`,
-      to: `0x${Math.random().toString(16).slice(2, 6)}...${Math.random().toString(16).slice(2, 6)}`,
-      amount,
-      status,
-      created_at: new Date(now - offsetMin * 60000).toISOString(),
-    });
-    return [
-      mk(1, 5, 'reward', 50),
-      mk(2, 12, 'mint', 1000),
-      mk(3, 18, 'transfer', 25),
-      mk(4, 23, 'reward', 80),
-      mk(5, 41, 'burn', 15),
-      mk(6, 67, 'reward', 60, 'pending'),
-      mk(7, 95, 'transfer', 200),
-      mk(8, 142, 'reward', 45),
-      mk(9, 188, 'mint', 5000),
-      mk(10, 245, 'transfer', 30, 'failed'),
-    ];
-  },
-  async weeklyRewards(): Promise<RewardWeekPoint[]> {
-    await sleep(80);
-    return [
-      { day: 'Mon', value: 1240 },
-      { day: 'Tue', value: 1820 },
-      { day: 'Wed', value: 980 },
-      { day: 'Thu', value: 2410 },
-      { day: 'Fri', value: 3120 },
-      { day: 'Sat', value: 1680 },
-      { day: 'Sun', value: 2240 },
-    ];
-  },
-};
 
 // ============================================
 // API: SECURITY (events + audit)
@@ -1496,15 +1442,6 @@ export const studentApi = {
     ];
   },
 
-  async certificates(): Promise<StudentCertificate[]> {
-    await sleep(100);
-    const ago = (days: number) => new Date(Date.now() - days * 86400000).toISOString();
-    return [
-      { id: 'cert-001', title: 'Machine Learning Fundamentals', course: 'AI/ML', instructor: 'TS. Nguyễn Văn A', issued_at: ago(2), serial: 'IOES-2026-ML-000128', grade: 'Excellent' },
-      { id: 'cert-002', title: 'Database Systems', course: 'Database', instructor: 'Lê Minh Hằng', issued_at: ago(30), serial: 'IOES-2026-DB-000412', grade: 'Excellent' },
-      { id: 'cert-003', title: 'Modern Web Development', course: 'Web Dev', instructor: 'Trần Thị Hương', issued_at: ago(60), serial: 'IOES-2026-WEB-000198', grade: 'Honors' },
-    ];
-  },
 
   async leaderboard(): Promise<LeaderboardEntry[]> {
     await sleep(120);
@@ -1534,17 +1471,6 @@ export const studentApi = {
     ];
   },
 
-  async messages(): Promise<StudentMessage[]> {
-    await sleep(100);
-    const ago = (min: number) => new Date(Date.now() - min * 60000).toISOString();
-    return [
-      { id: 'sm-1', from_name: 'TS. Nguyễn Văn A', from_avatar: 'https://i.pravatar.cc/100?img=5', preview: 'Bạn làm bài tập rất tốt, nhưng phần useEffect...', last_message_at: ago(8), unread: 2, is_online: true },
-      { id: 'sm-2', from_name: 'Trần Thị Hương', from_avatar: null, preview: 'Final project deadline đã được gia hạn đến...', last_message_at: ago(45), unread: 1, is_online: false },
-      { id: 'sm-3', from_name: 'Lê Minh Đức', from_avatar: 'https://i.pravatar.cc/100?img=33', preview: 'Bạn có tài liệu về React Hooks không?', last_message_at: ago(180), unread: 0, is_online: true },
-      { id: 'sm-4', from_name: 'Phạm Văn Quang', from_avatar: 'https://i.pravatar.cc/100?img=8', preview: 'Lịch học tuần sau đã cập nhật, vui lòng xem...', last_message_at: ago(720), unread: 0, is_online: false },
-      { id: 'sm-5', from_name: 'Hỗ trợ IOES', from_avatar: null, preview: 'Cảm ơn bạn đã liên hệ. Vấn đề của bạn đã được...', last_message_at: ago(2880), unread: 0, is_online: true },
-    ];
-  },
 
   async learningPaths(): Promise<StudentLearningPath[]> {
     await sleep(120);
