@@ -28,6 +28,11 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/register", "/refresh", "/error").permitAll()
+                // The admin directory is role-gated, not merely authenticated. The
+                // authorities JwtAuthenticationFilter grants are the raw role claim
+                // ("admin", "super_admin"), with no ROLE_ prefix, so this matches on
+                // authority rather than hasRole().
+                .requestMatchers("/users/**").hasAnyAuthority("admin", "super_admin")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
