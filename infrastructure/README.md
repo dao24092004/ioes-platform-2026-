@@ -1,203 +1,290 @@
-# ============================================
-# IOES - Development Environment README
-# ============================================
+# IOES Infrastructure - Local Development
 
-# Development Setup Guide
-
-## Prerequisites
-
-- [Docker](https://docs.docker.com/get-docker/) >= 24.0
-- [Docker Compose](https://docs.docker.com/compose/install/) >= 2.20
-- [Node.js](https://nodejs.org/) >= 20.x
-- [Java](https://adoptium.net/) 17
-- [Python](https://www.python.org/) 3.11
-- [pnpm](https://pnpm.io/installation) >= 9.x
-
-## Quick Start (5 minutes)
-
-### 1. Clone and Setup
+## 🚀 Quick Start
 
 ```bash
-git clone <repository-url>
-cd AiProject
-cp .env.example .env
+# Start all services
+docker compose up -d
+
+# Stop all services
+docker compose down
+
+# Stop and remove volumes (clean slate)
+docker compose down -v
+
+# View logs
+docker compose logs -f [service-name]
+
+# Restart specific service
+docker compose restart [service-name]
 ```
 
-### 2. Start Infrastructure
+## 📋 Services Overview
+
+### Core Infrastructure
+
+| Service | Port(s) | Description | UI/Access |
+|---------|---------|-------------|-----------|
+| **PostgreSQL** | 5433 | Relational database (10 databases) | PgAdmin: http://localhost:5050 |
+| **Redis** | 6379 | Cache + Session store | Redis Commander: http://localhost:8082 |
+| **MongoDB** | 27017 | Document database (replica set) | Mongo Express: http://localhost:8083 |
+| **Kafka** | 29092 (host)<br>9092 (docker) | Event streaming | Kafka UI: http://localhost:8081 |
+| **MinIO** | 9002 (API)<br>9011 (Console) | S3-compatible object storage | Console: http://localhost:9011<br>Credentials: `minio` / `minio123` |
+| **Milvus** | 19530 | Vector database for AI | gRPC only |
+| **Dgraph** | 18080 (GraphQL)<br>8000 (Ratel UI) | Graph database (Question Bank) | Ratel: http://localhost:8000 |
+
+### Observability Stack
+
+| Service | Port | Description | Access |
+|---------|------|-------------|--------|
+| **Prometheus** | 9090 | Metrics collection | http://localhost:9090 |
+| **Grafana** | 3001 | Dashboards & visualization | http://localhost:3001<br>Credentials: `admin` / `admin` |
+| **Jaeger** | 16686 | Distributed tracing | http://localhost:16686 |
+
+### Dev Tools
+
+| Service | Port | Description | Access |
+|---------|------|-------------|--------|
+| **PgAdmin** | 5050 | PostgreSQL admin UI | http://localhost:5050<br>Email: `admin@ioes.com`<br>Password: `admin` |
+| **Redis Commander** | 8082 | Redis browser | http://localhost:8082 |
+| **Mongo Express** | 8083 | MongoDB admin UI | http://localhost:8083<br>Credentials: `admin` / `admin` |
+| **Kafka UI** | 8081 | Kafka topics/messages browser | http://localhost:8081 |
+| **MailHog** | 8025 (Web)<br>1025 (SMTP) | Email testing | http://localhost:8025 |
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create `.env` file in `infrastructure/` directory (optional, defaults provided):
 
 ```bash
-make setup-dev
+# PostgreSQL
+POSTGRES_PASSWORD=ioes_dev_password
+
+# MongoDB
+MONGO_ROOT_USER=ioes
+MONGO_ROOT_PASSWORD=ioes_dev_password
+
+# MinIO
+MINIO_ROOT_USER=minio
+MINIO_ROOT_PASSWORD=minio123
+
+# Grafana
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=admin
+
+# PgAdmin
+PGADMIN_EMAIL=admin@ioes.com
+PGADMIN_PASSWORD=admin
 ```
 
-This will start:
-- PostgreSQL (host port 5433, container port 5432 — host 5432 is reserved if you have a local Postgres)
-- Redis (port 6379)
-- MongoDB (port 27017)
-- Kafka (port 9092)
-- MinIO (ports 9000, 9001)
-- Milvus (port 19530)
-- Prometheus (port 9090)
-- Grafana (port 3001)
-- Jaeger (port 16686)
-- PgAdmin (port 5050)
+### Port Allocation
 
-### 3. Initialize Databases
+**IMPORTANT:** Port 9001 is reserved for `content-service`. MinIO Console uses port 9011.
 
-```bash
-make db-init
-make migrate
-make db-seed
+```
+5433  → PostgreSQL
+6379  → Redis
+8000  → Dgraph Ratel UI
+8025  → MailHog Web UI
+8081  → Kafka UI
+8082  → Redis Commander
+8083  → Mongo Express
+8089  → Kafka Connect
+9000  → auth-service (host app, NOT Docker)
+9001  → content-service (host app, NOT Docker) ⚠️
+9002  → MinIO API
+9011  → MinIO Console (changed from 9001 on 2026-09-02)
+9090  → Prometheus
+18080 → Dgraph GraphQL
+19530 → Milvus
+27017 → MongoDB
+29092 → Kafka (host access)
 ```
 
-### 4. Start Development Services
+See [CHANGELOG.md](./CHANGELOG.md) for port change history.
 
-Open multiple terminals:
+## 🗄️ Database Initialization
 
-```bash
-# Terminal 1 - Frontend
-make dev-frontend
+### PostgreSQL
 
-# Terminal 2 - Java Services
-make dev-java
+Database creation scripts in `init-scripts/`:
+- Creates 10 databases (one per service)
+- Each service has its own user and schema
 
-# Terminal 3 - Node.js Services
-make dev-node
-
-# Terminal 4 - Python Services (optional)
-make dev-python
+Databases:
+```
+ioes_auth
+ioes_content
+ioes_exam
+ioes_analytics
+ioes_notification
+ioes_certificate
+ioes_payment
+ioes_audit
+ioes_integration
+ioes_learning
 ```
 
-### 5. Verify
+### MongoDB
 
-Access services at:
-- Frontend: http://localhost:3000
-- API Gateway: http://localhost:8080
-- Swagger: http://localhost:8080/swagger-ui.html
-- Grafana: http://localhost:3001 (admin/admin)
-- Kafka UI: http://localhost:8081
+Replica set `rs0` with per-service databases:
+- `ioes_exam` - Exam runtime data
+- `ioes_proctoring` - Proctoring sessions
+- `ioes_analytics` - Analytics events
 
-## Common Commands
+Init scripts in `mongo-init/` create databases and users.
 
-### Docker Services
+### MinIO Buckets
+
+Auto-created buckets:
+- `ioes-media` - Course materials, images
+- `ioes-certificates` - Generated certificates
+- `ioes-proctoring` - Recorded proctoring videos
+
+Access policy: `download` (public read)
+
+### Dgraph Schema
+
+Question Bank GraphQL schema auto-deployed from `dgraph-init/question-bank-schema.graphql`.
+
+## 🔍 Health Checks
+
+All services have health checks configured. Check status:
+
 ```bash
-make docker-up        # Start all Docker services
-make docker-down      # Stop all Docker services
-make docker-logs      # Tail logs
-make docker-restart   # Restart all services
-make docker-clean     # Clean up (WARNING: deletes data)
+docker compose ps
 ```
 
-### Development
+Individual health endpoints:
 ```bash
-make dev             # Start all services in dev mode
-make dev-frontend    # Frontend only
-make dev-backend     # All backend services
-make stop           # Stop all running services
-```
-
-### Database
-```bash
-make db-init         # Initialize databases
-make migrate         # Run migrations
-make db-seed         # Seed test data
-make db-reset        # Reset databases
-make db-console      # Open psql console
-```
-
-### Testing
-```bash
-make test            # Run all tests
-make test-unit       # Unit tests only
-make test-e2e        # E2E tests
-make test-load       # Load tests
-```
-
-### Build
-```bash
-make build           # Build all
-make docker-build-all # Build Docker images
-```
-
-### Health Check
-```bash
-make health-check    # Check all services
-```
-
-## Service Ports
-
-| Service | Port | URL |
-|---------|------|-----|
-| Frontend | 3000 | http://localhost:3000 |
-| API Gateway | 8080 | http://localhost:8080 |
-| Auth Service | 9000 | http://localhost:9000 |
-| Content Service | 9001 | http://localhost:9001 |
-| Exam Suite | 9005 | http://localhost:9005 |
-| AI Suite API | 9100 | http://localhost:9100 |
-| AI ML Worker | 9101 | http://localhost:9101 |
-| Blockchain Suite | 9200 | http://localhost:9200 |
-| Notification Service | 9009 | http://localhost:9009 |
-
-## Infrastructure Ports
-
-| Service | Port | URL |
-|---------|------|-----|
-| PostgreSQL | 5433 | localhost:5433 |
-| Redis | 6379 | localhost:6379 |
-| MongoDB | 27017 | localhost:27017 |
-| Kafka | 9092 | localhost:9092 |
-| MinIO API | 9000 | http://localhost:9000 |
-| MinIO Console | 9001 | http://localhost:9001 |
-| Milvus | 19530 | localhost:19530 |
-| Prometheus | 9090 | http://localhost:9090 |
-| Grafana | 3001 | http://localhost:3001 |
-| Jaeger | 16686 | http://localhost:16686 |
-| Kafka UI | 8081 | http://localhost:8081 |
-| PgAdmin | 5050 | http://localhost:5050 |
-| MailHog | 8025 | http://localhost:8025 |
-
-## Troubleshooting
-
-### Kafka not starting
-```bash
-docker-compose down -v
-docker-compose up -d
-```
-
-### Port already in use
-```bash
-# Find and kill the process using the port
-lsof -i :5432
-kill -9 <PID>
-```
-
-### Database connection issues
-```bash
-# Wait for postgres to be ready
+# PostgreSQL
 docker exec ioes-postgres pg_isready -U ioes
+
+# Redis
+docker exec ioes-redis redis-cli ping
+
+# MongoDB
+docker exec ioes-mongodb mongosh --eval "db.adminCommand('ping')"
+
+# Kafka
+docker exec ioes-kafka kafka-broker-api-versions --bootstrap-server localhost:9092
+
+# MinIO
+curl http://localhost:9002/minio/health/live
+
+# Milvus
+curl http://localhost:9091/healthz
+
+# Dgraph
+curl http://localhost:18080/health
 ```
 
-### Clean start
+## 🧹 Maintenance
+
+### Clean Up Volumes
+
 ```bash
-make docker-clean
-make setup-dev
-make db-init
-make migrate
-make db-seed
+# Remove all volumes (DESTRUCTIVE)
+docker compose down -v
+
+# Remove specific volume
+docker volume rm infrastructure_postgres_data
 ```
 
-## Environment Variables
+### Reset Specific Service
 
-See `.env.example` for all available environment variables.
+```bash
+# Example: Reset PostgreSQL
+docker compose stop postgres
+docker volume rm infrastructure_postgres_data
+docker compose up -d postgres
+```
 
-Key variables:
-- `POSTGRES_PASSWORD` - PostgreSQL password
-- `JWT_SECRET` - JWT signing secret (change in production!)
-- `REDIS_PASSWORD` - Redis password
-- `MINIO_ROOT_PASSWORD` - MinIO admin password
+### View Resource Usage
 
-## Production Deployment
+```bash
+docker stats
+```
 
-For production deployment, see:
-- [Kubernetes Setup](./kubernetes/README.md)
-- [Terraform Infrastructure](./terraform/README.md)
-- [CI/CD Pipeline](./.github/workflows/README.md)
+## 🐛 Troubleshooting
+
+### Port Already in Use
+
+```bash
+# Check what's using the port
+ss -tlnp | grep :9001
+
+# If host process conflicts, kill it
+kill <PID>
+```
+
+### MinIO Buckets Not Created
+
+```bash
+# Manually create buckets
+docker exec ioes-minio sh -c '
+mc alias set local http://localhost:9000 minio minio123
+mc mb local/ioes-media --ignore-existing
+mc mb local/ioes-certificates --ignore-existing
+mc mb local/ioes-proctoring --ignore-existing
+mc anonymous set download local/ioes-media
+mc anonymous set download local/ioes-certificates
+mc anonymous set download local/ioes-proctoring
+'
+```
+
+### MongoDB Replica Set Not Initialized
+
+```bash
+# Check replica set status
+docker exec ioes-mongodb mongosh -u ioes -p ioes_dev_password --eval "rs.status()"
+
+# If not initialized, run manually
+docker exec ioes-mongodb mongosh -u ioes -p ioes_dev_password --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'mongodb:27017'}]})"
+```
+
+### Kafka Topics Not Auto-Created
+
+```bash
+# List topics
+docker exec ioes-kafka kafka-topics --bootstrap-server localhost:9092 --list
+
+# Create topic manually
+docker exec ioes-kafka kafka-topics --bootstrap-server localhost:9092 --create --topic content.topic.created --partitions 3 --replication-factor 1
+```
+
+### Dgraph Schema Not Deployed
+
+```bash
+# Deploy schema manually
+curl -X POST \
+  --data-binary @dgraph-init/question-bank-schema.graphql \
+  http://localhost:18080/admin/schema
+```
+
+## 📚 References
+
+- [Docker Compose Documentation](https://docs.docker.com/compose/)
+- [Project Structure](../docs/01-business/PROJECT_STRUCTURE.md)
+- [Service Boundaries](../docs/02-architecture/service-boundaries.md)
+- [Infrastructure Changelog](./CHANGELOG.md)
+
+## ⚠️ Important Notes
+
+1. **Port 9001** is reserved for `content-service` (host application)
+2. **Port 9000** is reserved for `auth-service` (host application)
+3. Use **port 29092** to connect to Kafka from host (not 9092)
+4. Use **port 5433** for PostgreSQL from host (not 5432)
+5. MinIO Console moved from `9001` → `9011` on 2026-09-02
+6. All services run in bridge network `ioes-network` (192.168.100.0/24)
+
+## 🔐 Security Notes
+
+**FOR DEVELOPMENT ONLY**
+- All passwords are hardcoded defaults
+- No TLS/SSL configured
+- Public access to admin UIs
+- DO NOT use these configs in production
+
+For production setup, see `infrastructure/k8s/` and Terraform configs.

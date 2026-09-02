@@ -26,7 +26,7 @@
 #   Redis:         6379
 #   MongoDB:       27017
 #   Kafka:         29092 (use this from host), 9092 (Docker network only)
-#   MinIO:         9002 (API), 9001 (Console) - use 9002 from host (9000 reserved for auth-service)
+#   MinIO:         9002 (API), 9011 (Console) - use 9002 from host (9000 reserved for auth-service, 9001 for content-service)
 #   Milvus:        19530
 #   Prometheus:    9090
 #   Grafana:       3001
@@ -272,13 +272,13 @@ services:
     image: minio/minio:latest
     container_name: ioes-minio
     restart: unless-stopped
-    command: server /data --console-address ":9001"
+    command: server /data --console-address ":9011"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio123}
     ports:
       - "9002:9000"
-      - "9001:9001"
+      - "9011:9011"
     volumes:
       - minio_data:/data
     healthcheck:

@@ -14,6 +14,7 @@ Tài liệu ghi nhận và phân tích các sự cố production/staging.
 | File | Severity | Ngày | Status |
 |------|----------|------|--------|
 | [2026-08-24-gateway-jwt-and-timeout.md](./2026-08-24-gateway-jwt-and-timeout.md) | P0 | 24/08/2026 | ✅ Resolved |
+| [2026-09-02-minio-port-conflict.md](./2026-09-02-minio-port-conflict.md) | P1 | 02/09/2026 | ✅ Resolved |
 
 ## Template
 
