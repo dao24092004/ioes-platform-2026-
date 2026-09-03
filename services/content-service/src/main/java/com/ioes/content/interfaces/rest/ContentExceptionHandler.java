@@ -1,5 +1,9 @@
 package com.ioes.content.interfaces.rest;
 
+import com.ioes.content.domain.exception.ContentAccessDeniedException;
+import com.ioes.content.domain.exception.ContentNotFoundException;
+import com.ioes.content.domain.exception.DuplicateSlugException;
+import com.ioes.content.domain.exception.InvalidCourseStateException;
 import com.ioes.content.domain.exception.InvalidTopicHierarchyException;
 import com.ioes.content.domain.exception.TopicHasQuestionsException;
 import com.ioes.content.domain.exception.TopicNotFoundException;
@@ -40,6 +44,46 @@ public class ContentExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(error("INVALID_TOPIC_HIERARCHY", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ContentNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleContentNotFound(ContentNotFoundException ex) {
+        log.warn("Content not found: {}", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(error(ex.getResourceType().toUpperCase() + "_NOT_FOUND", ex.getMessage()));
+    }
+
+    @ExceptionHandler(DuplicateSlugException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateSlug(DuplicateSlugException ex) {
+        log.warn("Duplicate slug: {}", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(error("DUPLICATE_SLUG", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ContentAccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(ContentAccessDeniedException ex) {
+        log.warn("Access denied: {}", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(error("ACCESS_DENIED", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidCourseStateException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidCourseState(InvalidCourseStateException ex) {
+        log.warn("Invalid course state: {}", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(error("INVALID_COURSE_STATE", ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        log.warn("Bad request: {}", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(error("BAD_REQUEST", ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

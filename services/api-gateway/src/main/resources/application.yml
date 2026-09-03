@@ -55,13 +55,19 @@ spring.cloud.gateway:
       filters:
         - StripPrefix=2
 
-    # Content Service
+    # Content Service. Its controllers already carry the full /api/v1 prefix
+    # (@RequestMapping("/api/v1/courses") and friends), so nothing is stripped —
+    # the same shape as the exam-session route below.
+    #
+    # The previous entry matched /api/content/**, /api/courses/**, /api/lessons/**
+    # and /api/topics/** with StripPrefix=2, which forwarded /topics/** to a
+    # controller mapped at /api/v1/topics: every one of those paths 404'd at the
+    # service. They are dropped rather than kept alive, since no client can have
+    # been relying on a route that never resolved.
     - id: content-service
       uri: lb://content-service
       predicates:
-        - Path=/api/content/**,/api/courses/**,/api/lessons/**,/api/topics/**,/api/v1/topics/**
-      filters:
-        - StripPrefix=2
+        - Path=/api/v1/topics/**,/api/v1/courses/**,/api/v1/categories/**
 
     # Exam Service (controllers @Controller('exams') / @Controller('attempts'),
     # nên chỉ cắt đoạn /api)
