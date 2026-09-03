@@ -11,6 +11,7 @@ Hướng dẫn vận hành cho DevOps/SRE.
 | [incident-response/](./incident-response/) | Playbook, post-mortem, escalation |
 | [backup-recovery/](./backup-recovery/) | Backup strategy, DR plan, RTO/RPO |
 | [runbooks/](./runbooks/) | Runbook cho từng service |
+| [known-issues/](./known-issues/) | Lỗi cấu hình đã phát hiện, kèm bản vá và chủ sở hữu |
 
 ## Status
 

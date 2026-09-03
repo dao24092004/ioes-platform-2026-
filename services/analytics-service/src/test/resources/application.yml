@@ -1,0 +1,83 @@
+# Test configuration cho analytics-service
+# Ket noi thang vao Docker containers (docker compose up -d)
+#
+# Docker ports (theo infrastructure/docker-compose.yml):
+#   PostgreSQL: localhost:5433 -> container:5432
+#   Redis:      localhost:6379
+#   Kafka:      localhost:29092
+
+spring:
+  application:
+    name: analytics-service-test
+  datasource:
+    url: "jdbc:postgresql://localhost:5433/ioes_analytics"
+    username: ioes
+    password: ioes_dev_password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 10000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    clean-on-validation-error: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 3000ms
+  kafka:
+    bootstrap-servers: "localhost:29092"
+    consumer:
+      group-id: analytics-service-test
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  cloud:
+    config:
+      enabled: false
+      import-check:
+        enabled: false
+  config:
+    import: "optional:"
+
+eureka:
+  client:
+    enabled: false
+
+# JWT — analytics-service now validates bearer tokens itself (common-jwt).
+# Same as every other service: no default, sourced from the monorepo root
+# .env via MonorepoDotEnvInitializer (ADR-008 — no hardcoded secrets).
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}
+  issuer: ${JWT_ISSUER:ioes-platform}
+
+analytics:
+  leaderboard:
+    max-entries: 100
+    default-limit: 10
+  streak:
+    bonus-days: 7
+    bonus-score: 10.0
+
+logging:
+  level:
+    com.ioes: DEBUG
+    org.flywaydb: INFO
+    org.springframework.kafka: WARN

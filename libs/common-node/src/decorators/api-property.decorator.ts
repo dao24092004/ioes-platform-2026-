@@ -1,5 +1,5 @@
 // Simulated decorator for documentation purposes (NestJS uses reflect-metadata)
-export function ApiProperty(options: {
+export function ApiProperty(options?: {
   example?: any;
   required?: boolean;
   description?: string;

@@ -9,7 +9,7 @@ description = "IOES Common Library for Python - Shared schemas, ML utilities, Fa
 authors = ["IOES Team <devops@ioes.com>"]
 license = "Proprietary"
 readme = "README.md"
-packages = [{ include = "ioes_common" }]
+packages = [{ include = "ioes_common", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -23,7 +23,6 @@ httpx = "^0.27.0"
 opentelemetry-api = "^1.24.0"
 opentelemetry-sdk = "^1.24.0"
 opentelemetry-instrumentation-fastapi = "^0.45b0"
-opentelemetry-instrumentation-pydantic = "^0.45b0"
 opentelemetry-exporter-otlp = "^1.24.0"
 tenacity = "^8.2.3"
 structlog = "^24.1.0"

@@ -1,0 +1,1415 @@
+{
+  "info": {
+    "name": "IOES - Question Bank API (Full)",
+    "description": "Postman collection đầy đủ cho Question Bank module.\n\n## Features Tested\n- CRUD Questions (MCQ, True/False, Coding, Short Answer, Essay)\n- Topic Tree & Practice Path\n- Similar Questions (Vector similarity)\n- Bulk Import (CSV/Excel)\n- Image Upload (Presigned URL)\n- Admin Operations (Resync, Storage Health)\n- Dgraph Sync (CQRS Pattern)\n\n## Setup\n1. Set `GATEWAY_URL` = http://localhost:8080 (hoặc 9005 nếu test trực tiếp)\n2. Login và set `TOKEN`\n3. Chạy test theo thứ tự",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "GATEWAY_URL",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "QUESTION_ID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "TOPIC_ID",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "string"
+    },
+    {
+      "key": "SKILL_ID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "PREREQUISITE_Q_ID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "BULK_JOB_ID",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{TOKEN}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "00 - Setup",
+      "item": [
+        {
+          "name": "00.1 Login - Student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.accessToken) {",
+                  "    pm.collectionVariables.set('TOKEN', jsonData.data.accessToken);",
+                  "}",
+                  "pm.test('Login successful', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(jsonData.data.accessToken).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"student@ioes.com\",\n    \"password\": \"Test@123\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/auth/login",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "00.2 Login - Instructor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.accessToken) {",
+                  "    pm.collectionVariables.set('TOKEN', jsonData.data.accessToken);",
+                  "}",
+                  "pm.test('Login successful', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"instructor@ioes.com\",\n    \"password\": \"Test@123\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/auth/login",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "00.3 Gateway Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/actuator/health",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["actuator", "health"]
+            }
+          }
+        },
+        {
+          "name": "00.4 Readiness Check (Dgraph + DB)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/health/ready",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["health", "ready"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Topics",
+      "item": [
+        {
+          "name": "01.1 List All Topics (Tree)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Topics retrieved', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/topics",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "topics"]
+            }
+          }
+        },
+        {
+          "name": "01.2 Get Topic by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Topic retrieved', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/topics/{{TOPIC_ID}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "topics", "{{TOPIC_ID}}"]
+            }
+          }
+        },
+        {
+          "name": "01.3 Get Practice Path for Topic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Practice path retrieved', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data).to.have.property('topic');",
+                  "  pm.expect(json.data).to.have.property('questions');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/topics/{{TOPIC_ID}}/practice",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "topics", "{{TOPIC_ID}}", "practice"]
+            }
+          }
+        },
+        {
+          "name": "01.4 List Skills",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Skills retrieved', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/skills",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "skills"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Questions (READ - Dgraph)",
+      "item": [
+        {
+          "name": "02.1 Search Questions - Full-text",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Search results', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data).to.have.property('items');",
+                  "  pm.expect(json.data).to.have.property('total');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/search?q=algebra&limit=10",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "search"],
+              "query": [
+                { "key": "q", "value": "algebra", "description": "Full-text search" },
+                { "key": "limit", "value": "10" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "02.2 Search - Filter by Difficulty",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Filter by difficulty', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/search?difficulty=easy&limit=5",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "search"],
+              "query": [
+                { "key": "difficulty", "value": "easy" },
+                { "key": "limit", "value": "5" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "02.3 Search - Filter by Type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Filter by type', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/search?questionType=coding&limit=5",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "search"],
+              "query": [
+                { "key": "questionType", "value": "coding" },
+                { "key": "limit", "value": "5" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "02.4 Search - Filter by Topic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Filter by topic', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/search?topicId={{TOPIC_ID}}&limit=10",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "search"],
+              "query": [
+                { "key": "topicId", "value": "{{TOPIC_ID}}" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "02.5 Search - Filter by Tags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Filter by tags', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/search?tags=math&tags=algebra&limit=5",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "search"],
+              "query": [
+                { "key": "tags", "value": "math" },
+                { "key": "tags", "value": "algebra" },
+                { "key": "limit", "value": "5" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "02.6 Get Question by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('QUESTION_ID', jsonData.data.id);",
+                  "}",
+                  "pm.test('Question retrieved', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(jsonData.data).to.have.property('questionText');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/{{QUESTION_ID}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}"]
+            }
+          }
+        },
+        {
+          "name": "02.7 Get Similar Questions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Similar questions retrieved', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/{{QUESTION_ID}}/similar?limit=5",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}", "similar"],
+              "query": [
+                { "key": "limit", "value": "5" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "02.8 Get Question Prerequisites",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Prerequisites retrieved', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/{{QUESTION_ID}}/prerequisites",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}", "prerequisites"]
+            }
+          }
+        },
+        {
+          "name": "02.9 Search - Combined Filters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Combined filters work', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/search?difficulty=medium&questionType=multiple_choice&topicId={{TOPIC_ID}}&limit=10",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "search"],
+              "query": [
+                { "key": "difficulty", "value": "medium" },
+                { "key": "questionType", "value": "multiple_choice" },
+                { "key": "topicId", "value": "{{TOPIC_ID}}" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Questions (WRITE - PostgreSQL)",
+      "item": [
+        {
+          "name": "03.1 Create MCQ Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('QUESTION_ID', jsonData.data.id);",
+                  "}",
+                  "pm.test('MCQ created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  pm.expect(jsonData.success).to.be.true;",
+                  "  pm.expect(jsonData.data.id).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"What is 2 + 2?\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"easy\",\n  \"points\": 10,\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"hint\": \"Basic addition\",\n  \"explanation\": \"2 + 2 = 4. This is basic arithmetic.\",\n  \"tags\": [\"math\", \"arithmetic\"],\n  \"options\": [\n    { \"optionText\": \"3\", \"isCorrect\": false, \"sortOrder\": 1 },\n    { \"optionText\": \"4\", \"isCorrect\": true, \"sortOrder\": 2 },\n    { \"optionText\": \"5\", \"isCorrect\": false, \"sortOrder\": 3 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions"]
+            }
+          }
+        },
+        {
+          "name": "03.2 Create True/False Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('T/F created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"The sky is blue.\",\n  \"questionType\": \"true_false\",\n  \"difficulty\": \"very_easy\",\n  \"points\": 5,\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"options\": [\n    { \"optionText\": \"True\", \"isCorrect\": true },\n    { \"optionText\": \"False\", \"isCorrect\": false }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions"]
+            }
+          }
+        },
+        {
+          "name": "03.3 Create Coding Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Coding question created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"Write a function that returns the sum of two numbers\",\n  \"questionType\": \"coding\",\n  \"difficulty\": \"easy\",\n  \"points\": 20,\n  \"language\": \"python\",\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"estimatedTimeSeconds\": 300,\n  \"testCases\": [\n    { \"input\": \"1, 2\", \"expectedOutput\": \"3\", \"isSample\": true, \"points\": 5 },\n    { \"input\": \"0, 0\", \"expectedOutput\": \"0\", \"isSample\": false, \"points\": 5 },\n    { \"input\": \"-1, 1\", \"expectedOutput\": \"0\", \"isSample\": false, \"points\": 5 },\n    { \"input\": \"100, 200\", \"expectedOutput\": \"300\", \"isSample\": false, \"points\": 5 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions"]
+            }
+          }
+        },
+        {
+          "name": "03.4 Create Short Answer Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Short answer created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"What is the capital of Vietnam?\",\n  \"questionType\": \"short_answer\",\n  \"difficulty\": \"very_easy\",\n  \"points\": 10,\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"acceptedAnswers\": [\"Hanoi\", \"hanoi\", \"Hà Nội\", \"hà nội\"]\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions"]
+            }
+          }
+        },
+        {
+          "name": "03.5 Create Essay Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Essay created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"Explain the theory of evolution.\",\n  \"questionType\": \"essay\",\n  \"difficulty\": \"hard\",\n  \"points\": 50,\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"estimatedTimeSeconds\": 1800,\n  \"rubric\": \"Answer should include: natural selection, variation, inheritance\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions"]
+            }
+          }
+        },
+        {
+          "name": "03.6 Create Question with Prerequisites",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Question with prerequisites created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"Solve x^2 - 5x + 6 = 0\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"medium\",\n  \"points\": 15,\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"prerequisiteQuestionIds\": [\"{{PREREQUISITE_Q_ID}}\"],\n  \"options\": [\n    { \"optionText\": \"x = 1, 2\", \"isCorrect\": false, \"sortOrder\": 1 },\n    { \"optionText\": \"x = 2, 3\", \"isCorrect\": true, \"sortOrder\": 2 },\n    { \"optionText\": \"x = 3, 4\", \"isCorrect\": false, \"sortOrder\": 3 },\n    { \"optionText\": \"x = -2, -3\", \"isCorrect\": false, \"sortOrder\": 4 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions"]
+            }
+          }
+        },
+        {
+          "name": "03.7 Create Question with Skills",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Question with skills created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"Calculate the derivative of f(x) = x^2\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"medium\",\n  \"points\": 15,\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"skillIds\": [\"{{SKILL_ID}}\"],\n  \"options\": [\n    { \"optionText\": \"x\", \"isCorrect\": false, \"sortOrder\": 1 },\n    { \"optionText\": \"2x\", \"isCorrect\": true, \"sortOrder\": 2 },\n    { \"optionText\": \"x^2\", \"isCorrect\": false, \"sortOrder\": 3 }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions"]
+            }
+          }
+        },
+        {
+          "name": "03.8 Create - Duplicate (should fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Duplicate rejected', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([409, 400]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"What is 2 + 2?\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"easy\",\n  \"points\": 10,\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"options\": [\n    { \"optionText\": \"3\", \"isCorrect\": false },\n    { \"optionText\": \"4\", \"isCorrect\": true }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions"]
+            }
+          }
+        },
+        {
+          "name": "03.9 Update Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Question updated', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data.version).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "If-Match", "value": "1", "description": "Optimistic locking" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"Updated: What is 3 + 3?\",\n  \"points\": 15\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/{{QUESTION_ID}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}"]
+            }
+          }
+        },
+        {
+          "name": "03.10 Update - Wrong Version (should fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Version conflict', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([409, 412]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "If-Match", "value": "999", "description": "Wrong version" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"points\": 20\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/{{QUESTION_ID}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}"]
+            }
+          }
+        },
+        {
+          "name": "03.11 Publish Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Question published', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data.status).to.equal('PUBLISHED');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/{{QUESTION_ID}}/publish",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}", "publish"]
+            }
+          }
+        },
+        {
+          "name": "03.12 Soft Delete Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Question soft deleted', function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/{{QUESTION_ID}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Bulk Import",
+      "item": [
+        {
+          "name": "04.1 Import Questions from CSV",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.jobId) {",
+                  "    pm.collectionVariables.set('BULK_JOB_ID', jsonData.data.jobId);",
+                  "}",
+                  "pm.test('Import started', function () {",
+                  "  pm.response.to.have.status(202);",
+                  "  pm.expect(jsonData.data.jobId).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "CSV/TSV file (max 50MB, max 5000 rows)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/bulk-import",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "bulk-import"]
+            }
+          }
+        },
+        {
+          "name": "04.2 Get Bulk Import Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Bulk job status', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data).to.have.property('status');",
+                  "  pm.expect(json.data).to.have.property('totalRows');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/bulk-import/{{BULK_JOB_ID}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "bulk-import", "{{BULK_JOB_ID}}"]
+            }
+          }
+        },
+        {
+          "name": "04.3 Get Bulk Import Errors",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Bulk errors retrieved', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/bulk-import/{{BULK_JOB_ID}}/errors",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "bulk-import", "{{BULK_JOB_ID}}", "errors"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Image Upload",
+      "item": [
+        {
+          "name": "05.1 Get Presigned Upload URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Upload URL generated', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data).to.have.property('uploadUrl');",
+                  "  pm.expect(json.data).to.have.property('imageUrl');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"filename\": \"diagram.png\",\n  \"contentType\": \"image/png\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/{{QUESTION_ID}}/images/upload-url",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}", "images", "upload-url"]
+            }
+          }
+        },
+        {
+          "name": "05.2 Confirm Image Upload",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Image confirmed', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageUrl\": \"https://minio.local:9002/ioes-questions/questions/{{QUESTION_ID}}/diagram.png\",\n  \"caption\": \"Math diagram\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/{{QUESTION_ID}}/images/confirm",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}", "images", "confirm"]
+            }
+          }
+        },
+        {
+          "name": "05.3 Delete Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Image deleted', function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/images/ioes-questions/questions/{{QUESTION_ID}}/diagram.png",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "images", "ioes-questions", "questions", "{{QUESTION_ID}}", "diagram.png"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Admin Operations",
+      "item": [
+        {
+          "name": "06.1 Force Resync All Questions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Resync started', function () {",
+                  "  pm.response.to.have.status(202);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/admin/resync?limit=100&reason=Postman%20test",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "admin", "resync"],
+              "query": [
+                { "key": "since", "value": "" },
+                { "key": "limit", "value": "100" },
+                { "key": "reason", "value": "Postman test" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "06.2 Resync Single Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Single resync done', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/admin/resync/{{QUESTION_ID}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "admin", "resync", "{{QUESTION_ID}}"]
+            }
+          }
+        },
+        {
+          "name": "06.3 Storage Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Storage healthy', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data).to.have.property('status');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/admin/storage/health",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "admin", "storage", "health"]
+            }
+          }
+        },
+        {
+          "name": "06.4 Get Sync Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Sync status retrieved', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/admin/sync/status",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "admin", "sync", "status"]
+            }
+          }
+        },
+        {
+          "name": "06.5 Get Dgraph Schema",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Schema retrieved', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/admin/schema",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "admin", "schema"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Error Cases",
+      "item": [
+        {
+          "name": "07.1 Unauthorized - No Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('401 without token', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/search",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "search"]
+            }
+          }
+        },
+        {
+          "name": "07.2 Forbidden - Student Creating Question",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 for student creating', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([403]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"Test\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"easy\",\n  \"points\": 10,\n  \"topicId\": \"{{TOPIC_ID}}\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions"]
+            }
+          }
+        },
+        {
+          "name": "07.3 Not Found - Invalid Question ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('404 for invalid ID', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/00000000-0000-4000-8000-000000000000",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions", "00000000-0000-4000-8000-000000000000"]
+            }
+          }
+        },
+        {
+          "name": "07.4 Validation Error - Missing Fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('400 for validation', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"Test\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions"]
+            }
+          }
+        },
+        {
+          "name": "07.5 Rate Limited",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('429 when rate limited', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([429]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"Test\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"easy\",\n  \"points\": 10,\n  \"topicId\": \"{{TOPIC_ID}}\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

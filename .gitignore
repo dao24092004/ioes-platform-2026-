@@ -23,6 +23,8 @@ desktop.ini
 *.iws
 *.ipr
 out/
+# Hexagonal architecture: keep /port/out/ source folders (IntelliJ build output)
+!**/port/out/
 
 # VS Code (commit .vscode/settings.json but ignore workspace state)
 .vscode/*
@@ -75,6 +77,15 @@ coverage/
 .nyc_output/
 
 # Environment files
+# ============================================
+# ADR-008 + ADR-009: SINGLE SOURCE OF TRUTH
+# ----------------------------------------
+# .env.example ở ROOT là single source of truth. KHÔNG tạo
+# services/<svc>/.env riêng — sửa root .env.example một lần duy nhất.
+# Mọi service (Node.js, Python, Java) load từ root .env.
+# ============================================
+
+# Root .env (giữ lại — single source)
 .env
 .env.local
 .env.development
@@ -82,6 +93,15 @@ coverage/
 .env.production
 .env.*.local
 !.env.example
+
+# Service-level .env BỊ CẤM — fail nếu service nào tạo
+services/**/.env
+services/**/.env.local
+services/**/.env.development
+services/**/.env.test
+services/**/.env.production
+services/**/.env.*.local
+services/**/.env.example
 
 # Logs
 logs/
@@ -279,6 +299,21 @@ docs/site/
 site/
 
 # =============================
+# TypeScript build artifacts (NEVER commit .js/.d.ts trong src/)
+# =============================
+*.tsbuildinfo
+**/src/**/*.js
+**/src/**/*.js.map
+**/src/**/*.d.ts
+!**/src/**/*.d.ts.bak
+
+# =============================
+# Runtime logs (NestJS write to *.err when stderr redirected)
+# =============================
+*.err
+!.gitkeep.err
+
+# =============================
 # Generated files
 # =============================
 **/generated/
@@ -327,3 +362,6 @@ TODO.md
 NOTES.md
 personal/
 drafts/
+
+# Local scratch logs & eval output (not for VCS)
+.local-logs/

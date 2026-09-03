@@ -1,0 +1,100 @@
+{
+ "queries": [
+  {
+   "id": "q01",
+   "query": "Box model gồm những lớp nào?"
+  },
+  {
+   "id": "q02",
+   "query": "Flexbox khác Grid thế nào?"
+  },
+  {
+   "id": "q03",
+   "query": "position absolute và relative khác nhau ra sao?"
+  },
+  {
+   "id": "q04",
+   "query": "Media query dùng để làm gì?"
+  },
+  {
+   "id": "q05",
+   "query": "Làm sao bắt sự kiện click trong JavaScript?"
+  },
+  {
+   "id": "q06",
+   "query": "Mảng trong JavaScript có những phương thức nào?"
+  },
+  {
+   "id": "q07",
+   "query": "Cách nối chuỗi trong JavaScript?"
+  },
+  {
+   "id": "q08",
+   "query": "Hàm trả về giá trị như thế nào?"
+  },
+  {
+   "id": "q09",
+   "query": "Thẻ form trong HTML dùng ra sao?"
+  },
+  {
+   "id": "q10",
+   "query": "WAI-ARIA là gì?"
+  },
+  {
+   "id": "q11",
+   "query": "Chèn ảnh vào HTML bằng thẻ nào?"
+  },
+  {
+   "id": "q12",
+   "query": "Vòng lặp for hoạt động thế nào?"
+  },
+  {
+   "id": "q13",
+   "query": "Rebase khác merge thế nào?"
+  },
+  {
+   "id": "q14",
+   "query": "useEffect trong React dùng khi nào?"
+  },
+  {
+   "id": "q15",
+   "query": "Middleware trong Express là gì?"
+  },
+  {
+   "id": "q16",
+   "query": "Vấn đề N cộng một trong cơ sở dữ liệu là gì?"
+  },
+  {
+   "id": "q17",
+   "query": "REST API nên dùng mã trạng thái nào?"
+  },
+  {
+   "id": "q18",
+   "query": "Kim tự tháp kiểm thử gồm những tầng nào?"
+  },
+  {
+   "id": "q19",
+   "query": "Biến let và const khác nhau chỗ nào?"
+  },
+  {
+   "id": "q20",
+   "query": "CSS selector theo class viết thế nào?"
+  },
+  {
+   "id": "q21",
+   "query": "Cách nấu phở bò Hà Nội?"
+  },
+  {
+   "id": "q22",
+   "query": "Giá vàng hôm nay bao nhiêu?"
+  },
+  {
+   "id": "q23",
+   "query": "Đội tuyển Việt Nam đá với ai tối nay?"
+  },
+  {
+   "id": "q24",
+   "query": "Thủ tục làm hộ chiếu gồm những gì?"
+  }
+ ]
+}

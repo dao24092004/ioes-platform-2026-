@@ -1,308 +1,292 @@
-# 🧠 ML Worker
+# ML Worker
 
-> **ML Inference Service cho IOES**
-> Tech: Python 3.11 + FastAPI + PyTorch + TensorRT + vLLM
+Tầng suy luận của AI Suite. Nhúng văn bản, truy xuất từ Milvus, gọi mô hình
+ngôn ngữ. `ai-gateway` (NestJS, cổng 9100) gọi sang đây; service này không phơi
+ra ngoài internet.
 
-## 📋 TỔNG QUAN Nhanh
+Thuộc **Epic 5 — AI-Powered Learning**. Story đang thi công: **US-017 Chatbot v1 (RAG)**.
 
-**ML Worker** chịu trách nhiệm:
-- **Agentic RAG** (5 agents) cho personalized learning path
-- **Vision Proctoring** (CNN-LSTM + Attention) cho proctoring
-- **Auto-grading** (LLM-based) cho essay
-- **Embeddings Generation** cho similarity search
-- **Inference** cho các models khác
+## Tech stack
 
-**Port:** 9101
-**Database:** PostgreSQL (`ioes_ai`) + Milvus
-**Owner:** `ai@ioes.com`
+| Thành phần | Lựa chọn |
+|---|---|
+| Runtime | Python 3.11 |
+| Web | FastAPI + Uvicorn |
+| RAG | LangChain |
+| Vector store | Milvus 2.4 qua `langchain-milvus` |
+| Nhúng | `intfloat/multilingual-e5-small`, 384 chiều, CPU |
+| Mô hình ngôn ngữ | Gemini qua endpoint tương thích OpenAI, hoặc mock |
+| Truy xuất | Mở rộng câu hỏi rồi hợp nhiều bể, xếp lại bằng RRF |
+| Cổng | 9101 |
 
-## 🏗️ KIẾN TRÚC
+## Cấu trúc
 
 ```
-ml-worker/
-├── src/ml_worker/
-│   ├── main.py                          # FastAPI entry
-│   ├── api/                             # Routes
-│   │   ├── embeddings.py                # /embeddings
-│   │   ├── llm.py                       # /llm/*
-│   │   ├── vision.py                    # /vision/*
-│   │   └── grading.py                   # /grading
-│   │
-│   ├── models/                          # ML models
-│   │   ├── embeddings/
-│   │   │   ├── sentence_transformer.py
-│   │   │   └── instructor_embeddings.py
-│   │   │
-│   │   ├── grading/
-│   │   │   ├── essay_grader.py
-│   │   │   └── rubric_grader.py
-│   │   │
-│   │   ├── agentic_rag/
-│   │   │   ├── agents/
-│   │   │   │   ├── router_agent.py
-│   │   │   │   ├── planner_agent.py
-│   │   │   │   ├── tutor_agent.py
-│   │   │   │   ├── assessor_agent.py
-│   │   │   │   └── recommender_agent.py
-│   │   │   ├── graph.py                 # LangGraph
-│   │   │   └── orchestrator.py
-│   │   │
-│   │   └── vision/
-│   │       ├── cnn_lstm_attention.py    # Paper 2
-│   │       └── proctoring_model.py
-│   │
-│   ├── services/                        # Business logic
-│   │   ├── inference_service.py
-│   │   ├── rag_service.py
-│   │   └── proctoring_service.py
-│   │
-│   ├── schemas/                         # Pydantic models
-│   │   ├── embedding.py
-│   │   ├── grading.py
-│   │   └── learning_path.py
-│   │
-│   ├── core/                            # Configuration
-│   │   ├── config.py                    # Pydantic Settings
-│   │   ├── logging.py                   # structlog
-│   │   └── security.py
-│   │
-│   └── db/                              # Database
-│       ├── session.py
-│       └── milvus_client.py
-│
-├── tests/
-│   ├── unit/
-│   └── integration/
-│
-├── notebooks/                           # Research
-│   ├── 01_agentic_rag.ipynb
-│   ├── 02_vision_attention.ipynb
-│   └── 03_blockchain_records.ipynb
-│
-├── data/                                # Training data
-│   ├── raw/
-│   └── processed/
-│
-├── models/                              # Trained models
-│   ├── checkpoints/
-│   ├── onnx/
-│   └── tensorrt/
-│
-└── k8s/
+src/ml_worker/
+├── main.py                  FastAPI app
+├── api/rag.py               POST /v1/rag/query, /v1/rag/ingest, GET /v1/rag/status
+├── api/questions.py         POST /v1/questions/generate
+├── core/config.py           Pydantic settings
+├── db/milvus.py             Vectorstore, tạo collection
+├── schemas/rag.py           Request/response models
+├── schemas/questions.py     Request/response models cho sinh câu hỏi
+└── services/
+    ├── embeddings.py        Mô hình nhúng, nạp một lần
+    ├── llm.py               Chọn nhà cung cấp theo LLM_PROVIDER
+    ├── document_loaders.py  Trích văn bản từ PDF và DOCX
+    ├── ingest.py            Đọc corpus, cắt đoạn, nạp vào Milvus
+    ├── questions.py         Soạn câu hỏi kiểm tra từ học liệu
+    └── rag.py               Chuỗi truy xuất rồi sinh câu trả lời
+scripts/crawl_corpus.py      Thu thập học liệu từ MDN
+scripts/eval_retrieval.py    Đo chất lượng truy xuất trên bộ câu hỏi chuẩn
+data/eval/                   20 câu hỏi chuẩn + đáp án, hai bản có dấu và không dấu
+data/corpus/                 Học liệu tiếng Anh (Markdown, do crawl sinh ra)
+data/corpus-vi/              Học liệu tiếng Việt viết tay và tài liệu tự nộp
 ```
 
-## 🚀 QUICK START
+## Chạy local
+
+Cần Milvus đang chạy ở cổng 19530:
 
 ```bash
-# Prerequisites
-- Python 3.11
-- Docker (for Milvus, PostgreSQL)
-- CUDA-capable GPU (recommended)
-
-# 1. Setup Python env
+make docker-up                  # ở thư mục gốc monorepo
 cd services/ai-suite/ml-worker
-python3.11 -m venv venv
-source venv/bin/activate
-
-# 2. Install dependencies
-pip install -r requirements.txt
-
-# 3. Setup env
 cp .env.example .env
-
-# 4. Start dependencies
-docker-compose up -d postgres milvus kafka
-
-# 5. Run migrations
-alembic upgrade head
-
-# 6. Start service
-uvicorn ml_worker.main:app --reload --port 9101
-
-# 7. Verify
-curl http://localhost:9101/health
-# → {"status":"ok"}
-
-# 8. API docs
-open http://localhost:9101/docs
+poetry install                  # hoặc pip install -e . nếu Poetry giải phụ thuộc quá lâu
+poetry run uvicorn ml_worker.main:app --host 0.0.0.0 --port 9101
 ```
 
-## 📡 API ENDPOINTS
-
-### Embeddings
+Nạp corpus rồi hỏi thử:
 
 ```bash
-POST /embeddings/text
-- Generate text embeddings (sentence-transformer)
-- Used for: similarity search, content recommendation
-
-POST /embeddings/batch
-- Batch embeddings for multiple texts
+curl -X POST http://localhost:9101/v1/rag/ingest
+curl http://localhost:9101/v1/rag/status
+curl -X POST http://localhost:9101/v1/rag/query \
+  -H "Content-Type: application/json" \
+  -d '{"question":"Flexbox khác Grid thế nào?"}'
 ```
 
-### LLM (Agentic RAG)
+## API
+
+| Phương thức | Đường dẫn | Việc |
+|---|---|---|
+| POST | `/v1/rag/query` | Trả lời câu hỏi dựa trên corpus |
+| POST | `/v1/rag/ingest` | Nạp lại corpus. Xoá collection cũ trước |
+| GET | `/v1/rag/status` | Tình trạng tầng truy xuất |
+| POST | `/v1/questions/generate` | Soạn câu hỏi kiểm tra từ corpus |
+| POST | `/v1/embeddings` | Nhúng danh sách văn bản |
+
+### Sinh câu hỏi
 
 ```bash
-POST /llm/learning-path
-- Generate personalized learning path
-- Uses 5 agents: Router → Planner → Tutor → Assessor → Recommender
-
-POST /llm/chat
-- Chatbot for student Q&A
-
-POST /llm/answer-question
-- RAG-based Q&A
+curl -X POST http://localhost:9101/v1/questions/generate \
+  -H "Content-Type: application/json" \
+  -d '{"topic":"Box model trong CSS","question_type":"multiple_choice",
+       "difficulty":"medium","count":3,"language":"vi"}'
 ```
 
-### Vision (Proctoring)
+Câu hỏi **chỉ soạn từ học liệu đã nạp**, không lấy từ kiến thức nền của mô
+hình. Năm tầng chặn, chi tiết trong docstring `services/questions.py`:
 
-```bash
-POST /vision/proctoring/predict
-- Predict exam cheating behavior
-- Input: sequence of webcam frames
-- Output: class + confidence + attention weights
+1. `topic` chỉ dùng để truy xuất, không vào lời nhắc sinh
+2. Cổng lọc lạc đề — truy xuất luôn trả về thứ gì đó nên phải hỏi riêng xem tài
+   liệu có bàn về chủ đề không
+3. Mỗi câu phải khai đoạn tài liệu chứa đáp án, khai sai thì loại
+4. Một lượt đối chiếu riêng kiểm đoạn đó có chống lưng đáp án không
+5. `count` là **trần chứ không phải chỉ tiêu**
 
-POST /vision/object-detection
-- Detect objects (phone, book, etc.)
-```
+Đọc kết quả:
 
-### Auto-grading
+- `grounded=false` với `questions` rỗng nghĩa là học liệu chưa phủ chủ đề. **Không
+  phải lỗi** — đừng hiện "thất bại", hãy bảo người dùng đổi chủ đề hoặc nạp thêm.
+- `returned` nhỏ hơn `requested` là bình thường. So hai số này cùng
+  `dropped_unverified` để biết học liệu đáp ứng tới đâu.
 
-```bash
-POST /grading/essay
-- Auto-grade essay using LLM
-- Input: essay + rubric
-- Output: score + feedback
+Mỗi câu kéo thêm một lượt gọi mô hình để đối chiếu, nên xin 10 câu là 11 lần
+gọi — vì thế `count` chặn ở 20.
 
-POST /grading/short-answer
-- Auto-grade short answer
-```
+## Corpus
 
-**Swagger:** http://localhost:9101/docs
+Hai thư mục, tách nhau có chủ đích:
 
-## 📚 TÀI LIỆU QUAN TRỌNG
+| Thư mục | Nội dung | Ai quản |
+|---|---|---|
+| `data/corpus/` | 88 tài liệu tiếng Anh từ MDN Web Docs | `scripts/crawl_corpus.py` — **xoá sạch trước mỗi lần chạy** |
+| `data/corpus-vi/` | 8 tài liệu tiếng Việt viết tay, bám lộ trình Full-Stack trong `BA_DOCUMENT §11.4` | viết tay, không ai xoá |
 
-| Tài liệu | Mục đích |
-|----------|----------|
-| [Python Style Guide](../../docs/03-development/coding-standards/python-styleguide.md) | **BẮT BUỘC đọc** |
-| [Service Boundaries](../../docs/02-architecture/service-boundaries.md) | Quy tắc microservices |
-| [Paper 1: Agentic RAG](../../docs/05-research/paper-1-agentic-rag/) | Kiến trúc 5 agents |
-| [Paper 2: Vision Attention](../../docs/05-research/paper-2-vision-attention/) | CNN-LSTM model |
-| [PROJECT_RULES.md](../../docs/01-business/PROJECT_RULES.md) | Master rules |
+> Học liệu tự nộp phải để `corpus-vi/`. Bỏ vào `corpus/` là mất trắng lần crawl
+> kế tiếp.
 
-## ⚙️ ENVIRONMENT VARIABLES
+Nhãn ngôn ngữ suy ra từ tên thư mục: đuôi `-vi` là tiếng Việt, còn lại tiếng Anh.
 
-```bash
-# App
-APP_ENV=development
-LOG_LEVEL=INFO
-DEBUG=false
+### Định dạng nhận vào
 
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=ioes_ai
-DB_USER=ioes
-DB_PASSWORD=secret
+`.md`, `.docx`, `.pdf`. Đuôi khác bị bỏ qua, không báo lỗi.
 
-# Milvus (Vector DB)
-MILVUS_HOST=localhost
-MILVUS_PORT=19530
+**Markdown** — mang metadata trong frontmatter:
 
-# Kafka
-KAFKA_BROKERS=localhost:9092
-KAFKA_CLIENT_ID=ml-worker
-KAFKA_GROUP_ID=ml-worker-consumer
-
-# Model cache
-MODEL_CACHE_DIR=/models
-HF_HOME=/models/huggingface
-
-# GPU
-CUDA_VISIBLE_DEVICES=0
-
-# LLM
-OPENAI_API_KEY=xxx
-ANTHROPIC_API_KEY=xxx
-LLM_TEMPERATURE=0.7
-LLM_MAX_TOKENS=2048
-
-# Inference
-INFERENCE_BATCH_SIZE=32
-INFERENCE_TIMEOUT_SECONDS=30
-INFERENCE_DEVICE=cuda  # cuda | cpu
-```
-
-## 🧪 TESTING
-
-```bash
-# Unit tests
-pytest tests/unit -v
-
-# Integration tests
-pytest tests/integration -v
-
-# Coverage
-pytest --cov=ml_worker --cov-report=html
-open htmlcov/index.html
-
-# Research notebooks (manual)
-jupyter lab notebooks/
-```
-
-**Coverage target:** 80%
-
-## 🔗 EVENTS (Kafka)
-
-### Publishes
-
-| Topic | Event | Khi nào |
-|-------|-------|---------|
-| `ai.events` | `LearningPathGenerated` | Generate xong path |
-| `ai.events` | `RecommendationUpdated` | Update recommendation |
-| `proctoring.events` | `ProctorAlert` | Phát hiện gian lận |
-| `grading.events` | `EssayGraded` | Chấm essay xong |
-
-### Consumes
-
-| Topic | Event | Xử lý |
-|-------|-------|--------|
-| `user.events` | `UserRegistered` | Tạo user profile embeddings |
-| `course.events` | `CoursePublished` | Index course content |
-| `exam.events` | `ExamSubmitted` | Auto-grade essay |
-
-## 🐛 TROUBLESHOOTING
-
-| Lỗi | Nguyên nhân | Fix |
-|-----|-------------|-----|
-| `CUDA out of memory` | Batch quá lớn | Giảm `INFERENCE_BATCH_SIZE` |
-| `Model not found` | Chưa download model | Chạy `python scripts/download_models.py` |
-| `Milvus connection failed` | Milvus chưa start | `docker-compose up -d milvus` |
-| `LLM API rate limit` | Quá nhiều request | Tăng `LLM_MAX_TOKENS` retry |
-
-## 📊 PERFORMANCE
-
-| Model | Latency | GPU Memory |
-|-------|---------|-----------|
-| Sentence Embeddings | < 50ms | 2GB |
-| CNN-LSTM (proctoring) | < 200ms | 4GB |
-| LLM (GPT-4 API) | 1-3s | 0 (API) |
-| LLM (local vLLM) | 500ms-2s | 16GB |
-
-**Optimization:**
-- TensorRT cho inference (3-5x faster)
-- ONNX export cho portability
-- Quantization (INT8/FP16)
-- Batch processing
-- Model caching
-
-## 📞 LIÊN HỆ
-
-- **Owner:** AI/ML Lead
-- **Slack:** `#ioes-ai`
-- **Email:** `ai@ioes.com`
-
+```markdown
+---
+title: Git và GitHub
+doc_id: vi-git
+source_url: local
+license: IOES nội bộ
 ---
 
-**Version:** 0.1.0
-**Last updated:** 12/08/2026
+# Git và GitHub
+
+## Ba vùng làm việc
+
+Working directory là file đang sửa...
+```
+
+**DOCX và PDF** — không có chỗ đặt metadata theo quy ước này, nên:
+
+- `doc_id` lấy **tên file**. Đổi tên file là đổi `chunk_id` của mọi đoạn trong đó
+- `title` lấy thuộc tính tài liệu, không có thì lấy tiêu đề mức 1 đầu tiên
+  (DOCX), cuối cùng mới lấy tên file
+
+**DOCX cho chất lượng truy xuất tốt hơn PDF rõ rệt.** Bộ cắt ưu tiên tách theo
+`\n## `, mà DOCX giữ style nên khôi phục được `Heading 1/2/3` thành `#`, `##`,
+`###`; PDF không có khái niệm tiêu đề, chỉ có chữ đặt ở toạ độ nào đó nên cả bài
+thành một khối văn xuôi, bị cắt ở mốc 800 ký tự bất kể đang giữa ý nào. Khuyên
+giảng viên nộp DOCX khi có cả hai bản.
+
+Bảng trong DOCX được giữ, đổi sang bảng Markdown và **nằm đúng vị trí** giữa các
+đoạn văn — bảng hay chứa đúng loại nội dung ra đề được.
+
+Giới hạn đã biết của PDF: bản quét ảnh trích ra chuỗi rỗng nên **bị bỏ qua kèm
+cảnh báo** thay vì nạp bản rỗng (cần OCR, ngoài phạm vi); đầu trang, chân trang,
+số trang lẫn vào nội dung; bố cục nhiều cột dễ đọc sai thứ tự.
+
+### Cách viết cho cắt đoạn tốt
+
+Cỡ đoạn 800 ký tự, gối đầu 120, và ranh giới cắt tốt nhất là tiêu đề `##`. Nên
+mỗi mục khoảng **400–800 ký tự**. Một khối văn dài không tiêu đề sẽ bị cắt giữa
+chừng một ý.
+
+Tiếng Việt **viết có dấu đầy đủ** — pipeline tự nhân bản thêm một bản không dấu
+vì học viên gõ không dấu rất nhiều (đo trên bộ 20 câu chuẩn: bỏ dấu làm tỉ lệ
+trúng tụt từ 0,900 xuống 0,650).
+
+Thu thập lại:
+
+```bash
+python scripts/crawl_corpus.py              # toàn bộ
+python scripts/crawl_corpus.py --limit 10   # thử nhanh
+```
+
+> **Nguồn và giấy phép.** Nội dung MDN phát hành theo **CC BY-SA 2.5**, cho phép
+> tái sử dụng kèm ghi nguồn. Mỗi tài liệu lưu `source_url` và `license` trong
+> frontmatter, và tầng RAG trích dẫn tiêu đề trong câu trả lời. Thêm nguồn mới
+> phải kiểm giấy phép trước — không phải trang nào cũng cho tái sử dụng.
+
+Script lấy Markdown gốc từ repo `mdn/content` chứ không cào HTML: sạch hơn,
+không dính điều hướng, và không tạo tải lên máy chủ MDN.
+
+## Truy xuất: vì sao không tìm thẳng một lần
+
+Corpus lệch hẳn về tiếng Anh — 1,21 triệu ký tự MDN so với 6 nghìn ký tự viết
+tay tiếng Việt — trong khi học viên chỉ hỏi tiếng Việt, và hay gõ không dấu.
+Ba phép đo dẫn tới thiết kế hiện tại:
+
+**Mô hình nhúng gom cụm theo ngôn ngữ trước, theo chủ đề sau.** Hỏi "Hàm trả về
+giá trị như thế nào?" thì `vi-react` (0,8281) và `vi-rest-api` (0,8166) đứng
+trên chính bài `return-values` (0,7895) — hai bài đầu không liên quan gì, chỉ
+được lợi vì cùng tiếng Việt. Tám tài liệu tiếng Việt hút mọi câu hỏi.
+
+**Bỏ dấu làm hỏng truy xuất.** Cùng bộ câu hỏi, chỉ khác cách gõ:
+
+| Cấu hình | có dấu | không dấu |
+|---|---|---|
+| Tìm một lần (trước khi sửa) | 0,900 | 0,650 |
+| Mở rộng câu hỏi rồi hợp các bể | **1,000** | **1,000** |
+
+Chỉ số là tỉ lệ câu hỏi có ít nhất một tài liệu đúng lọt vào ngữ cảnh đưa cho
+mô hình — thứ quyết định nó trả lời được hay từ chối.
+
+**Cắt kết quả xuống `top_k` sau khi trộn là sai.** Bể dịch luôn giành nửa số
+chỗ kể cả khi không có gì liên quan: hỏi "Rebase khac merge the nao?" thì không
+tài liệu tiếng Anh nào nói về git, nhưng bốn đoạn rác vẫn chiếm chỗ và đẩy bài
+"Git và GitHub" ra ngoài — câu này trước đó trả lời được, sau khi cắt thì bị từ
+chối. Nay **hợp** các bể: thêm truy vấn chỉ có thể thêm tài liệu, không lấy đi.
+
+Luồng hiện tại cho mỗi câu hỏi:
+
+1. Một lượt gọi mô hình ở nhiệt độ 0, trả về hai bản viết lại — tiếng Việt có
+   dấu đầy đủ, và tiếng Anh có bổ sung thuật ngữ
+2. Truy xuất `top_k` đoạn cho mỗi bản, hợp lại, xếp thứ tự bằng RRF
+3. Lọc sàn điểm, ghép ngữ cảnh, sinh câu trả lời
+
+Bước 1 hỏng thì lui về tìm một lần — kém hơn nhưng vẫn chạy.
+
+Tài liệu tiếng Việt còn được đánh chỉ mục thêm **một bản không dấu**. Việc này
+tất định, không phụ thuộc mô hình, nên đường lui vẫn xử lý được câu gõ không
+dấu khi hết hạn mức. Chỉ tốn 9 đoạn.
+
+## Hạn mức gọi mô hình
+
+Mỗi lượt hỏi tốn **hai** lượt gọi: một để viết lại câu hỏi, một để sinh câu trả
+lời. Gói miễn phí của Gemini giới hạn **15 request/phút**, tức khoảng 7 câu hỏi
+mỗi phút cho toàn hệ thống. Chạm trần thì bước viết lại thất bại và hệ tự lui
+về tìm một lần — không sập, nhưng chất lượng tụt.
+
+Ban đo đầu tiên không giãn nhịp đã dính đúng bẫy này: số nhảy giữa 0,650 và
+0,850 qua các lần chạy, trông như mô hình bất định, thật ra là 429. Khi đo phải
+đặt `EVAL_PACE_SECONDS=4.5`.
+
+## Ngưỡng điểm và việc từ chối trả lời
+
+Ngưỡng `RAG_SCORE_THRESHOLD` chỉ là **sàn lọc rác**, không phải chốt chặn chống
+bịa. Phân bố điểm trong và ngoài phạm vi chồng lấn với cả hai mô hình nhúng đã
+thử, nên không ngưỡng nào tách được. Việc phán đoán giao cho mô hình ngôn ngữ:
+thiếu dữ liệu thì nó trả về đúng một dấu hiệu quy ước, và tầng trên đổi thành
+câu từ chối, `grounded=false`, danh sách nguồn rỗng.
+
+Vector được chuẩn hoá L2 và Milvus dùng độ đo `IP`, nên điểm số chính là cosine
+similarity, nằm trong khoảng `[-1, 1]`.
+
+## Tham số HNSW
+
+`ef` quyết định duyệt bao nhiêu ứng viên trước khi trả kết quả. Đặt thấp không
+chỉ làm lệch thứ hạng mà **mất hẳn** kết quả đúng: với câu "useState trong React
+dùng để làm gì?", ở `ef=512` bài `vi-react` đứng hạng 1, còn ở `ef=64` nó không
+nằm trong 20 tài liệu đầu. `ef` còn phải lớn hơn `k`, nếu không Milvus báo lỗi
+thẳng `ef(64) should be larger than k(100)`.
+
+## Đo chất lượng truy xuất
+
+```bash
+EVAL_PACE_SECONDS=4.5 python scripts/eval_retrieval.py     data/eval/ground-truth.json /tmp/ket-qua.json     data/eval/queries.json data/eval/queries-khong-dau.json
+
+EVAL_NO_EXPAND=1 python scripts/eval_retrieval.py ...   # đo đường lui
+```
+
+Bộ chuẩn có 20 câu trong phạm vi và 4 câu ngoài phạm vi, mỗi câu hai bản có dấu
+và không dấu. Đáp án bám đúng nội dung corpus: viết câu hỏi về thứ corpus không
+có (useState, khoá ngoại) thì hệ từ chối, và đó là hành vi đúng chứ không phải
+lỗi truy xuất.
+
+## Token suy luận ẩn
+
+Gemini tính token suy luận vào `total_tokens` nhưng không vào `completion_tokens`.
+Đo thực tế: prompt 17, completion 168, **tổng 736**. Hai hệ quả:
+
+- `RAG_MAX_TOKENS` đặt thấp thì câu trả lời bị cắt cụt mà không báo lỗi
+- Tính hạn mức phải dựa vào `total_tokens`, không thì hụt khoảng 4 lần
+
+## Test
+
+```bash
+poetry run pytest
+poetry run pytest --cov=ml_worker --cov-report=term-missing
+```
+
+Test chạy hoàn toàn trên `LLM_PROVIDER=mock`, không cần khoá API và không gọi
+mạng. `tests/conftest.py` xoá biến môi trường của máy dev để kết quả không đổi
+theo từng máy.
+
+## Sở hữu
+
+Epic 5 — Ngọc. Ranh giới bounded context xem `docs/02-architecture/service-boundaries.md`.
+`FR-AI-006 Vision Attention` **không** thuộc service này — đã giao Sơn (Epic 4 Proctoring).

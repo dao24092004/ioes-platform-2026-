@@ -2,4 +2,6 @@ packages:
   - 'apps/*'
   - 'packages/*'
   - 'services/*'
+  # ai-suite la polyglot, cac sub-service Node nam sau hai cap
+  - 'services/ai-suite/*'
   - 'libs/*'

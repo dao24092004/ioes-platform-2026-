@@ -4,7 +4,6 @@ from ioes_common import (
     ApiResponse,
     ErrorCodes,
     KafkaTopics,
-    ServiceClient,
     configure_logging,
     get_logger,
 )

@@ -22,7 +22,9 @@
         <module>services/config-server</module>
         <module>services/api-gateway</module>
         <module>services/auth-service</module>
+        <module>services/content-service</module>
         <module>services/notification-service</module>
+        <module>services/analytics-service</module>
     </modules>
 
     <properties>
