@@ -2,6 +2,9 @@ package com.ioes.content.domain.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnTransformer;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -46,7 +49,19 @@ public class Topic {
     @Builder.Default
     private Integer level = 0;
 
-    @Column(name = "path", length = 1000)
+    /**
+     * Materialized path, one {@code ltree} label per ancestor (ADR-012).
+     *
+     * <p>{@code ltree} is a Postgres extension type, so the column is bound as
+     * {@link SqlTypes#OTHER} — the same shape the repo already uses for other
+     * vendor types (see {@code UserEntity.role}, {@code NotificationEntity.metadata}).
+     * That is what lets {@code ddl-auto: validate} pass; mapping it as a plain
+     * varchar made Hibernate expect {@code varchar} and fail against {@code ltree}.
+     * The write transformer casts the bound string so Postgres accepts it.
+     */
+    @Column(name = "path", columnDefinition = "ltree")
+    @JdbcTypeCode(SqlTypes.OTHER)
+    @ColumnTransformer(read = "path::text", write = "?::ltree")
     private String path;
 
     @Column(name = "is_active", nullable = false)
@@ -67,13 +82,25 @@ public class Topic {
     @PrePersist
     public void prePersist() {
         if (this.path == null && this.parentTopic != null) {
-            this.path = this.parentTopic.getPath() + "." + this.id;
+            this.path = this.parentTopic.getPath() + "." + pathLabel(this.id);
         } else if (this.path == null) {
-            this.path = this.id.toString();
+            this.path = pathLabel(this.id);
         }
         if (this.level == 0 && this.parentTopic != null) {
             this.level = this.parentTopic.getLevel() + 1;
         }
+    }
+
+    /**
+     * Renders one id as a legal {@code ltree} label.
+     *
+     * <p>An ltree label may only contain {@code [A-Za-z0-9_]}, so the hyphens in
+     * a UUID have to go — the previous {@code id.toString()} form could never be
+     * stored in the {@code ltree} column the migration declares. The leading
+     * {@code t} keeps the label readable as a topic id rather than a bare hex run.
+     */
+    static String pathLabel(UUID id) {
+        return "t" + id.toString().replace('-', '_');
     }
 
     public void softDelete() {
