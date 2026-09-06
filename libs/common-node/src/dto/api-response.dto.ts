@@ -53,7 +53,7 @@ export class PaginatedResponse<T> {
   @ApiProperty({ type: [Object] })
   items!: T[];
 
-  @ApiProperty()
+  @ApiProperty({})
   meta!: PaginationMeta;
 
   static create<T>(items: T[], page: number, limit: number, total: number): PaginatedResponse<T> {

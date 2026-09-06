@@ -62,9 +62,11 @@ env:
   MAIL_HOST: "ioes-mailhog"
   MAIL_PORT: "1025"
   EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-service:9999/eureka/"
+  JWT_SECRET: ""  # From secret
   JAVA_OPTS: "-Xms256m -Xmx768m -XX:+UseG1GC"
 
 secrets:
+  enabled: true
   create: false
   existingSecret: notification-service-secrets
 

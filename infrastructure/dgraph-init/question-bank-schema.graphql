@@ -1,0 +1,228 @@
+# =============================================================================
+# Dgraph GraphQL Schema - Question Bank
+# Version: 1.0
+# Date: 23/08/2026
+# Deploy: Ratel UI (http://localhost:8000) → Schema → paste → Deploy
+# Or via curl: curl -X POST http://localhost:18080/admin/schema --data-binary @schema.graphql  (host port per ADR-010)
+# Note: from inside Docker network use http://dgraph-alpha:8080/admin/schema (container port)
+# =============================================================================
+#
+# Knowledge Graph cho Ngân hàng câu hỏi ôn tập - IOES
+# Pattern: CQRS - Dgraph là read-side, PostgreSQL là source-of-truth
+# Sync: PostgreSQL → Kafka → Consumer → Dgraph upsert
+#
+# Related docs:
+#   - docs/02-architecture/adr/ADR-001-use-dgraph-for-question-bank.md
+#   - docs/02-architecture/adr/ROADMAP-question-bank-dgraph.md
+# =============================================================================
+
+# =============================================================================
+# ENUMS
+# =============================================================================
+
+enum QuestionType {
+    MULTIPLE_CHOICE
+    MULTIPLE_SELECT
+    TRUE_FALSE
+    SHORT_ANSWER
+    ESSAY
+    CODING
+}
+
+enum Difficulty {
+    VERY_EASY
+    EASY
+    MEDIUM
+    HARD
+    VERY_HARD
+}
+
+# =============================================================================
+# KNOWLEDGE GRAPH: Topic & Skill
+# =============================================================================
+
+"""
+Topic là chủ đề kiến thức, có cấu trúc phân cấp (cha → con).
+VD: "OOP" → { "Inheritance", "Polymorphism", "Encapsulation" }
+"""
+type Topic {
+    id: ID!
+    name: String! @search(by: [term, fulltext])
+    slug: String! @search(by: [exact])
+    description: String @search(by: [fulltext])
+
+    # Quan hệ phân cấp - 1 topic có nhiều sub-topic
+    parentTopic: Topic @hasInverse(field: subTopics)
+    subTopics: [Topic] @hasInverse(field: parentTopic)
+
+    # Câu hỏi thuộc topic này
+    questions: [Question] @hasInverse(field: topic)
+
+    # Metadata
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+
+"""
+Skill là kỹ năng / kiến thức cần thiết để trả lời câu hỏi.
+VD: "virtual method", "abstract class", "recursion"
+"""
+type Skill {
+    id: ID!
+    name: String! @search(by: [term, fulltext])
+    slug: String! @search(by: [exact])
+    description: String
+
+    # Câu hỏi yêu cầu skill này
+    questions: [Question] @hasInverse(field: requiresSkills)
+
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+
+# =============================================================================
+# QUESTION BANK - Core entity
+# =============================================================================
+
+"""
+Question là câu hỏi trong ngân hàng câu hỏi ôn tập.
+Đồ thị: Question --belongs_to--> Topic, Question --requires--> Skill,
+         Question --prerequisite_of--> Question (knowledge graph traversal).
+"""
+type Question {
+    id: ID!
+
+    # Nội dung
+    questionText: String! @search(by: [fulltext])
+    explanation: String @search(by: [fulltext])
+    hint: String @search(by: [fulltext])
+
+    # Metadata
+    questionType: QuestionType! @search
+    difficulty: Difficulty! @search
+    language: String @search(by: [term])  # cho câu coding: java, python, ...
+    points: Float!
+    estimatedTimeSeconds: Int
+    tags: [String!] @search(by: [term])
+
+    # ====== GRAPH RELATIONSHIPS (sức mạnh của Dgraph) ======
+
+    # Topic chính
+    topic: Topic! @hasInverse(field: questions)
+
+    # Skills cần thiết
+    requiresSkills: [Skill] @hasInverse(field: questions)
+
+    # Quan hệ prerequisite (câu cần ôn trước)
+    prerequisites: [Question] @hasInverse(field: dependents)
+
+    # Câu mà câu này là prerequisite
+    dependents: [Question] @hasInverse(field: prerequisites)
+
+    # Câu tương tự (recommendation)
+    similarQuestions: [Question] @hasInverse(field: similarTo)
+    similarTo: [Question] @hasInverse(field: similarQuestions)
+
+    # Options cho MCQ / multiple-select
+    options: [QuestionOption] @hasInverse(field: question)
+
+    # Test cases cho coding questions
+    testCases: [TestCase] @hasInverse(field: question)
+
+    # Lịch sử trả lời (cho adaptive learning)
+    attemptHistories: [AttemptHistory] @hasInverse(field: question)
+
+    # ====== OWNERSHIP (reference tới user ở auth-service, không FK) ======
+
+    createdBy: String!  # userId từ auth-service
+    courseId: String @search(by: [hash])  # reference tới content-service
+
+    # ====== VECTOR EMBEDDING cho recommendation ======
+    # Dùng cho tìm câu hỏi tương tự (similarity search)
+    # Embedding size = 768 (BERT base) hoặc 1536 (OpenAI)
+    # NOTE: Dgraph v25 changed embedding directive - dùng plain [Float!] list
+    embedding: [Float!]
+
+    # ====== TIMESTAMPS ======
+
+    createdAt: DateTime! @search(by: [day])
+    updatedAt: DateTime! @search(by: [day])
+    deletedAt: DateTime  # soft delete
+}
+
+# =============================================================================
+# QUESTION CONTENT - Options & Test Cases
+# =============================================================================
+
+"""
+Option cho câu hỏi MCQ / multiple-select / true-false.
+"""
+type QuestionOption {
+    id: ID!
+    question: Question!
+    optionText: String! @search(by: [fulltext])
+    isCorrect: Boolean!
+    sortOrder: Int!
+    explanation: String @search(by: [fulltext])
+    points: Float  # partial credit
+}
+
+"""
+Test case cho câu hỏi coding (auto-grading).
+"""
+type TestCase {
+    id: ID!
+    question: Question!
+    input: String!
+    expectedOutput: String!
+    isSample: Boolean! @search  # sample = student thấy, hidden = grading
+    points: Float
+    memoryLimitMb: Int
+    timeLimitMs: Int
+}
+
+# =============================================================================
+# ATTEMPT HISTORY - Cho adaptive learning
+# =============================================================================
+
+"""
+Lịch sử 1 lần student trả lời câu hỏi.
+Dùng để: gợi ý câu ôn lại, đánh giá độ khó thực tế.
+"""
+type AttemptHistory {
+    id: ID!
+
+    # Reference tới user ở auth-service
+    userId: String! @search(by: [hash])
+
+    # Câu hỏi đã trả lời
+    question: Question!
+
+    # Kết quả
+    isCorrect: Boolean!
+    timeSpentSeconds: Int
+    attemptNumber: Int!
+
+    # Timestamp
+    answeredAt: DateTime! @search(by: [day])
+}
+
+# =============================================================================
+# CUSTOM QUERIES (optional - Dgraph tự sinh queryQuestion, queryTopic, ...)
+# =============================================================================
+
+# Dgraph tự động generate các query:
+#   queryQuestion(filter: QuestionFilter, order: ..., first: ..., offset: ...)
+#   queryTopic(filter: TopicFilter, ...)
+#   querySkill(filter: SkillFilter, ...)
+#   queryQuestionOption(...)
+#   queryTestCase(...)
+#   queryAttemptHistory(...)
+#
+# Và các mutation:
+#   addQuestion(input: [AddQuestionInput!]!)
+#   updateQuestion(input: UpdateQuestionInput!)
+#   deleteQuestion(filter: QuestionFilter!)
+#
+# Frontend (qua exam-suite API) chỉ cần gọi các query này.
+# =============================================================================

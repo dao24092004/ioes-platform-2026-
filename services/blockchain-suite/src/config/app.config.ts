@@ -1,14 +1,41 @@
 import { readFileSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 
 /**
- * Centralised, typed configuration loader. Same shape as exam-suite to
- * keep service boilerplate consistent.
+ * Centralised, typed configuration loader.
+ *
+ * ADR-008: SINGLE SOURCE OF TRUTH — always loads `.env` from the
+ * MONOREPO ROOT, never from the service cwd. This guarantees that
+ * every service reads the same configuration values without
+ * needing per-service `.env` files.
+ *
+ * Resolution order:
+ *   1. Existing env var (highest priority — set by orchestrator)
+ *   2. Root monorepo `.env` (loaded at startup)
  */
 
+function findMonorepoRoot(startDir: string): string {
+  let dir = startDir;
+  while (true) {
+    if (existsSync(resolve(dir, '.env.example'))) {
+      return dir;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) {
+      return startDir;
+    }
+    dir = parent;
+  }
+}
+
 function loadDotEnv(): void {
-  const envPath = resolve(process.cwd(), '.env');
-  if (!existsSync(envPath)) return;
+  const monorepoRoot = findMonorepoRoot(process.cwd());
+  const envPath = resolve(monorepoRoot, '.env');
+
+  if (!existsSync(envPath)) {
+    return;
+  }
+
   const content = readFileSync(envPath, 'utf-8');
   for (const rawLine of content.split('\n')) {
     const line = rawLine.trim();
@@ -42,6 +69,23 @@ function required(key: string, fallback?: string): string {
   return value;
 }
 
+/**
+ * BẮT BUỘC có env var, KHÔNG có default fallback.
+ * Dùng cho secrets (JWT_SECRET, password, API keys) theo ADR-008.
+ * Throw ngay khi load config (fail-fast) nếu thiếu — cả dev lẫn prod.
+ */
+function requiredSecret(key: string): string {
+  const value = process.env[key];
+  if (value === undefined || value === '') {
+    throw new Error(
+      `❌ Missing required secret: ${key}\n` +
+      `Set it in .env (dev) hoặc K8s Secret / Vault (prod).\n` +
+      `Xem: docs/02-architecture/adr/ADR-008-jwt-secret-synchronization.md`,
+    );
+  }
+  return value;
+}
+
 function int(key: string, fallback: number): number {
   const raw = process.env[key];
   if (raw === undefined || raw === '') return fallback;
@@ -58,19 +102,36 @@ function list(key: string, fallback: string[]): string[] {
   return raw.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
+/**
+ * Helper: resolve key with optional prefix. Ưu tiên PREFIX_KEY, fallback về KEY.
+ */
+function prefixed(prefix: string, key: string, fallback = ''): string {
+  return process.env[`${prefix}_${key}`] ?? process.env[key] ?? fallback;
+}
+function prefixedInt(prefix: string, key: string, fallback: number): number {
+  const raw = process.env[`${prefix}_${key}`] ?? process.env[key];
+  if (raw === undefined || raw === '') return fallback;
+  const parsed = parseInt(raw, 10);
+  if (Number.isNaN(parsed)) {
+    throw new Error(`Env ${prefix}_${key} must be an integer (got "${raw}")`);
+  }
+  return parsed;
+}
+
 export const appConfig = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
-  name: required('APP_NAME', 'blockchain-suite'),
-  version: required('APP_VERSION', '1.0.0'),
-  host: required('APP_HOST', '0.0.0.0'),
-  port: int('APP_PORT', 9200),
+  name: prefixed('BLOCKCHAIN', 'APP_NAME', 'blockchain-suite'),
+  version: prefixed('BLOCKCHAIN', 'APP_VERSION', '1.0.0'),
+  host: prefixed('BLOCKCHAIN', 'APP_HOST', '0.0.0.0'),
+  port: prefixedInt('BLOCKCHAIN_SERVICE', 'PORT', 9200),
 };
 
 export const dbConfig = {
   host: required('POSTGRES_HOST', 'localhost'),
   port: int('POSTGRES_PORT', 5433),
   user: required('POSTGRES_USER', 'ioes'),
-  password: required('POSTGRES_PASSWORD', 'ioes_dev_password'),
+  // ADR-008: password là secret, không default fallback
+  password: requiredSecret('POSTGRES_PASSWORD'),
   database: required('BLOCKCHAIN_DB_NAME', 'ioes_blockchain'),
   poolMin: int('DB_POOL_MIN', 2),
   poolMax: int('DB_POOL_MAX', 10),
@@ -79,21 +140,22 @@ export const dbConfig = {
 export const redisConfig = {
   host: required('REDIS_HOST', 'localhost'),
   port: int('REDIS_PORT', 6379),
-  password: process.env.REDIS_PASSWORD || undefined,
+  password: process.env.REDIS_PASSWORD
+    ? requiredSecret('REDIS_PASSWORD')
+    : undefined,
   db: int('REDIS_DB', 0),
 };
 
 export const kafkaConfig = {
   brokers: list('KAFKA_BOOTSTRAP_SERVERS', ['localhost:9092']),
-  clientId: required('KAFKA_CLIENT_ID', 'blockchain-suite'),
-  groupId: required('KAFKA_GROUP_ID', 'blockchain-suite'),
+  clientId: prefixed('BLOCKCHAIN', 'KAFKA_CLIENT_ID', 'blockchain-suite'),
+  groupId: prefixed('BLOCKCHAIN', 'KAFKA_GROUP_ID', 'blockchain-suite'),
 };
 
 export const jwtConfig = {
-  secret: required(
-    'JWT_SECRET',
-    'ioes-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-signing-algorithm',
-  ),
+  // ADR-008: KHÔNG default fallback. JWT_SECRET phải được set qua env.
+  // Cùng secret với auth-service + api-gateway.
+  secret: requiredSecret('JWT_SECRET'),
   algorithm: required('JWT_ALGORITHM', 'HS256'),
 };
 
@@ -104,8 +166,9 @@ export const blockchainConfig = {
     | 'ethereum'
     | 'sepolia',
   rpcUrl: required('BLOCKCHAIN_RPC_URL', 'http://localhost:8545'),
-  privateKey: process.env.BLOCKCHAIN_PRIVATE_KEY ?? '',
-  contractAddress: process.env.BLOCKCHAIN_CONTRACT_ADDRESS ?? '',
+  // ADR-008: private key là secret quan trọng, không default fallback
+  privateKey: requiredSecret('BLOCKCHAIN_PRIVATE_KEY'),
+  contractAddress: required('BLOCKCHAIN_CONTRACT_ADDRESS'),
   chainId: int('BLOCKCHAIN_CHAIN_ID', 31337),
 };
 

@@ -30,4 +30,4 @@ export const CurrentUser = createParamDecorator(
       name: user.name,
     });
   },
-);
+) as unknown as (...dataAndPipe: (keyof UserPrincipalDto | undefined)[]) => ParameterDecorator;

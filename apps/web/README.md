@@ -1,7 +1,7 @@
 # 🎨 Frontend Web Application
 
 > **Single Page Application cho IOES**
-> Tech: React 18 + TypeScript 5 + Vite 5 + Tailwind CSS 3
+> Tech: React 18.3 + TypeScript 5 + Vite 5 + Tailwind CSS 3
 
 ## 📋 TỔNG QUAN Nhanh
 
@@ -19,23 +19,23 @@
 
 | Layer | Technology | Version |
 |-------|-----------|---------|
-| **Framework** | React | 18.x |
-| **Language** | TypeScript | 5.x |
-| **Build** | Vite | 5.x |
-| **Styling** | Tailwind CSS | 3.x |
-| **Routing** | React Router | 6.x |
-| **State (global)** | Zustand | 4.x |
-| **State (server)** | TanStack Query | 5.x |
-| **Forms** | React Hook Form + Zod | 7.x / 3.x |
+| **Framework** | React | 18.3.x |
+| **Language** | TypeScript | 5.6.x |
+| **Build** | Vite | 5.4.x |
+| **Styling** | Tailwind CSS | 3.4.x |
+| **Routing** | React Router | 6.27.x |
+| **State (global)** | Zustand | 5.0.x |
+| **State (server)** | TanStack Query | 5.59.x |
+| **Forms** | React Hook Form + Zod | 7.53.x / 3.23.x |
 | **UI primitives** | Headless UI / Radix UI | latest |
-| **i18n** | react-i18next | 14.x |
-| **WebSocket** | Socket.IO Client | 4.x |
-| **HTTP** | Axios | 1.x |
-| **Date** | date-fns | 3.x |
-| **Charts** | Apache ECharts | 5.x |
+| **i18n** | react-i18next + i18next-http-backend | 15.1.x / 23.16.x |
+| **WebSocket** | Socket.IO Client | 4.8.x |
+| **HTTP** | Axios | 1.7.x |
+| **Date** | date-fns | 4.1.x |
+| **Charts** | Apache ECharts | 5.5.x |
 | **Editor** | Monaco Editor | latest |
 | **Video** | Video.js | 8.x |
-| **Testing** | Vitest + RTL + Playwright | latest |
+| **Testing** | Vitest + RTL + Playwright | 2.1.x / latest |
 
 ## 🏗️ CẤU TRÚC
 
@@ -331,5 +331,5 @@ VITE_DEFAULT_LANGUAGE=en
 
 ---
 
-**Version:** 0.1.0
-**Last updated:** 12/08/2026
+**Version:** 1.0.0
+**Last updated:** 22/08/2026

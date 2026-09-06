@@ -1,3 +1,7 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "ioes-ml-worker"
 version = "1.0.0"
@@ -5,7 +9,7 @@ description = "IOES ML Worker (embeddings, grading, recommendation inference)"
 authors = ["IOES Team <devops@ioes.com>"]
 license = "Proprietary"
 readme = "README.md"
-packages = [{ include = "ml_worker" }]
+packages = [{ include = "ml_worker", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -22,13 +26,28 @@ redis = "^5.0.3"
 numpy = "^1.26.0"
 pillow = "^10.2.0"
 
+# RAG stack — LangChain
+langchain = "^0.3.0"
+langchain-core = "^0.3.0"
+langchain-milvus = "^0.1.6"
+langchain-huggingface = "^0.1.2"
+langchain-openai = "^0.2.0"
+langchain-text-splitters = "^0.3.0"
+pymilvus = "^2.4.0"
+
+# Doc hoc lieu do giang vien nop. Chon theo PROJECT_RULES 7.1 (license phai la
+# MIT/Apache/BSD): pypdf la BSD-3, python-docx la MIT. KHONG dung PyMuPDF du no
+# trich xuat tot hon — license AGPL, khong dung duoc cho san pham dong.
+pypdf = "^6.16"
+python-docx = "^1.2"
+
 [tool.poetry.group.ml.dependencies]
 torch = "^2.2.0"
 transformers = "^4.39.0"
 sentence-transformers = "^2.6.0"
 scikit-learn = "^1.4.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^8.1.0"
 pytest-asyncio = "^0.23.5"
 pytest-cov = "^4.1.0"

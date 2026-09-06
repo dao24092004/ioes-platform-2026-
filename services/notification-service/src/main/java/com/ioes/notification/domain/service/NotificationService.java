@@ -13,12 +13,20 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationService implements NotificationUseCase {
+
+    /**
+     * The inbox has no paging convention of its own; take the newest N,
+     * matching the fixed-limit convention {@link #processPendingNotifications()}
+     * already uses ({@code findPendingNotifications(50)}).
+     */
+    public static final int INBOX_LIMIT = 50;
 
     private final NotificationRepositoryPort notificationRepositoryPort;
     private final EmailSender emailSender;
@@ -86,6 +94,11 @@ public class NotificationService implements NotificationUseCase {
         }
 
         return notificationRepositoryPort.save(notification);
+    }
+
+    @Override
+    public List<Notification> getUserNotifications(UUID userId) {
+        return notificationRepositoryPort.findByUserId(userId, INBOX_LIMIT);
     }
 
     @Override

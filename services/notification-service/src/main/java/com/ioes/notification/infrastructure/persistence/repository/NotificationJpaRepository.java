@@ -17,7 +17,7 @@ public interface NotificationJpaRepository extends JpaRepository<NotificationEnt
     @Query("SELECT n FROM NotificationEntity n WHERE n.status = :status ORDER BY n.scheduledAt ASC")
     List<NotificationEntity> findPendingNotifications(@Param("status") NotificationStatus status, Pageable pageable);
 
-    List<NotificationEntity> findByUserIdOrderByCreatedAtDesc(UUID userId);
+    List<NotificationEntity> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 
     default List<NotificationEntity> findPendingNotifications(int limit) {
         return findPendingNotifications(NotificationStatus.pending, Pageable.ofSize(limit));

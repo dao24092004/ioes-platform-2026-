@@ -1,0 +1,45 @@
+diff --git a/services/api-gateway/src/main/resources/application.yml b/services/api-gateway/src/main/resources/application.yml
+index 554c516..80ea167 100644
+--- a/services/api-gateway/src/main/resources/application.yml
++++ b/services/api-gateway/src/main/resources/application.yml
+@@ -111,6 +111,40 @@ spring.cloud.gateway.default-filters:
+         maxBackoff: 500ms
+         factor: 2
+ 
++# ============================================
++# JWT
++# ============================================
++# JwtTokenProvider (libs/common-jwt) doc thang khoa jwt.secret. Gateway khong
++# khai khoa nay nen roi ve gia tri mac dinh "change-me-in-production...", trong
++# khi auth-service ky bang secret rieng cua no. Hai ben lech khoa, nen gateway
++# tra 401 "Invalid or expired token" cho MOI token do auth-service phat ra —
++# tuc la khong route nao yeu cau dang nhap di qua duoc gateway.
++# Gia tri duoi day lap dung mac dinh cua auth-service/application.yml.
++jwt:
++  secret: ${JWT_SECRET:ioes-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-signing-algorithm}
++  issuer: ${JWT_ISSUER:ioes-platform}
++
++# ============================================
++# RESILIENCE
++# ============================================
++# Lap lai khoi resilience4j da co trong configrepo/application.yml. Phai lap vi
++# profile "local" dat spring.cloud.config.enabled=false, nen chay local thi
++# khong doc duoc config-server.
++resilience4j:
++  timelimiter:
++    instances:
++      default:
++        # Resilience4j mac dinh 1 giay. Moi route deu dinh filter CircuitBreaker
++        # ten "default" qua spring.cloud.gateway.default-filters, nen loi goi nao
++        # cham hon 1 giay deu bi cat va roi vao fallback, tra 500 — ke ca khi
++        # service dich da tra loi thanh cong. Do thuc te tren POST /api/ai/chat:
++        # 1.012s, vua du de luon that bai.
++        #
++        # 30s de du mot luot goi mo hinh ngon ngu. Do tren gemini-3.5-flash-lite:
++        # 0.8-2s binh thuong, 13s khi phai suy luan nhieu.
++        timeoutDuration: 30s
++        cancelRunningFuture: true
++
+ # ============================================
+ # MANAGEMENT
+ # ============================================

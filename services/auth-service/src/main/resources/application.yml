@@ -67,11 +67,14 @@ eureka:
     prefer-ip-address: true
 
 # JWT Configuration
+# CRITICAL (ADR-008): JWT_SECRET được load TRỰC TIẾP từ env var.
+# KHÔNG có default fallback trong code — tránh lộ secret qua source.
+# Set JWT_SECRET trong .env (dev) hoặc K8s Secret (prod).
 jwt:
-  secret: ${JWT_SECRET:ioes-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-signing-algorithm}
-  access-token-expiration: 900000
-  refresh-token-expiration: 604800000
-  issuer: ioes-platform
+  secret: ${JWT_SECRET}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}
+  issuer: ${JWT_ISSUER:ioes-platform}
 
 # Password Configuration
 password:

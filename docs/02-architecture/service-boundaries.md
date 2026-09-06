@@ -31,11 +31,17 @@ content-service:
 
 exam-suite:
   owns: [Exam, Question, Submission, Attempt, ProctoringSession, GradingResult]
-  databases: [ioes_exam]
-  publishes_events: [ExamStarted, ExamSubmitted, ExamGraded, ProctorAlert]
-  consumes_events: [UserRegistered, CourseEnrolled]
-  exposes_apis: [/api/v1/exams/*, /api/v1/attempts/*, /api/v1/submissions/*]
+  databases: [ioes_exam, ioes_question_bank_graph]
+  publishes_events: [ExamStarted, ExamSubmitted, ExamGraded, ProctorAlert, QuestionUpdated]
+  consumes_events: [UserRegistered, CourseEnrolled, QuestionUpdated]
+  exposes_apis: [/api/v1/exams/*, /api/v1/attempts/*, /api/v1/submissions/*, /api/v1/question-bank/*]
   exposes_websockets: [/ws/exam/*, /ws/proctoring/*]
+  notes: >
+    Module `question-bank` trong exam-suite sử dụng Dgraph (Graph NoSQL native
+    GraphQL) làm read-side store cho Question Bank, theo CQRS pattern.
+    PostgreSQL giữ source-of-truth (write), Dgraph phục vụ read/traversal.
+    Sync qua Kafka topic `question.events`. Xem chi tiết:
+    docs/02-architecture/adr/ADR-001-use-dgraph-for-question-bank.md
 
 ai-suite:
   owns: [LearningPath, Recommendation, ChatSession, ModelRegistry]
@@ -263,6 +269,14 @@ ClickHouse:
 Milvus:
   use_for: Vector similarity search
   examples: course embeddings, learning path similarity
+
+Dgraph:
+  use_for: Graph database với native GraphQL API
+  examples: Question Bank knowledge graph (Topic → Skill → Question → Prerequisite)
+  notes: >
+    Read-side store cho Question Bank (CQRS). Dùng cho full-text search,
+    graph traversal, recommendation. Source-of-truth vẫn là PostgreSQL.
+    Xem ADR-001.
 
 MinIO/S3:
   use_for: Object storage

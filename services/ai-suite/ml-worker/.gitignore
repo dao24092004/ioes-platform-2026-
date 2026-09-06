@@ -1,0 +1,9 @@
+# Bao cao do phu do pytest-cov sinh ra moi lan chay test.
+.coverage
+htmlcov/
+
+# Moi truong ao dat ngay trong service de Poetry va pip dung chung mot cho.
+.venv/
+
+# Mo hinh nhung tai ve tu HuggingFace, vai tram MB.
+.cache/

@@ -18,12 +18,33 @@ import java.util.UUID;
  * Issues and validates JWTs. Uses HS256 with a shared secret loaded from
  * {@code jwt.secret}. Both {@code api-gateway} (validation) and
  * {@code auth-service} (issuance) depend on this module.
+ *
+ * <p><b>CRITICAL — NO DEFAULT FALLBACK (per ADR-008):</b>
+ * <ul>
+ *   <li>Every service that calls {@link #validateToken(String)} MUST use
+ *       the SAME secret as the one {@code auth-service} uses to sign tokens,
+ *       otherwise every request will be rejected with {@code 401 Unauthorized}.</li>
+ *   <li>{@code jwt.secret} is loaded WITHOUT a default value. If
+ *       {@code JWT_SECRET} env var (or {@code jwt.secret} property) is not
+ *       set, the application will fail at startup with
+ *       {@code IllegalArgumentException: Could not resolve placeholder 'jwt.secret'}.</li>
+ *   <li>This is intentional: hard-coded default secrets leak via git/source
+ *       and cause silent "wrong-secret" bugs across services (see
+ *       post-mortem 2026-08-24-gateway-jwt-and-timeout).</li>
+ *   <li>Local development: copy {@code .env.example} → {@code .env} and ensure
+ *       {@code JWT_SECRET} is set.</li>
+ *   <li>Production: inject {@code JWT_SECRET} via Kubernetes Secret / Vault.</li>
+ * </ul>
  */
 @Slf4j
 @Component
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret:change-me-in-production-use-at-least-256-bits-key-here}")
+    /**
+     * JWT secret. NO default value — must be provided via {@code JWT_SECRET}
+     * env var (or {@code jwt.secret} property in application.yml).
+     */
+    @Value("${jwt.secret}")
     private String jwtSecret;
 
     @Value("${jwt.access-token-expiration:900000}")

@@ -21,8 +21,11 @@ logging:
     org.springframework.kafka: INFO
 
 jwt:
-  secret: ioes-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-signing-algorithm
-  issuer: ioes-platform
+  # ADR-008: KHÔNG default fallback — secret được load trực tiếp từ JWT_SECRET env
+  secret: ${JWT_SECRET}
+  issuer: ${JWT_ISSUER:ioes-platform}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}
 
 management:
   endpoint:

@@ -1,0 +1,100 @@
+{
+ "queries": [
+  {
+   "id": "q01",
+   "query": "Box model gom nhung lop nao?"
+  },
+  {
+   "id": "q02",
+   "query": "Flexbox khac Grid the nao?"
+  },
+  {
+   "id": "q03",
+   "query": "position absolute va relative khac nhau ra sao?"
+  },
+  {
+   "id": "q04",
+   "query": "Media query dung de lam gi?"
+  },
+  {
+   "id": "q05",
+   "query": "Lam sao bat su kien click trong JavaScript?"
+  },
+  {
+   "id": "q06",
+   "query": "Mang trong JavaScript co nhung phuong thuc nao?"
+  },
+  {
+   "id": "q07",
+   "query": "Cach noi chuoi trong JavaScript?"
+  },
+  {
+   "id": "q08",
+   "query": "Ham tra ve gia tri nhu the nao?"
+  },
+  {
+   "id": "q09",
+   "query": "The form trong HTML dung ra sao?"
+  },
+  {
+   "id": "q10",
+   "query": "WAI-ARIA la gi?"
+  },
+  {
+   "id": "q11",
+   "query": "Chen anh vao HTML bang the nao?"
+  },
+  {
+   "id": "q12",
+   "query": "Vong lap for hoat dong the nao?"
+  },
+  {
+   "id": "q13",
+   "query": "Rebase khac merge the nao?"
+  },
+  {
+   "id": "q14",
+   "query": "useEffect trong React dung khi nao?"
+  },
+  {
+   "id": "q15",
+   "query": "Middleware trong Express la gi?"
+  },
+  {
+   "id": "q16",
+   "query": "Van de N cong mot trong co so du lieu la gi?"
+  },
+  {
+   "id": "q17",
+   "query": "REST API nen dung ma trang thai nao?"
+  },
+  {
+   "id": "q18",
+   "query": "Kim tu thap kiem thu gom nhung tang nao?"
+  },
+  {
+   "id": "q19",
+   "query": "Bien let va const khac nhau cho nao?"
+  },
+  {
+   "id": "q20",
+   "query": "CSS selector theo class viet the nao?"
+  },
+  {
+   "id": "q21",
+   "query": "Cach nau pho bo Ha Noi?"
+  },
+  {
+   "id": "q22",
+   "query": "Gia vang hom nay bao nhieu?"
+  },
+  {
+   "id": "q23",
+   "query": "Doi tuyen Viet Nam da voi ai toi nay?"
+  },
+  {
+   "id": "q24",
+   "query": "Thu tuc lam ho chieu gom nhung gi?"
+  }
+ ]
+}

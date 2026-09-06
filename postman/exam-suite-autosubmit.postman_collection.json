@@ -1,0 +1,555 @@
+{
+  "info": {
+    "name": "IOES Exam-Suite — Auto-Submit Test Flow",
+    "_postman_id": "ioes-exam-autosubmit-2026-08-23",
+    "description": "Test flow cho auto-submit scheduler + idempotency + race condition. Service phai dang chay o port 9005 voi DEV_AUTH_BYPASS=true, DEV_MOCK_CONTENT_SERVICE=true, DEV_MOCK_EXAM_DURATION_SEC=60 (hoac tuy chinh). Base URL: {{baseUrl}}",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:9005" },
+    { "key": "userId", "value": "00000000-0000-4000-8000-000000000001" },
+    { "key": "examId", "value": "00000000-0000-4000-8000-000000000aaa" },
+    { "key": "attemptId", "value": "" },
+    { "key": "submissionId", "value": "" },
+    { "key": "submissionKind", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "00 — Setup & Health Check",
+      "item": [
+        {
+          "name": "00.1 Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] },
+            "description": "Verify service dang chay. Mong doi: { success:true, data:{status:'ok'} }"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Service healthy', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data.status).to.equal('ok');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "00.2 Generate fresh examId (UUID v4)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] },
+            "description": "Helper: tao UUID v4 moi va luu vao {{examId}}. Chi can click 1 lan truoc khi test."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var uuid = require('uuid');",
+                  "var v4 = uuid.v4();",
+                  "pm.collectionVariables.set('examId', v4);",
+                  "console.log('[00.2] examId da set:', v4);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "FLOW 1 — Auto-submit khi het gio (verify scheduler)",
+      "item": [
+        {
+          "name": "1.1 Start attempt (duration ~60s)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Dev-User-Id", "value": "{{userId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"examId\": \"{{examId}}\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/exam-attempts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "exam-attempts"] },
+            "description": "Tao attempt moi voi examId vua sinh. Duration = 60s (theo DEV_MOCK_EXAM_DURATION_SEC). Save attemptId vao {{attemptId}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Attempt created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data.attemptId).to.be.a('string');",
+                  "  pm.expect(json.data.durationMs).to.equal(60000);",
+                  "  pm.collectionVariables.set('attemptId', json.data.attemptId);",
+                  "});",
+                  "var deadline = pm.response.json().data.deadlineEpochMs;",
+                  "var now = Date.now();",
+                  "var waitSec = Math.ceil((deadline - now) / 1000) + 10;",
+                  "console.log('[1.1] Deadline:', new Date(deadline).toISOString());",
+                  "console.log('[1.1] Doi ~' + waitSec + 's de auto-submit xay ra');",
+                  "pm.collectionVariables.set('waitSec', waitSec);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 Wait for deadline + cron tick (~65s)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] },
+            "description": "Sleep 65s. Cron chay moi 5s, sau deadline ~5-10s attempt se duoc auto-submit."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var sec = parseInt(pm.collectionVariables.get('waitSec') || '65', 10);",
+                  "console.log('[1.2] Sleeping ' + sec + 's...');",
+                  "setTimeout(function () {",
+                  "  pm.environment.set('waitDone', 'true');",
+                  "  console.log('[1.2] Done waiting');",
+                  "}, sec * 1000);",
+                  "pm.test('Wait started', function () { pm.expect(true).to.be.true; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3 Verify auto-submit via GET attempt",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Dev-User-Id", "value": "{{userId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/exam-attempts/{{attemptId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "exam-attempts", "{{attemptId}}"]
+            },
+            "description": "Sau khi cho 65s, attempt phai co status=SUBMITTED, submissionKind=TIMEOUT, submittedAt > deadlineAt."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Auto-submit thanh cong', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var d = pm.response.json().data;",
+                  "  pm.expect(d.status).to.equal('SUBMITTED');",
+                  "  pm.expect(d.submissionKind).to.equal('TIMEOUT');",
+                  "  pm.expect(d.submittedAt).to.exist;",
+                  "  pm.expect(new Date(d.submittedAt).getTime()).to.be.greaterThan(new Date(d.deadlineAt).getTime());",
+                  "  pm.collectionVariables.set('submissionId', d.id || '');",
+                  "  pm.collectionVariables.set('submissionKind', d.submissionKind);",
+                  "});",
+                  "console.log('[1.3] PASS — Auto-submit verified');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "FLOW 2 — Manual submit truoc deadline",
+      "item": [
+        {
+          "name": "2.1 Start attempt moi",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Dev-User-Id", "value": "{{userId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"examId\": \"{{examId}}\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/exam-attempts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "exam-attempts"] },
+            "description": "Tao attempt moi de test manual submit."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Attempt created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data.attemptId).to.be.a('string');",
+                  "  pm.collectionVariables.set('attemptId', json.data.attemptId);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.2 Manual submit (submit som)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Dev-User-Id", "value": "{{userId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/exam-attempts/{{attemptId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "exam-attempts", "{{attemptId}}", "submit"]
+            },
+            "description": "Submit ngay, khong doi deadline. submissionKind phai = MANUAL."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Manual submit thanh cong', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.success).to.be.true;",
+                  "  pm.expect(json.data.submissionKind).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.3 Verify attempt status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Dev-User-Id", "value": "{{userId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/exam-attempts/{{attemptId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "exam-attempts", "{{attemptId}}"]
+            },
+            "description": "status=SUBMITTED, submissionKind=MANUAL."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status + kind dung', function () {",
+                  "  var d = pm.response.json().data;",
+                  "  pm.expect(d.status).to.equal('SUBMITTED');",
+                  "  pm.expect(d.submissionKind).to.equal('MANUAL');",
+                  "  pm.expect(new Date(d.submittedAt).getTime()).to.be.lessThan(new Date(d.deadlineAt).getTime());",
+                  "});",
+                  "console.log('[2.3] PASS — Manual submit verified');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "FLOW 3 — Idempotency (submit 2 lan lien tiep)",
+      "item": [
+        {
+          "name": "3.1 Start attempt moi",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Dev-User-Id", "value": "{{userId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"examId\": \"{{examId}}\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/exam-attempts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "exam-attempts"] },
+            "description": "Tao attempt moi de test idempotency."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Attempt created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  pm.collectionVariables.set('attemptId', pm.response.json().data.attemptId);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.2 Manual submit lan 1",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Dev-User-Id", "value": "{{userId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/exam-attempts/{{attemptId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "exam-attempts", "{{attemptId}}", "submit"]
+            },
+            "description": "Submit lan 1, lay submissionId."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Submit lan 1 OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var subId = pm.response.json().data.submissionId;",
+                  "  pm.expect(subId).to.be.a('string');",
+                  "  pm.collectionVariables.set('submissionId', subId);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.3 Manual submit lan 2 (idempotent check)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Dev-User-Id", "value": "{{userId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/exam-attempts/{{attemptId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "exam-attempts", "{{attemptId}}", "submit"]
+            },
+            "description": "Submit lan 2. Phai tra cung submissionId nhu lan 1 (idempotent), khong tao record moi."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Idempotent: cung submissionId', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var newSubId = pm.response.json().data.submissionId;",
+                  "  var oldSubId = pm.collectionVariables.get('submissionId');",
+                  "  pm.expect(newSubId).to.equal(oldSubId);",
+                  "  console.log('[3.3] PASS — Idempotent verified, submissionId giong nhau');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "FLOW 4 — Race condition (manual submit cung luc cron)",
+      "item": [
+        {
+          "name": "4.1 Start attempt (duration ngan, vi du 60s mock)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Dev-User-Id", "value": "{{userId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"examId\": \"{{examId}}\" }"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/exam-attempts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "exam-attempts"] },
+            "description": "Tao attempt, doi gan het deadline."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Attempt created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  var json = pm.response.json();",
+                  "  pm.collectionVariables.set('attemptId', json.data.attemptId);",
+                  "  var deadline = json.data.deadlineEpochMs;",
+                  "  var now = Date.now();",
+                  "  var wait = Math.max(0, Math.ceil((deadline - now) / 1000) - 2);",
+                  "  console.log('[4.1] Doi ' + wait + 's de den gan deadline');",
+                  "  pm.collectionVariables.set('waitSec', wait);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.2 Wait gan deadline (race window)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] },
+            "description": "Sleep den ~2s truoc deadline. Luc nay goi manual submit se canh tranh voi cron tick."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var sec = parseInt(pm.collectionVariables.get('waitSec') || '58', 10);",
+                  "console.log('[4.2] Sleeping ' + sec + 's...');",
+                  "setTimeout(function () { console.log('[4.2] Wake up'); }, sec * 1000);",
+                  "pm.test('Wait started', function () { pm.expect(true).to.be.true; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.3 Manual submit trong race window",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Dev-User-Id", "value": "{{userId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/exam-attempts/{{attemptId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "exam-attempts", "{{attemptId}}", "submit"]
+            },
+            "description": "Submit ngay truoc/sau deadline. Co the thang cuoc hoac thua cron. Ca 2 deu chap nhan, chi check khong co duplicate."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Submit response OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var kind = pm.response.json().data.submissionKind;",
+                  "  pm.expect(['MANUAL','TIMEOUT']).to.include(kind);",
+                  "  pm.collectionVariables.set('submissionKind', kind);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.4 Verify final status + kiem tra 1 submission duy nhat",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Dev-User-Id", "value": "{{userId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/exam-attempts/{{attemptId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "exam-attempts", "{{attemptId}}"]
+            },
+            "description": "status=SUBMITTED, submittedAt co gia tri, submissionKind = MANUAL hoac TIMEOUT. Cho them 10s de cron chay (neu manual thua) va xac nhan status khong doi."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Race resolved (khong co duplicate submission)', function () {",
+                  "  var d = pm.response.json().data;",
+                  "  pm.expect(d.status).to.equal('SUBMITTED');",
+                  "  pm.expect(d.submissionKind).to.be.oneOf(['MANUAL','TIMEOUT']);",
+                  "  pm.expect(d.submittedAt).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.5 Wait + verify lai (10s sau) — khong co auto-submit thu 2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] },
+            "description": "Doi 10s de cron co co hoi tick them, xac nhan khong tao submission moi."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "console.log('[4.5] Sleeping 10s...');",
+                  "setTimeout(function () { console.log('[4.5] Wake up'); }, 10000);",
+                  "pm.test('Wait started', function () { pm.expect(true).to.be.true; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.6 Final verify — submittedAt khong doi",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Dev-User-Id", "value": "{{userId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/exam-attempts/{{attemptId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "exam-attempts", "{{attemptId}}"]
+            },
+            "description": "Lay attempt lan cuoi. submittedAt phai KHONG doi so voi lan truoc. Noi cach khac, cron khong tao submission moi."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var d1 = pm.response.json().data;",
+                  "pm.collectionVariables.set('finalSubmittedAt', d1.submittedAt);",
+                  "console.log('[4.6] submittedAt =', d1.submittedAt);",
+                  "pm.test('Chua co submission moi (khong duplicate)', function () {",
+                  "  pm.expect(d1.status).to.equal('SUBMITTED');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

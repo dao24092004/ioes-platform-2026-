@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CertificateModule } from './modules/certificate/certificate.module';
 import { HealthModule } from './modules/health/health.module';
+import { dbConfig } from './config/app.config';
 
 @Module({
   imports: [
@@ -10,11 +11,11 @@ import { HealthModule } from './modules/health/health.module';
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: 'postgres',
-        host: process.env.DB_HOST ?? 'localhost',
-        port: parseInt(process.env.DB_PORT ?? '5433', 10),
-        username: process.env.DB_USER ?? 'ioes_blockchain',
-        password: process.env.DB_PASSWORD ?? 'ioes_blockchain',
-        database: process.env.DB_NAME ?? 'ioes_blockchain',
+        host: dbConfig.host,
+        port: dbConfig.port,
+        username: dbConfig.user,
+        password: dbConfig.password,
+        database: dbConfig.database,
         autoLoadEntities: true,
         synchronize: false,
       }),

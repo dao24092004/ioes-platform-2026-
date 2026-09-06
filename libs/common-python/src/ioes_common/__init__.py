@@ -30,8 +30,13 @@ from ioes_common.security import (
 )
 from ioes_common.telemetry import (
     configure_tracing,
+    instrument_fastapi,
     trace_function,
     add_span_attribute,
+)
+from ioes_common.middleware import (
+    add_request_id_middleware,
+    register_exception_handlers,
 )
 from ioes_common.http_client import ServiceClient
 from ioes_common.kafka_client import KafkaProducer, KafkaConsumer
@@ -44,6 +49,9 @@ from ioes_common.constants import (
 __version__ = "1.0.0"
 
 __all__ = [
+    "register_exception_handlers",
+    "add_request_id_middleware",
+    "instrument_fastapi",
     # Schemas
     "ApiResponse",
     "ErrorResponse",

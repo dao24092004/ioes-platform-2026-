@@ -9,11 +9,16 @@ import com.ioes.auth.interfaces.rest.dto.UserResponse;
 import com.ioes.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -83,24 +88,24 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("X-User-Id") String userId) {
-        authUseCase.logout(java.util.UUID.fromString(userId));
+    public ResponseEntity<ApiResponse<Void>> logout(@AuthenticationPrincipal UUID userId) {
+        authUseCase.logout(userId);
         return ResponseEntity.ok(ApiResponse.success("Logout successful", null));
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(@RequestHeader("X-User-Id") String userId) {
-        User user = authUseCase.getCurrentUser(java.util.UUID.fromString(userId));
+    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(@AuthenticationPrincipal UUID userId) {
+        User user = authUseCase.getCurrentUser(userId);
         return ResponseEntity.ok(ApiResponse.success(toUserResponse(user)));
     }
 
     @PostMapping("/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
-            @RequestHeader("X-User-Id") String userId,
+            @AuthenticationPrincipal UUID userId,
             @Valid @RequestBody ChangePasswordRequest request) {
 
         authUseCase.changePassword(
-                java.util.UUID.fromString(userId),
+                userId,
                 request.oldPassword(),
                 request.newPassword()
         );
@@ -132,5 +137,8 @@ public class AuthController {
     }
 
     public record RefreshTokenRequest(String refreshToken) {}
-    public record ChangePasswordRequest(String oldPassword, String newPassword) {}
+    public record ChangePasswordRequest(
+            @NotBlank String oldPassword,
+            @NotBlank @Size(min = 8, max = 100) String newPassword
+    ) {}
 }

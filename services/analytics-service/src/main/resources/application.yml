@@ -1,0 +1,109 @@
+server:
+  port: 9004
+  shutdown: graceful
+
+spring:
+  application:
+    name: analytics-service
+  profiles:
+    active: local
+  cloud:
+    config:
+      uri: http://localhost:8888
+      name: analytics-service
+      profile: local
+      fail-fast: false
+      import-check:
+        enabled: false
+  config:
+    import: optional:configserver:http://localhost:8888
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${ANALYTICS_DB_NAME:ioes_analytics}
+    username: ${POSTGRES_USER:ioes}
+    password: ${POSTGRES_PASSWORD:ioes_dev_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 3000ms
+      connect-timeout: 2000ms
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    consumer:
+      group-id: analytics-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    # Topics produced by analytics-service
+    topics:
+      streak-milestone: analytics.streak.milestone
+      rank-changed: analytics.leaderboard.rank_changed
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:9999/eureka/
+  instance:
+    prefer-ip-address: true
+
+# JWT — analytics-service now validates bearer tokens itself (common-jwt).
+# Same as every other service: no default, sourced from the monorepo root
+# .env via MonorepoDotEnvInitializer (ADR-008 — no hardcoded secrets).
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}
+  issuer: ${JWT_ISSUER:ioes-platform}
+
+# Analytics Configuration
+analytics:
+  leaderboard:
+    max-entries: 100
+    default-limit: 10
+  streak:
+    bonus-days: 7
+    bonus-score: 10.0
+
+# Management
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: analytics-service
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    com.ioes: DEBUG
+    org.springframework.kafka: INFO

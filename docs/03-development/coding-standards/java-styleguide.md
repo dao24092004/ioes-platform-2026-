@@ -1211,6 +1211,140 @@ ALTER TABLE users ADD COLUMN google_id VARCHAR(255) UNIQUE;
 ALTER TABLE users ADD COLUMN github_id VARCHAR(255) UNIQUE;
 ```
 
+### 7.4 PostgreSQL Native Types (ltree, uuid-ossp, citext, hstore, …)
+
+PostgreSQL có nhiều **extension type** mà JPA/Hibernate **không hiểu mặc định**:
+`ltree` (cây phân cấp), `citext` (case-insensitive text), `hstore` (key-value),
+`inet`/`cidr` (IP), `tsvector` (full-text search), …
+
+Khi `spring.jpa.hibernate.ddl-auto: validate`, Hibernate sẽ **so sánh schema** của entity với DB thật và fail vì không map được native type.
+
+> **Quy tắc:** Theo [ADR-012 §4.1](./../../02-architecture/adr/ADR-012-separate-topic-management.md),
+> **Flyway là source-of-truth cho schema**, Hibernate `validate` chỉ là safety net.
+> Với native type, set `ddl-auto: none` cho default runtime (xem §7.5).
+
+**Cách map native type trong entity — dùng `columnDefinition`:**
+
+```java
+@Entity
+@Table(name = "topics")
+public class Topic {
+
+    // ❌ SAI - Hibernate expect varchar(1000), DB có ltree → validate fail
+    @Column(name = "path", length = 1000)
+    private String path;
+
+    // ✅ ĐÚNG - columnDefinition hint cho Hibernate biết schema
+    @Column(name = "path", columnDefinition = "ltree",
+            insertable = false, updatable = false)
+    private String path;
+}
+```
+
+| Thuộc tính | Ý nghĩa |
+|---|---|
+| `columnDefinition = "ltree"` | Hint schema column là `ltree` (lowercase theo convention PostgreSQL) |
+| `insertable = false` | Hibernate không insert qua field này — giá trị do trigger hoặc `@PrePersist` set |
+| `updatable = false` | Hibernate không update qua field này — tránh lỗi khi JPA cố UPDATE `path = ?` |
+
+**Khi nào CẦN custom UserType:**
+
+| Trường hợp | Cách xử lý |
+|---|---|
+| Chỉ lưu/đọc giá trị, không query bằng operator native | ✅ `columnDefinition` đủ |
+| Cần query bằng operator (vd `WHERE path <@ 'root.java'`) | ⚠️ Cần custom Hibernate `UserType` hoặc dùng native query |
+| Cần index GIST/GIN cho column | ✅ Vẫn khai báo trong Flyway migration (`USING GIST`) |
+
+**Ví dụ Flyway cho native type:**
+
+```sql
+-- V2__topics.sql
+CREATE EXTENSION IF NOT EXISTS "ltree";
+
+CREATE TABLE topics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    parent_topic_id UUID REFERENCES topics(id) ON DELETE SET NULL,
+    level INTEGER NOT NULL DEFAULT 0,
+    path LTREE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX idx_topics_path ON topics USING GIST(path);
+```
+
+> **Lưu ý:** Cú pháp `LTREE` trong SQL phải viết HOA nhưng `columnDefinition` trong Java
+> viết thường (`ltree`) vì PostgreSQL lowercase identifier nếu không quote.
+
+### 7.5 Dev Profile — `ddl-auto` theo môi trường
+
+| Profile | `ddl-auto` | Mục đích | Khi nào dùng |
+|---|---|---|---|
+| **default** (không truyền profile) | `none` | Flyway là source-of-truth, **KHÔNG** để Hibernate sửa schema | Production, staging, CI |
+| **`local`** | `update` | Hibernate tự thêm column mới khi entity thay đổi | Dev muốn iterate nhanh |
+| **`test`** | (H2 tự lo) | Test không cần config | Unit/Integration test |
+
+**`application.yml` (default — production-safe):**
+
+```yaml
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+```
+
+**`application-local.yml` (dev nhanh):**
+
+```yaml
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+```
+
+**Workflow dev khi dùng profile `local`:**
+
+```bash
+# 1. Chạy dev với Hibernate auto-update
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+
+# 2. Hibernate tự thêm column mới → kiểm tra DB
+psql -d ioes_content -c "\d topics"
+
+# 3. TRƯỚC KHI COMMIT: viết lại thành Flyway migration
+cat > services/content-service/src/main/resources/db/migration/V3__add_X.sql <<'EOF'
+ALTER TABLE topics ADD COLUMN X VARCHAR(...);
+EOF
+
+# 4. Commit CẢ entity + migration (KHÔNG được bỏ migration)
+git add services/content-service/src/main/resources/db/migration/V3__add_X.sql
+git add services/content-service/src/main/java/com/ioes/content/domain/model/Topic.java
+git commit -m "feat(content): add X column to topics"
+```
+
+> **GOLDEN RULE:** Mọi column Hibernate tự thêm ở `local` profile **PHẢI** được
+> viết lại thành Flyway migration trước khi commit. Production không chạy
+> `ddl-auto: update` → thiếu migration = app crash.
+
+**Quy tắc chọn `ddl-auto`:**
+
+| Giá trị | Hành vi | Khi nào dùng |
+|---|---|---|
+| `none` | Không làm gì với schema | ✅ Production (dùng Flyway) |
+| `validate` | So sánh entity ↔ DB, fail nếu lệch | ⚠️ Chỉ khi KHÔNG có native type |
+| `update` | Thêm column/index, KHÔNG drop | Dev local |
+| `create` | Drop & tạo lại khi start | ❌ KHÔNG dùng — mất data |
+| `create-drop` | Drop khi shutdown | ❌ Test-only |
+
 ---
 
 ## 8. TESTING
@@ -1389,5 +1523,9 @@ counter++;  // ❌ Code đã rõ
 
 ---
 
-**Version:** 1.0
-**Last updated:** 12/08/2026
+**Version:** 1.1
+**Last updated:** 28/08/2026
+
+**Changelog:**
+- v1.1 (28/08/2026): Thêm §7.4 PostgreSQL Native Types (ltree, citext, hstore) — hướng dẫn map native type với `columnDefinition` + `insertable=false, updatable=false`. Thêm §7.5 Dev Profile (`ddl-auto` theo môi trường: default=`none`, local=`update`) — workflow viết Flyway migration trước khi commit.
+- v1.0 (12/08/2026): Initial style guide.

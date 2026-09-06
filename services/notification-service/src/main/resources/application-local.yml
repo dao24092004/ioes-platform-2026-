@@ -5,6 +5,9 @@ spring:
       enabled: false
   jpa:
     show-sql: true
+  flyway:
+    clean-disabled: false
+    repair-on-migrate: true
 logging:
   level:
     com.ioes: DEBUG

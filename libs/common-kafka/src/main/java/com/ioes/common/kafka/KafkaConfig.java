@@ -24,6 +24,12 @@ import java.util.Map;
 
 /**
  * Shared Kafka client configuration.
+ *
+ * <p>The back-off conditions match on <em>bean name</em>, not on bean type. A
+ * service that needs an extra differently-shaped producer (for example
+ * content-service, which publishes ADR-012 topic events as raw JSON strings)
+ * can declare its own {@code KafkaTemplate} bean without silently disabling
+ * the envelope-typed beans that {@link KafkaEventPublisher} depends on.
  */
 @Configuration
 @EnableKafka
@@ -39,7 +45,7 @@ public class KafkaConfig {
     private String autoOffsetReset;
 
     @Bean
-    @ConditionalOnMissingBean(ProducerFactory.class)
+    @ConditionalOnMissingBean(name = "producerFactory")
     public ProducerFactory<String, EventEnvelope<?>> producerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -55,14 +61,14 @@ public class KafkaConfig {
     }
 
     @Bean
-    @ConditionalOnMissingBean(KafkaTemplate.class)
+    @ConditionalOnMissingBean(name = "kafkaTemplate")
     public KafkaTemplate<String, EventEnvelope<?>> kafkaTemplate(
             ProducerFactory<String, EventEnvelope<?>> pf) {
         return new KafkaTemplate<>(pf);
     }
 
     @Bean
-    @ConditionalOnMissingBean(ConsumerFactory.class)
+    @ConditionalOnMissingBean(name = "consumerFactory")
     public ConsumerFactory<String, EventEnvelope<?>> consumerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -81,7 +87,7 @@ public class KafkaConfig {
     }
 
     @Bean
-    @ConditionalOnMissingBean(ConcurrentKafkaListenerContainerFactory.class)
+    @ConditionalOnMissingBean(name = "kafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, EventEnvelope<?>> kafkaListenerContainerFactory(
             ConsumerFactory<String, EventEnvelope<?>> cf) {
         ConcurrentKafkaListenerContainerFactory<String, EventEnvelope<?>> factory =

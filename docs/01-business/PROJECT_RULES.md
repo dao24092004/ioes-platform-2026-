@@ -472,6 +472,66 @@ def test_login_raises_error_when_password_wrong():
 - Rotate secret mỗi 90 ngày
 ```
 
+### 6.1.1 🚨 JWT Secret Synchronization — BẮT BUỘC
+
+> **Post-mortem 24/08/2026:** `api-gateway` và `auth-service` vô tình dùng 2 secret khác nhau → toàn bộ request có token đi qua gateway bị reject 401. Fix v1 đồng bộ default fallback nhưng vẫn leak secret qua source. **Fix v2 (24/08/2026):** loại bỏ hoàn toàn default fallback, mọi service PHẢI load qua env. Chi tiết: [ADR-008](../02-architecture/adr/ADR-008-jwt-secret-synchronization.md).
+
+**Quy tắc vàng (NO DEFAULT FALLBACK):**
+
+> **Mọi secret (JWT_SECRET, password, API keys) PHẢI load trực tiếp từ biến môi trường. KHÔNG ĐƯỢC phép default fallback trong code/config.**
+
+**Quy tắc bắt buộc:**
+
+| Stack | Pattern | Ví dụ |
+|-------|---------|-------|
+| **Java** | `${JWT_SECRET}` (no `:default`) | `jwt.secret: ${JWT_SECRET}` |
+| **Java library** | `@Value("${jwt.secret}")` (no `:default`) | See JwtTokenProvider.java |
+| **Python** | `Field(...)` (no default) | `jwt_secret: str = Field(...)` |
+| **Node.js** | `requiredSecret('JWT_SECRET')` (no fallback) | See exam-suite/app.config.ts |
+
+**Checklist khi tạo/sửa service có verify JWT:**
+
+- [ ] Block `jwt:` reference `${JWT_SECRET}` trong config (KHÔNG có `:` default)
+- [ ] `JwtTokenProvider.java` dùng `@Value("${jwt.secret}")` (no default)
+- [ ] Node.js dùng `requiredSecret('JWT_SECRET')` (helper riêng)
+- [ ] Python dùng `Field(...)` cho `jwt_secret`
+- [ ] Copy `.env.example` → `.env` ở root và đảm bảo `JWT_SECRET` đã được set
+- [ ] Integration test verify token đi qua gateway thành công
+- [ ] CI script `scripts/ci-check-jwt-secret.sh` pass (block merge nếu fail)
+
+**Default secret được dùng trong dev (chỉ cho local development):**
+```
+conghoaxahoichunghiavietnamdoclaptudohanhphuc-2-9-1975
+```
+Length: 54 chars = 432 bits > 256 bits (HS256 yêu cầu tối thiểu 256 bits).
+
+> ⚠️ **Production PHẢI set `JWT_SECRET` qua K8s Secret/Vault với giá trị KHÁC.** Default chỉ dành cho local dev để 2 máy khác nhau vẫn match.
+
+**Vì sao KHÔNG dùng default fallback:**
+1. **Security:** default trong source = leak qua git/source. Attacker có thể scan public repo, leaked internal repo, hoặc compromised CI artifacts.
+2. **Cross-service consistency:** nếu 2 service có default khác nhau → silent bug (incident #1). Fix v1 vẫn có risk vì default cố định trong source.
+3. **Fail-fast principle:** thiếu config = lỗi rõ ràng tại startup (`IllegalArgumentException: Could not resolve placeholder`), không silent bug tại runtime.
+
+### 6.1.2 🚨 API Gateway Resilience — BẮT BUỘC
+
+> **Post-mortem 24/08/2026:** Global `CircuitBreaker` trên gateway tự ngắt mọi request > 1s dù downstream đã reply. Chi tiết: [ADR-009](../02-architecture/adr/ADR-009-gateway-timeouts-and-circuit-breaker.md).
+
+**Quy tắc:**
+
+| Quy tắc | Lý do |
+|---------|-------|
+| **KHÔNG bật global `CircuitBreaker` filter** trên gateway | Ảnh hưởng routes không cần CB |
+| **PHẢI có `httpclient.response-timeout`** ≥ 10s | Mặc định unlimited → hang request |
+| **Per-route `CircuitBreaker`** chỉ cho downstream flaky (AI inference, blockchain RPC) | Mỗi route có risk profile riêng |
+| **Fallback PHẢI trả HTTP 503** + JSON metadata | Client distinguish được fallback vs success |
+
+**Checklist khi thêm route mới vào gateway:**
+
+- [ ] Xác định downstream có flaky không
+- [ ] Nếu flaky → config per-route `CircuitBreaker` với `failureRateThreshold` rõ ràng
+- [ ] KHÔNG touch global default-filters (đã config 24/08/2026)
+- [ ] Test với k6 load test: p95 < 2s, error rate < 1%
+
 ### 6.2 API Security
 
 ```yaml

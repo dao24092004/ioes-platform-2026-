@@ -22,6 +22,5 @@ export const Cacheable = (ttlSeconds: number, keyPrefix?: string) => {
  * @CacheEvict('user:*') decorator
  * Invalidates cache entries matching pattern.
  */
-export const CacheEvict = (keyPattern: string) => {
-  return SetMetadata('cache_evict_pattern', keyPattern);
-};
+export const CacheEvict = (keyPattern: string): MethodDecorator & ClassDecorator =>
+  SetMetadata('cache_evict_pattern', keyPattern);

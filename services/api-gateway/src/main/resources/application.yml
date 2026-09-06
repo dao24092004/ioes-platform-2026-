@@ -29,6 +29,16 @@ eureka:
     lease-expiration-duration-in-seconds: 15
 
 # ============================================
+# JWT - PHẢI GIỐNG auth-service
+# ADR-008: KHÔNG có default fallback. Set JWT_SECRET qua env.
+# ============================================
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}
+  issuer: ${JWT_ISSUER:ioes-platform}
+
+# ============================================
 # ROUTES
 # ============================================
 spring.cloud.gateway:
@@ -45,45 +55,80 @@ spring.cloud.gateway:
       filters:
         - StripPrefix=2
 
-    # Content Service
+    # Content Service. Its controllers already carry the full /api/v1 prefix
+    # (@RequestMapping("/api/v1/courses") and friends), so nothing is stripped —
+    # the same shape as the exam-session route below.
+    #
+    # The previous entry matched /api/content/**, /api/courses/**, /api/lessons/**
+    # and /api/topics/** with StripPrefix=2, which forwarded /topics/** to a
+    # controller mapped at /api/v1/topics: every one of those paths 404'd at the
+    # service. They are dropped rather than kept alive, since no client can have
+    # been relying on a route that never resolved.
     - id: content-service
       uri: lb://content-service
       predicates:
-        - Path=/api/content/**,/api/courses/**,/api/lessons/**
-      filters:
-        - StripPrefix=2
+        - Path=/api/v1/topics/**,/api/v1/courses/**,/api/v1/categories/**
 
-    # Exam Service
+    # Exam Service (controllers @Controller('exams') / @Controller('attempts'),
+    # nên chỉ cắt đoạn /api)
     - id: exam-suite
-      uri: lb://exam-suite
+      uri: http://localhost:9005
       predicates:
-        - Path=/api/exam/**,/api/exams/**,/api/questions/**
+        - Path=/api/exams/**,/api/attempts/**
       filters:
-        - StripPrefix=2
+        - StripPrefix=1
 
-    # Analytics Service
+    # Exam session: @Controller('api/v1/exam-attempts') đã tự mang tiền tố
+    # /api/v1, nên không cắt đoạn nào.
+    - id: exam-session
+      uri: http://localhost:9005
+      predicates:
+        - Path=/api/v1/exam-attempts/**
+
+    # Question Bank (nested path, strip only 1 segment)
+    - id: question-bank
+      uri: http://localhost:9005
+      predicates:
+        - Path=/api/question-bank/**
+      filters:
+        - StripPrefix=1
+
+    # Analytics Service (controller @RequestMapping("/analytics"), strip only 1)
     - id: analytics-service
       uri: lb://analytics-service
       predicates:
         - Path=/api/analytics/**
       filters:
-        - StripPrefix=2
+        - StripPrefix=1
 
-    # Notification Service
+    # Notification Service (controller @RequestMapping("/notifications"), strip only 1)
     - id: notification-service
       uri: lb://notification-service
       predicates:
         - Path=/api/notifications/**
       filters:
-        - StripPrefix=2
+        - StripPrefix=1
 
-    # Blockchain Service
-    - id: blockchain-suite
+    # Certificates (blockchain-suite controller @Controller('certificates'),
+    # no global prefix, so only /api needs stripping)
+    - id: certificates
       uri: lb://blockchain-suite
       predicates:
-        - Path=/api/blockchain/**,/api/certificates/**
+        - Path=/api/certificates/**
       filters:
-        - StripPrefix=2
+        - StripPrefix=1
+
+    # /api/blockchain/** has no matching controller in blockchain-suite (only
+    # 'certificates' and 'health' exist there) — kept as its own route entry,
+    # still 404ing at the service, so it does not ride on certificates' fix
+    # or its future changes. Add a real 'blockchain' controller before
+    # pointing this anywhere else; do not repoint it at 'certificates'.
+    - id: blockchain
+      uri: lb://blockchain-suite
+      predicates:
+        - Path=/api/blockchain/**
+      filters:
+        - StripPrefix=1
 
     # AI Service
     - id: ai-suite
@@ -98,10 +143,6 @@ spring.cloud.gateway:
 # ============================================
 spring.cloud.gateway.default-filters:
   - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
-  - name: CircuitBreaker
-    args:
-      name: default
-      fallbackUri: forward:/fallback
   - name: Retry
     args:
       retries: 3
@@ -110,6 +151,22 @@ spring.cloud.gateway.default-filters:
         firstBackoff: 100ms
         maxBackoff: 500ms
         factor: 2
+
+# ============================================
+# HTTP CLIENT TIMEOUTS (WebFlux/Netty)
+# ============================================
+spring.cloud.gateway.httpclient:
+  # Kết nối TCP đến downstream service
+  connect-timeout: 5000
+  # Thời gian chờ response từ downstream (mặc định = unlimited)
+  response-timeout: 30s
+  # Tắt max-idle (mặc định 0 = infinite idle - giữ connection)
+  max-idle-time: 60s
+
+# ============================================
+# WEBCLIENT TIMEOUTS (cho circuit breaker)
+# ============================================
+spring.codec.max-in-memory-size: 5MB
 
 # ============================================
 # MANAGEMENT
