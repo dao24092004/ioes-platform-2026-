@@ -49,19 +49,7 @@ public class Topic {
     @Builder.Default
     private Integer level = 0;
 
-    /**
-     * Materialized path, one {@code ltree} label per ancestor (ADR-012).
-     *
-     * <p>{@code ltree} is a Postgres extension type, so the column is bound as
-     * {@link SqlTypes#OTHER} — the same shape the repo already uses for other
-     * vendor types (see {@code UserEntity.role}, {@code NotificationEntity.metadata}).
-     * That is what lets {@code ddl-auto: validate} pass; mapping it as a plain
-     * varchar made Hibernate expect {@code varchar} and fail against {@code ltree}.
-     * The write transformer casts the bound string so Postgres accepts it.
-     */
-    @Column(name = "path", columnDefinition = "ltree")
-    @JdbcTypeCode(SqlTypes.OTHER)
-    @ColumnTransformer(read = "path::text", write = "?::ltree")
+    @Column(name = "path", columnDefinition = "ltree", insertable = false, updatable = false)
     private String path;
 
     @Column(name = "is_active", nullable = false)

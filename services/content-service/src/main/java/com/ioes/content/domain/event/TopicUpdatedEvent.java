@@ -1,64 +1,37 @@
 package com.ioes.content.domain.event;
 
+import com.ioes.common.event.DomainEvent;
 import com.ioes.content.domain.model.Topic;
-
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.time.Instant;
 import java.util.UUID;
 
-@Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class TopicUpdatedEvent {
+public record TopicUpdatedEvent(UUID id, String name, String slug, String description,
+                                UUID parentTopicId, Integer level) implements DomainEvent {
 
-    private UUID eventId;
-    private String eventType;
-    private String eventVersion;
-    private Instant occurredAt;
-    private UUID aggregateId;
-    private String aggregateType;
-    private String correlationId;
-    private String causationId;
-    private String source;
-    private TopicPayload payload;
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TopicPayload {
-        private UUID id;
-        private String name;
-        private String slug;
-        private String description;
-        private UUID parentTopicId;
-        private Integer level;
+    @Override
+    public String aggregateId() {
+        return id.toString();
     }
 
-    public static TopicUpdatedEvent from(Topic topic, String correlationId, String causationId) {
-        return TopicUpdatedEvent.builder()
-                .eventId(UUID.randomUUID())
-                .eventType("TopicUpdated")
-                .eventVersion("1.0")
-                .occurredAt(Instant.now())
-                .aggregateId(topic.getId())
-                .aggregateType("Topic")
-                .correlationId(correlationId)
-                .causationId(causationId)
-                .source("content-service")
-                .payload(TopicPayload.builder()
-                        .id(topic.getId())
-                        .name(topic.getName())
-                        .slug(topic.getSlug())
-                        .description(topic.getDescription())
-                        .parentTopicId(topic.getParentTopic() != null ? topic.getParentTopic().getId() : null)
-                        .level(topic.getLevel())
-                        .build())
-                .build();
+    @Override
+    public String aggregateType() {
+        return "Topic";
+    }
+
+    @Override
+    public String eventType() {
+        return "TopicUpdated";
+    }
+
+    public static TopicUpdatedEvent from(Topic topic) {
+        return new TopicUpdatedEvent(
+                topic.getId(),
+                topic.getName(),
+                topic.getSlug(),
+                topic.getDescription(),
+                topic.getParentTopic() != null ? topic.getParentTopic().getId() : null,
+                topic.getLevel());
     }
 }

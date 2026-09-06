@@ -1,13 +1,13 @@
 package com.ioes.content.application.usecase;
 
+import com.ioes.common.event.EventPublisher;
 import com.ioes.content.application.dto.CreateTopicCommand;
 import com.ioes.content.application.dto.TopicResponse;
+import com.ioes.content.application.port.TopicRepository;
 import com.ioes.content.domain.event.TopicCreatedEvent;
 import com.ioes.content.domain.exception.InvalidTopicHierarchyException;
 import com.ioes.content.domain.exception.TopicNotFoundException;
 import com.ioes.content.domain.model.Topic;
-import com.ioes.content.application.port.TopicRepository;
-import com.ioes.content.infrastructure.kafka.TopicEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,11 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class CreateTopicUseCase {
 
+    private static final String SOURCE = "content-service";
+
     private final TopicRepository topicRepository;
-    private final TopicEventPublisher eventPublisher;
+    private final EventPublisher eventPublisher;
 
     @Transactional
-    public TopicResponse execute(CreateTopicCommand command, String correlationId) {
+    public TopicResponse execute(CreateTopicCommand command) {
         log.info("Creating topic: {}", command.getName());
 
         Topic parentTopic = null;
@@ -53,8 +55,8 @@ public class CreateTopicUseCase {
 
         topic = topicRepository.save(topic);
 
-        TopicCreatedEvent event = TopicCreatedEvent.from(topic, correlationId, correlationId);
-        eventPublisher.publishTopicCreated(event);
+        TopicCreatedEvent event = TopicCreatedEvent.from(topic);
+        eventPublisher.publish(event, SOURCE);
 
         log.info("Created topic with id: {}", topic.getId());
 

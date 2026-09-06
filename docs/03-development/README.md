@@ -15,4 +15,11 @@ Hướng dẫn phát triển cho developers.
 
 ## Status
 
-⚠️ _Sẽ được triển khai chi tiết khi bắt đầu dự án._
+✅ Documentation đã được triển khai cho Java service (style guide v1.1 — 28/08/2026).
+Các style guide khác (Frontend, Node, Python) đang được cập nhật.
+
+### Cập nhật gần đây
+
+| Ngày | File | Nội dung |
+|---|---|---|
+| 28/08/2026 | [coding-standards/java-styleguide.md](./coding-standards/java-styleguide.md) | §7.4 PostgreSQL Native Types (ltree, citext, hstore); §7.5 Dev Profile — `ddl-auto` theo môi trường |

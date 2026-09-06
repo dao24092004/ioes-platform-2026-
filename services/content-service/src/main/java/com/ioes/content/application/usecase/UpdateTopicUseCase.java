@@ -1,13 +1,13 @@
 package com.ioes.content.application.usecase;
 
+import com.ioes.common.event.EventPublisher;
 import com.ioes.content.application.dto.TopicResponse;
 import com.ioes.content.application.dto.UpdateTopicCommand;
+import com.ioes.content.application.port.TopicRepository;
 import com.ioes.content.domain.event.TopicUpdatedEvent;
 import com.ioes.content.domain.exception.InvalidTopicHierarchyException;
 import com.ioes.content.domain.exception.TopicNotFoundException;
 import com.ioes.content.domain.model.Topic;
-import com.ioes.content.application.port.TopicRepository;
-import com.ioes.content.infrastructure.kafka.TopicEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,11 +22,13 @@ import java.util.UUID;
 @Slf4j
 public class UpdateTopicUseCase {
 
+    private static final String SOURCE = "content-service";
+
     private final TopicRepository topicRepository;
-    private final TopicEventPublisher eventPublisher;
+    private final EventPublisher eventPublisher;
 
     @Transactional
-    public TopicResponse execute(UUID topicId, UpdateTopicCommand command, String correlationId) {
+    public TopicResponse execute(UUID topicId, UpdateTopicCommand command) {
         log.info("Updating topic: {}", topicId);
 
         Topic topic = topicRepository.findById(topicId)
@@ -60,8 +62,8 @@ public class UpdateTopicUseCase {
 
         topic = topicRepository.save(topic);
 
-        TopicUpdatedEvent event = TopicUpdatedEvent.from(topic, correlationId, correlationId);
-        eventPublisher.publishTopicUpdated(event);
+        TopicUpdatedEvent event = TopicUpdatedEvent.from(topic);
+        eventPublisher.publish(event, SOURCE);
 
         log.info("Updated topic: {}", topicId);
 

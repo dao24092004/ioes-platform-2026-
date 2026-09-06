@@ -39,6 +39,16 @@
       "key": "BULK_JOB_ID",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "NEW_TOPIC_ID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "CHILD_TOPIC_ID",
+      "value": "",
+      "type": "string"
     }
   ],
   "auth": {
@@ -1406,6 +1416,384 @@
               "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
               "host": ["{{GATEWAY_URL}}"],
               "path": ["api", "question-bank", "questions"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Topic Management (ADR-012)",
+      "description": "Topic CRUD moved to content-service (port 9001, via Gateway).\n\nRoutes:\n- {{GATEWAY_URL}}/api/v1/topics/*  -> content-service:9001\n\nRoles:\n- GET: STUDENT, INSTRUCTOR, ADMIN\n- POST/PATCH: INSTRUCTOR, ADMIN\n- DELETE: ADMIN",
+      "item": [
+        {
+          "name": "08.1 List All Topics (Tree)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('List topics successful', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/v1/topics",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "v1", "topics"]
+            }
+          }
+        },
+        {
+          "name": "08.2 Get Topic By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Get topic by id successful', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.id).to.be.a('string');",
+                  "  pm.expect(jsonData.name).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{TOPIC_ID}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "v1", "topics", "{{TOPIC_ID}}"]
+            }
+          }
+        },
+        {
+          "name": "08.3 Get Topic Children",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Get children successful', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{TOPIC_ID}}/children",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "v1", "topics", "{{TOPIC_ID}}", "children"]
+            }
+          }
+        },
+        {
+          "name": "08.4 Check Topic Exists",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Topic existence check successful', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.exists).to.be.a('boolean');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{TOPIC_ID}}/exists",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "v1", "topics", "{{TOPIC_ID}}", "exists"]
+            }
+          }
+        },
+        {
+          "name": "08.5 Create Root Topic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.id) {",
+                  "    pm.collectionVariables.set('TOPIC_ID', jsonData.id);",
+                  "    pm.collectionVariables.set('NEW_TOPIC_ID', jsonData.id);",
+                  "}",
+                  "pm.test('Topic created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  pm.expect(jsonData.id).to.be.a('string');",
+                  "  pm.expect(jsonData.slug).to.include('java');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "postman-create-topic-{{$randomUUID}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Java Fundamentals\",\n  \"description\": \"Basic Java programming concepts\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/v1/topics",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "v1", "topics"]
+            }
+          }
+        },
+        {
+          "name": "08.6 Create Child Topic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.id) {",
+                  "    pm.collectionVariables.set('CHILD_TOPIC_ID', jsonData.id);",
+                  "}",
+                  "pm.test('Child topic created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  pm.expect(jsonData.parentTopicId).to.be.a('string');",
+                  "  pm.expect(jsonData.level).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-Id", "value": "postman-create-child-topic-{{$randomUUID}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Java OOP\",\n  \"description\": \"Object-Oriented Programming in Java\",\n  \"parentTopicId\": \"{{NEW_TOPIC_ID}}\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/v1/topics",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "v1", "topics"]
+            }
+          }
+        },
+        {
+          "name": "08.7 Update Topic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Topic updated', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.name).to.eql('Java Core Advanced');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Java Core Advanced\",\n  \"description\": \"Updated description for Java core\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{NEW_TOPIC_ID}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "v1", "topics", "{{NEW_TOPIC_ID}}"]
+            }
+          }
+        },
+        {
+          "name": "08.8 Soft Delete Topic (Child)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Topic soft-deleted', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([204, 200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{CHILD_TOPIC_ID}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "v1", "topics", "{{CHILD_TOPIC_ID}}"]
+            }
+          }
+        },
+        {
+          "name": "08.9 Create Question With Valid TopicId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('QUESTION_ID', jsonData.data.id);",
+                  "}",
+                  "pm.test('Question created with valid topicId', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"What is a class in Java?\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"easy\",\n  \"points\": 10,\n  \"options\": [\n    { \"text\": \"A blueprint for objects\", \"isCorrect\": true },\n    { \"text\": \"A type of variable\", \"isCorrect\": false },\n    { \"text\": \"A function\", \"isCorrect\": false },\n    { \"text\": \"A package\", \"isCorrect\": false }\n  ],\n  \"topicId\": \"{{NEW_TOPIC_ID}}\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions"]
+            }
+          }
+        },
+        {
+          "name": "08.10 Error - Create Question With Invalid TopicId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Should fail with invalid topicId', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionText\": \"Invalid topic test\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"easy\",\n  \"points\": 10,\n  \"topicId\": \"00000000-0000-4000-8000-000000000999\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "question-bank", "questions"]
+            }
+          }
+        },
+        {
+          "name": "08.11 Error - Create Topic Without Name (Validation)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Validation error', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([400]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Missing name field\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/v1/topics",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "v1", "topics"]
+            }
+          }
+        },
+        {
+          "name": "08.12 Error - Get Non-existent Topic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Topic not found', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/v1/topics/00000000-0000-4000-8000-000000000999",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "v1", "topics", "00000000-0000-4000-8000-000000000999"]
             }
           }
         }

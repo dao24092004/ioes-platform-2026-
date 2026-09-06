@@ -1,11 +1,11 @@
 package com.ioes.content.application.usecase;
 
+import com.ioes.common.event.EventPublisher;
+import com.ioes.content.application.port.TopicRepository;
 import com.ioes.content.domain.event.TopicDeletedEvent;
 import com.ioes.content.domain.exception.TopicHasQuestionsException;
 import com.ioes.content.domain.exception.TopicNotFoundException;
 import com.ioes.content.domain.model.Topic;
-import com.ioes.content.application.port.TopicRepository;
-import com.ioes.content.infrastructure.kafka.TopicEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,13 +18,14 @@ import java.util.UUID;
 @Slf4j
 public class DeleteTopicUseCase {
 
+    private static final String SOURCE = "content-service";
     private static final String DELETION_REASON_MANUAL = "MANUAL";
 
     private final TopicRepository topicRepository;
-    private final TopicEventPublisher eventPublisher;
+    private final EventPublisher eventPublisher;
 
     @Transactional
-    public void execute(UUID topicId, String correlationId) {
+    public void execute(UUID topicId) {
         log.info("Deleting topic: {}", topicId);
 
         Topic topic = topicRepository.findById(topicId)
@@ -38,8 +39,8 @@ public class DeleteTopicUseCase {
         topic.softDelete();
         topicRepository.save(topic);
 
-        TopicDeletedEvent event = TopicDeletedEvent.from(topicId, DELETION_REASON_MANUAL, correlationId, correlationId);
-        eventPublisher.publishTopicDeleted(event);
+        TopicDeletedEvent event = TopicDeletedEvent.from(topicId, DELETION_REASON_MANUAL);
+        eventPublisher.publish(event, SOURCE);
 
         log.info("Soft deleted topic: {}", topicId);
     }

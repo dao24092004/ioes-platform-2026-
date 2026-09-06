@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/topics")
+@RequestMapping("/topics")
 @RequiredArgsConstructor
 @Slf4j
 public class TopicController {
@@ -29,14 +29,9 @@ public class TopicController {
     private final GetTopicUseCase getTopicUseCase;
 
     @PostMapping
-    public ResponseEntity<TopicResponse> create(
-            @Valid @RequestBody CreateTopicCommand command,
-            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
+    public ResponseEntity<TopicResponse> create(@Valid @RequestBody CreateTopicCommand command) {
         log.info("POST /api/v1/topics - name: {}", command.getName());
-
-        String corrId = correlationId != null ? correlationId : UUID.randomUUID().toString();
-        TopicResponse response = createTopicUseCase.execute(command, corrId);
-
+        TopicResponse response = createTopicUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -67,25 +62,16 @@ public class TopicController {
     @PatchMapping("/{topicId}")
     public ResponseEntity<TopicResponse> update(
             @PathVariable UUID topicId,
-            @Valid @RequestBody UpdateTopicCommand command,
-            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
+            @Valid @RequestBody UpdateTopicCommand command) {
         log.info("PATCH /api/v1/topics/{}", topicId);
-
-        String corrId = correlationId != null ? correlationId : UUID.randomUUID().toString();
-        TopicResponse response = updateTopicUseCase.execute(topicId, command, corrId);
-
+        TopicResponse response = updateTopicUseCase.execute(topicId, command);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{topicId}")
-    public ResponseEntity<Void> delete(
-            @PathVariable UUID topicId,
-            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
+    public ResponseEntity<Void> delete(@PathVariable UUID topicId) {
         log.info("DELETE /api/v1/topics/{}", topicId);
-
-        String corrId = correlationId != null ? correlationId : UUID.randomUUID().toString();
-        deleteTopicUseCase.execute(topicId, corrId);
-
+        deleteTopicUseCase.execute(topicId);
         return ResponseEntity.noContent().build();
     }
 

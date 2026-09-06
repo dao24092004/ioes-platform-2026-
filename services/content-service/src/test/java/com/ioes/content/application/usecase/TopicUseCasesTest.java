@@ -1,5 +1,6 @@
 package com.ioes.content.application.usecase;
 
+import com.ioes.common.event.EventPublisher;
 import com.ioes.content.application.dto.CreateTopicCommand;
 import com.ioes.content.application.dto.TopicResponse;
 import com.ioes.content.application.dto.UpdateTopicCommand;
@@ -11,8 +12,6 @@ import com.ioes.content.domain.exception.InvalidTopicHierarchyException;
 import com.ioes.content.domain.exception.TopicHasQuestionsException;
 import com.ioes.content.domain.exception.TopicNotFoundException;
 import com.ioes.content.domain.model.Topic;
-import com.ioes.content.infrastructure.kafka.TopicEventPublisher;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -36,7 +35,7 @@ class TopicUseCasesTest {
     private TopicRepository topicRepository;
 
     @Mock
-    private TopicEventPublisher eventPublisher;
+    private EventPublisher eventPublisher;
 
     @InjectMocks
     private CreateTopicUseCase createTopicUseCase;
@@ -49,13 +48,6 @@ class TopicUseCasesTest {
 
     @InjectMocks
     private GetTopicUseCase getTopicUseCase;
-
-    private static final String CORRELATION_ID = "test-correlation-id";
-
-    @BeforeEach
-    void setUp() {
-        // Setup mocks
-    }
 
     @Test
     void should_createTopic_when_commandIsValid() {
@@ -78,7 +70,7 @@ class TopicUseCasesTest {
         when(topicRepository.existsBySlug(anyString())).thenReturn(false);
 
         // When
-        TopicResponse response = createTopicUseCase.execute(command, CORRELATION_ID);
+        TopicResponse response = createTopicUseCase.execute(command);
 
         // Then
         assertThat(response).isNotNull();
@@ -87,7 +79,7 @@ class TopicUseCasesTest {
         assertThat(response.getLevel()).isEqualTo(0);
 
         verify(topicRepository).save(any(Topic.class));
-        verify(eventPublisher).publishTopicCreated(any(TopicCreatedEvent.class));
+        verify(eventPublisher).publish(any(TopicCreatedEvent.class), anyString());
     }
 
     @Test
@@ -120,7 +112,7 @@ class TopicUseCasesTest {
         when(topicRepository.save(any(Topic.class))).thenReturn(savedTopic);
 
         // When
-        TopicResponse response = createTopicUseCase.execute(command, CORRELATION_ID);
+        TopicResponse response = createTopicUseCase.execute(command);
 
         // Then
         assertThat(response.getLevel()).isEqualTo(1);
@@ -139,7 +131,7 @@ class TopicUseCasesTest {
         when(topicRepository.findById(parentId)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> createTopicUseCase.execute(command, CORRELATION_ID))
+        assertThatThrownBy(() -> createTopicUseCase.execute(command))
                 .isInstanceOf(TopicNotFoundException.class);
     }
 
@@ -164,11 +156,11 @@ class TopicUseCasesTest {
         when(topicRepository.save(any(Topic.class))).thenReturn(existingTopic);
 
         // When
-        TopicResponse response = updateTopicUseCase.execute(topicId, command, CORRELATION_ID);
+        TopicResponse response = updateTopicUseCase.execute(topicId, command);
 
         // Then
         assertThat(response.getName()).isEqualTo("New Name");
-        verify(eventPublisher).publishTopicUpdated(any(TopicUpdatedEvent.class));
+        verify(eventPublisher).publish(any(TopicUpdatedEvent.class), anyString());
     }
 
     @Test
@@ -180,7 +172,7 @@ class TopicUseCasesTest {
         when(topicRepository.findById(topicId)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> updateTopicUseCase.execute(topicId, command, CORRELATION_ID))
+        assertThatThrownBy(() -> updateTopicUseCase.execute(topicId, command))
                 .isInstanceOf(TopicNotFoundException.class);
     }
 
@@ -197,7 +189,7 @@ class TopicUseCasesTest {
         when(topicRepository.findById(topicId)).thenReturn(Optional.of(topic));
 
         // When & Then
-        assertThatThrownBy(() -> updateTopicUseCase.execute(topicId, command, CORRELATION_ID))
+        assertThatThrownBy(() -> updateTopicUseCase.execute(topicId, command))
                 .isInstanceOf(InvalidTopicHierarchyException.class);
     }
 
@@ -216,7 +208,7 @@ class TopicUseCasesTest {
         when(topicRepository.save(any(Topic.class))).thenReturn(topic);
 
         // When
-        deleteTopicUseCase.execute(topicId, CORRELATION_ID);
+        deleteTopicUseCase.execute(topicId);
 
         // Then
         ArgumentCaptor<Topic> topicCaptor = ArgumentCaptor.forClass(Topic.class);
@@ -224,7 +216,7 @@ class TopicUseCasesTest {
         assertThat(topicCaptor.getValue().getIsActive()).isFalse();
         assertThat(topicCaptor.getValue().getDeletedAt()).isNotNull();
 
-        verify(eventPublisher).publishTopicDeleted(any(TopicDeletedEvent.class));
+        verify(eventPublisher).publish(any(TopicDeletedEvent.class), anyString());
     }
 
     @Test
@@ -237,10 +229,10 @@ class TopicUseCasesTest {
         when(topicRepository.countByParentTopicId(topicId)).thenReturn(3L);
 
         // When & Then
-        assertThatThrownBy(() -> deleteTopicUseCase.execute(topicId, CORRELATION_ID))
+        assertThatThrownBy(() -> deleteTopicUseCase.execute(topicId))
                 .isInstanceOf(TopicHasQuestionsException.class);
 
-        verify(eventPublisher, never()).publishTopicDeleted(any());
+        verify(eventPublisher, never()).publish(any(), anyString());
     }
 
     @Test
