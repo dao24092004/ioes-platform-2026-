@@ -31,6 +31,8 @@ known-issues/
 ├── question-bank-implementation-status.md             # Question Bank status (95% complete)
 ├── question-bank-frontend-implementation.md           # Frontend chi tiết
 ├── question-bank-compliance-audit.md                  # Audit report (100% compliant)
+├── COMPREHENSIVE_COMPLIANCE_REPORT.md                 # ✨ Full compliance verification (100%)
+├── NEXT_STEPS_ROADMAP.md                             # ✨ Detailed roadmap to production
 ├── api-gateway-jwt-va-timelimiter.md                 # JWT & timeout issue (đã fix)
 ├── exam-service-migration-drift.md                   # Migration drift issue
 └── fix-gateway-jwt-and-timelimiter.patch             # Patch file
@@ -70,9 +72,11 @@ known-issues/
 - ✅ Security score: A
 
 **Related Files:**
-- [Implementation Status](./question-bank-implementation-status.md) - Detailed progress report
-- [Frontend Implementation](./question-bank-frontend-implementation.md) - Frontend details
-- [Compliance Audit](./question-bank-compliance-audit.md) - Architecture audit
+- [Implementation Status](./question-bank-implementation-status.md) - Detailed progress report (532 lines)
+- [Frontend Implementation](./question-bank-frontend-implementation.md) - Frontend details (455 lines)
+- [Compliance Audit](./question-bank-compliance-audit.md) - Architecture audit (491 lines)
+- ✨ [Comprehensive Compliance Report](./COMPREHENSIVE_COMPLIANCE_REPORT.md) - Full compliance verification (486 lines)
+- ✨ [Next Steps Roadmap](./NEXT_STEPS_ROADMAP.md) - Detailed roadmap to production (537 lines)
 
 ---
 
