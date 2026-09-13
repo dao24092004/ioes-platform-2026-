@@ -58,6 +58,7 @@ const StudentStreakPage = lazy(() => import('@/pages/student/StreakPage'));
 const StudentBecomeInstructorPage = lazy(() => import('@/pages/student/BecomeInstructorPage'));
 const StudentOCRPage = lazy(() => import('@/pages/student/OCRPage'));
 const StudentSpeechToTextPage = lazy(() => import('@/pages/student/SpeechToTextPage'));
+const PracticePage = lazy(() => import('@/pages/student/PracticePage'));
 
 // Instructor Pages
 const InstructorDashboardPage = lazy(() => import('@/pages/instructor/DashboardPage'));
@@ -77,6 +78,7 @@ const SettingsPage = lazy(() => import('@/pages/instructor/SettingsPage'));
 const InstructorDiscussionsPage = lazy(() => import('@/pages/instructor/DiscussionsPage'));
 const InstructorMessagesPage = lazy(() => import('@/pages/instructor/MessagesPage'));
 const InstructorCopyrightPage = lazy(() => import('@/pages/instructor/CopyrightPage'));
+const QuestionBankPage = lazy(() => import('@/pages/instructor/QuestionBankPage'));
 
 // Admin Pages
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'));
@@ -369,6 +371,14 @@ const AppRoutes: React.FC = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/student/practice/:topicId"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <PracticePage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Instructor Routes */}
         <Route
@@ -514,6 +524,14 @@ const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['instructor']}>
               <InstructorCopyrightPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/instructor/question-bank"
+          element={
+            <ProtectedRoute allowedRoles={['instructor']}>
+              <QuestionBankPage />
             </ProtectedRoute>
           }
         />
