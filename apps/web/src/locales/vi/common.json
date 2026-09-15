@@ -519,6 +519,132 @@
       "desc": "Tạo lớp học, giao bài, chấm điểm tự động trong một nền tảng"
     }
   },
+  "enrollmentApi": {
+    "enroll": "Ghi danh miễn phí",
+    "enrolling": "Đang ghi danh...",
+    "enrolled": "Đã ghi danh",
+    "start": "Bắt đầu học",
+    "continue": "Tiếp tục học",
+    "cancel": "Huỷ ghi danh",
+    "cancelConfirm": "Huỷ ghi danh sẽ xoá toàn bộ tiến độ học của khoá này. Tiếp tục?",
+    "paidTitle": "Khoá học có phí",
+    "paidNotice": "Hệ thống chưa hỗ trợ thanh toán nên chưa ghi danh được khoá này.",
+    "progress": "Tiến độ",
+    "progressOf": "{{done}}/{{total}} bài",
+    "status": {
+      "active": "Đang học",
+      "completed": "Hoàn thành",
+      "cancelled": "Đã huỷ",
+      "expired": "Hết hạn"
+    },
+    "enrolledAt": "Ngày ghi danh",
+    "lastAccessed": "Học gần nhất",
+    "markComplete": "Đánh dấu hoàn thành",
+    "completedLesson": "Đã hoàn thành",
+    "courseCompleted": "Bạn đã hoàn thành khoá học này.",
+    "lockedTitle": "Ghi danh để học bài này",
+    "lockedDescription": "Bạn chưa ghi danh khoá này, chỉ các bài xem trước được mở.",
+    "myCourses": "Khoá học của tôi",
+    "noEnrollments": "Bạn chưa ghi danh khoá học nào.",
+    "allCompleted": "Bạn đã hoàn thành mọi khoá học đã ghi danh.",
+    "browseCourses": "Xem khoá học",
+    "catalog": "Tất cả khoá học",
+    "filter": {
+      "all": "Tất cả",
+      "active": "Đang học",
+      "completed": "Hoàn thành"
+    },
+    "students": {
+      "course": "Khoá học",
+      "allCourses": "Tất cả khoá học của tôi",
+      "student": "Học viên",
+      "unknownName": "Không có tên",
+      "empty": "Chưa có học viên nào ghi danh.",
+      "total": "Tổng học viên",
+      "completed": "Đã hoàn thành",
+      "avgProgress": "Tiến độ trung bình"
+    }
+  },
+  "courseApi": {
+    "loginRequired": {
+      "title": "Đăng nhập để xem khoá học",
+      "description": "Danh sách khoá học lấy trực tiếp từ hệ thống và hiện chỉ xem được sau khi đăng nhập.",
+      "action": "Đăng nhập"
+    },
+    "notFound": {
+      "title": "Không tìm thấy khoá học",
+      "description": "Khoá học không tồn tại, chưa xuất bản hoặc đã bị xoá.",
+      "back": "Quay lại danh sách khoá học"
+    },
+    "uncategorized": "Chưa phân loại",
+    "catalogNotice": "Chức năng ghi danh chưa có backend, nên trang này hiển thị các khoá học đã xuất bản thay cho các khoá bạn đã ghi danh.",
+    "noCourses": "Chưa có khoá học nào.",
+    "noChapters": "Khoá học chưa có chương nào.",
+    "noLessons": "Chương này chưa có bài học.",
+    "noDescription": "Khoá học chưa có mô tả.",
+    "noContentUrl": "Bài học này chưa có nội dung đính kèm.",
+    "openContent": "Mở nội dung bài học",
+    "selectLesson": "Chọn một bài học ở danh sách bên trái.",
+    "progressNotSaved": "Tiến độ học chưa được lưu vì hệ thống chưa có chức năng ghi danh và theo dõi tiến độ.",
+    "reviewsUnavailable": "Chức năng đánh giá khoá học chưa có backend.",
+    "chaptersCount": "{{count}} chương",
+    "lessonType": {
+      "video": "Video",
+      "document": "Tài liệu",
+      "quiz": "Trắc nghiệm",
+      "assignment": "Bài tập",
+      "live": "Trực tuyến"
+    },
+    "level": {
+      "1": "Người mới",
+      "2": "Cơ bản",
+      "3": "Trung bình",
+      "4": "Nâng cao",
+      "5": "Chuyên gia"
+    },
+    "reviewStatus": {
+      "none": "Chưa gửi duyệt",
+      "pending": "Chờ duyệt",
+      "approved": "Đã duyệt",
+      "rejected": "Bị từ chối"
+    },
+    "actions": {
+      "submit": "Gửi duyệt",
+      "publish": "Xuất bản",
+      "backToList": "Về danh sách khoá học"
+    },
+    "rejectReasonRequired": "Nhập lý do từ chối để giảng viên biết cần sửa gì.",
+    "editNotes": "Tên chương và bài học đã có không sửa được vì backend chưa có API cập nhật — chỉ thêm hoặc xoá được.",
+    "search": {
+      "hint": "Nhập từ khoá để tìm trong các khoá học đã xuất bản.",
+      "coursesOnly": "Hiện chỉ tìm được khoá học; tìm bài thi, bài học và giảng viên chưa có backend."
+    },
+    "comingSoon": {
+      "enrollment": {
+        "title": "Đăng ký của tôi",
+        "description": "Quản lý các khoá học bạn đã ghi danh, thời hạn và thanh toán.",
+        "missing": [
+          "content-service có bảng enrollments nhưng chưa có entity hay API ghi danh",
+          "Chưa có payment service"
+        ]
+      },
+      "reviews": {
+        "title": "Đánh giá khoá học",
+        "description": "Xem và viết đánh giá cho khoá học.",
+        "missing": [
+          "content-service có bảng reviews nhưng chưa có API đọc hoặc ghi đánh giá"
+        ]
+      },
+      "learningPath": {
+        "title": "Lộ trình học tập",
+        "description": "Chuỗi khoá học và bài thi được sắp xếp theo mục tiêu của bạn.",
+        "missing": [
+          "Chưa có service hay bảng dữ liệu cho lộ trình học",
+          "Gateway có route /api/learning-path nhưng không có controller nào phía sau"
+        ]
+      }
+    }
+  },
   "courses": {
     "title": "Học tập thông minh,",
     "titleHighlight": "tiến bộ mỗi ngày",
@@ -2609,6 +2735,50 @@
     }
   },
   "admin": {
+    "noBackend": {
+      "auditLog": {
+        "description": "Tra cứu ai đã làm gì, lúc nào và từ đâu trên toàn hệ thống.",
+        "missing": [
+          "Chưa service nào ghi nhật ký kiểm toán",
+          "Chưa có endpoint audit log để gọi"
+        ]
+      },
+      "security": {
+        "description": "Theo dõi sự kiện bảo mật, IP bị chặn, đăng nhập thất bại và phiên đang hoạt động.",
+        "missing": [
+          "Chưa service nào thu thập sự kiện bảo mật hay IP bị chặn",
+          "auth-service chưa công bố số lần đăng nhập thất bại hay phiên đang hoạt động"
+        ]
+      },
+      "funnels": {
+        "description": "Theo dõi người dùng qua từng bước đăng ký, ghi danh và thi, kèm cohort giữ chân theo tuần.",
+        "missing": [
+          "Chưa service nào ghi lượt truy cập trang hay sự kiện chuyển đổi từng bước",
+          "Chưa có endpoint phễu hay cohort"
+        ]
+      },
+      "heatmaps": {
+        "description": "Xem người dùng bấm vào đâu và cuộn tới đâu trên từng trang.",
+        "missing": [
+          "Web chưa ghi lại lượt click hay độ sâu cuộn",
+          "Chưa có endpoint heatmap"
+        ]
+      },
+      "instructorApproval": {
+        "description": "Duyệt hồ sơ của người muốn trở thành giảng viên.",
+        "missing": [
+          "auth-service chưa có mô hình hay endpoint hồ sơ đăng ký giảng viên",
+          "Hiện chỉ đổi vai trò trực tiếp được ở trang Quản lý người dùng"
+        ]
+      }
+    },
+    "analyticsKpi": {
+      "trackedUsers": "Người dùng được theo dõi",
+      "passRate": "Tỷ lệ đạt",
+      "avgScore": "Điểm trung bình",
+      "studyMinutes": "Số phút học"
+    },
+    "noDataSource": "Phần này chưa có nguồn dữ liệu",
     "wallet": {
       "title": "Ví Multi-sig",
       "subtitle": "Quản lý treasury, người ký và các giao dịch đa chữ ký",
@@ -3226,6 +3396,171 @@
       "retentionDays": "Lưu trữ (ngày)",
       "targetStorage": "Bộ nhớ đích",
       "runBackupNow": "Chạy sao lưu ngay"
+    }
+  },
+  "examApi": {
+    "adminExams": {
+      "stats": {
+        "totalExams": "Tổng bài thi",
+        "totalAttempts": "Tổng lượt làm",
+        "inProgress": "Đang làm",
+        "awaitingGrading": "Chờ chấm",
+        "avgScore": "Điểm TB (%)",
+        "passRate": "Tỉ lệ đạt"
+      },
+      "table": {
+        "type": "Loại đề",
+        "graded": "Đã chấm"
+      },
+      "filterType": "Lọc theo loại đề",
+      "searchPlaceholder": "Tìm theo tên bài thi...",
+      "noCourse": "Chưa gắn khoá học"
+    },
+    "grading": {
+      "stats": {
+        "pending": "Bài chờ chấm",
+        "graded": "Đã chấm",
+        "oldestPending": "Bài chờ lâu nhất nộp"
+      },
+      "queueTitle": "Hàng đợi chấm bài",
+      "note": "Hàng đợi chỉ trả mã học viên, chưa có tên. Nút chấm gọi chấm tự động; chấm tay chưa có API.",
+      "table": {
+        "student": "Mã học viên",
+        "exam": "Bài thi",
+        "submittedAt": "Nộp lúc",
+        "score": "Điểm hiện tại",
+        "actions": "Hành động"
+      },
+      "grade": "Chấm tự động",
+      "grading": "Đang chấm…",
+      "gradeSuccess": "Đã chấm: {{score}}/{{max}} ({{pct}}%)",
+      "gradeError": "Chấm bài thất bại: {{message}}",
+      "empty": "Không có bài nào chờ chấm"
+    },
+    "instructorDashboard": {
+      "stats": {
+        "pending": "Bài chờ chấm",
+        "graded": "Bài đã chấm",
+        "proctored": "Đề có giám thị"
+      },
+      "myExams": "Bài thi của bạn",
+      "noExams": "Bạn chưa có bài thi nào",
+      "pendingCount": "{{count}} bài chờ chấm",
+      "noPending": "Không có bài chờ chấm",
+      "noCourseApi": "Chưa có API danh sách khoá học của giảng viên.",
+      "noActivityApi": "Chưa có API hoạt động gần đây.",
+      "leaderboardScope": "Bảng xếp hạng tuần của toàn nền tảng, chưa lọc theo học viên của bạn.",
+      "examsCompleted": "{{count}} bài đã làm"
+    },
+    "instructorAnalytics": {
+      "noTimeSeries": "Backend chưa tổng hợp số liệu theo thời gian cho giảng viên (ghi danh, điểm thi, tỉ lệ hoàn thành), nên chưa có biểu đồ.",
+      "proctored": "Giám thị"
+    },
+    "studentDashboard": {
+      "stats": {
+        "examsPassed": "Bài thi đạt",
+        "streak": "Chuỗi ngày học"
+      },
+      "noCourseProgress": "Chưa có API tiến độ khoá học (content-service chưa có ghi danh).",
+      "summaryTitle": "Tổng kết học tập",
+      "summary": {
+        "attempted": "Bài thi đã làm",
+        "passRate": "Tỉ lệ đạt",
+        "avgScore": "Điểm trung bình",
+        "longestStreak": "Chuỗi dài nhất"
+      },
+      "locked": "Chưa đạt",
+      "achievementsHint": "Huy hiệu sáng khi số liệu học tập của bạn đạt điều kiện."
+    },
+    "examTaking": {
+      "loading": "Đang chuẩn bị bài thi…",
+      "startError": "Không bắt đầu được bài thi.",
+      "backToExams": "Về danh sách bài thi",
+      "noQuestions": "Bài thi này chưa có câu hỏi nào.",
+      "noTimeLimit": "Không giới hạn thời gian",
+      "multiSelectHint": "Có thể chọn nhiều đáp án.",
+      "answerPlaceholder": "Nhập câu trả lời của bạn…",
+      "submitting": "Đang nộp…",
+      "submitError": "Nộp bài thất bại: {{message}}"
+    },
+    "profile": {
+      "accountTitle": "Thông tin tài khoản",
+      "role": "Vai trò",
+      "status": "Trạng thái",
+      "emailVerified": "Đã xác thực email",
+      "joined": "Tham gia",
+      "yes": "Có",
+      "no": "Chưa",
+      "noEditApi": "auth-service chưa có endpoint cập nhật hồ sơ, nên chưa sửa được thông tin tại đây.",
+      "password": {
+        "current": "Mật khẩu hiện tại",
+        "new": "Mật khẩu mới",
+        "confirm": "Xác nhận mật khẩu mới",
+        "mismatch": "Mật khẩu xác nhận không khớp.",
+        "tooShort": "Mật khẩu mới phải từ 8 ký tự.",
+        "failed": "Đổi mật khẩu thất bại: {{message}}",
+        "success": "Đã đổi mật khẩu.",
+        "submitting": "Đang cập nhật…"
+      }
+    },
+    "settings": {
+      "languageNote": "Ngôn ngữ áp dụng ngay trên trình duyệt này."
+    },
+    "comingSoon": {
+      "speechToText": {
+        "title": "Chuyển giọng nói thành văn bản",
+        "description": "Ghi âm, chuyển thành văn bản và chấm phát âm khi luyện nói.",
+        "missing": [
+          "speech-service mới chỉ có Dockerfile và pyproject.toml, chưa có mã nguồn",
+          "Chưa có endpoint nào để gửi âm thanh hay lưu lịch sử luyện tập"
+        ]
+      },
+      "tenantDetail": {
+        "title": "Trang tổ chức",
+        "description": "Giới thiệu một tổ chức cùng các khoá học nổi bật của tổ chức đó.",
+        "missing": [
+          "Chưa có tenant-service",
+          "Danh sách tổ chức và khoá học nổi bật trước đây được viết cứng trong frontend"
+        ]
+      },
+      "userProfile": {
+        "title": "Hồ sơ công khai",
+        "description": "Xem hồ sơ, kỹ năng, khoá học và huy hiệu của một học viên hay giảng viên.",
+        "missing": [
+          "auth-service chỉ có /me và /users/{id} dành cho ADMIN, chưa có hồ sơ công khai",
+          "Chưa có dữ liệu người theo dõi, kỹ năng, mạng xã hội hay huy hiệu"
+        ]
+      },
+      "examCreate": {
+        "title": "Tạo bài thi",
+        "description": "Soạn đề thi, chọn câu hỏi, đặt thời lượng và tuỳ chọn giám thị.",
+        "missing": [
+          "exam-suite chưa có POST /exams để lưu đề thi",
+          "Chưa có API gắn câu hỏi vào đề (exam_sections)"
+        ]
+      },
+      "reports": {
+        "title": "Báo cáo giảng dạy",
+        "description": "Báo cáo ghi danh, hoàn thành, doanh thu và tương tác theo khoảng thời gian.",
+        "missing": [
+          "Chưa có service tổng hợp số liệu theo giảng viên và theo thời gian",
+          "Chưa có payment-service cho doanh thu"
+        ]
+      },
+      "students": {
+        "title": "Học viên của tôi",
+        "description": "Danh sách học viên trong các khoá của bạn kèm tiến độ và điểm.",
+        "missing": [
+          "GET /api/auth/users chỉ dành cho ADMIN và không lọc theo khoá học",
+          "content-service chưa có ghi danh và tiến độ bài học"
+        ]
+      },
+      "settings": {
+        "description": "Cài đặt này chưa được lưu ở đâu cả.",
+        "missing": [
+          "Chưa có service lưu cài đặt của giảng viên"
+        ]
+      }
     }
   },
   "examAdmin": {

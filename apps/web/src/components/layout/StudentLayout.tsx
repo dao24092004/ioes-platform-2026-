@@ -39,8 +39,9 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ title, subtitle, children
       title: t('student.nav.overview'),
       items: [
         { path: '/student', label: t('student.nav.dashboard'), icon: <DashboardIcon /> },
-        { path: '/student/courses', label: t('student.nav.myCourses'), icon: <BookIcon />, badge: '5' },
-        { path: '/student/exams', label: t('student.nav.myExams'), icon: <ExamIcon />, badge: '2', badgeVariant: 'warning' },
+        { path: '/student/courses', label: t('student.nav.myCourses'), icon: <BookIcon /> },
+        { path: '/student/enrollment', label: t('student.enrollment.title'), icon: <CertificateIcon /> },
+        { path: '/student/exams', label: t('student.nav.myExams'), icon: <ExamIcon /> },
         { path: '/student/learning-path', label: t('student.nav.learningPath'), icon: <PathIcon /> },
       ],
     },
@@ -49,7 +50,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ title, subtitle, children
       items: [
         { path: '/student/leaderboard', label: t('student.nav.leaderboard'), icon: <TrophyIcon /> },
         { path: '/student/discussions', label: t('student.nav.discussions'), icon: <ChatIcon /> },
-        { path: '/student/messages', label: t('student.nav.messages'), icon: <MessageIcon />, badge: '3' },
+        { path: '/student/messages', label: t('student.nav.messages'), icon: <MessageIcon /> },
       ],
     },
     {
@@ -73,8 +74,8 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ title, subtitle, children
     {
       title: t('student.nav.account'),
       items: [
-        { path: '/student/certificates', label: t('student.nav.certificates'), icon: <CertificateIcon />, badge: '3' },
-        { path: '/student/notifications', label: t('student.nav.notifications'), icon: <BellIcon />, badge: '3', badgeVariant: 'warning' },
+        { path: '/student/certificates', label: t('student.nav.certificates'), icon: <CertificateIcon /> },
+        { path: '/student/notifications', label: t('student.nav.notifications'), icon: <BellIcon /> },
         { path: '/student/profile', label: t('student.nav.profile'), icon: <UserIcon /> },
         { path: '/student/settings', label: t('student.nav.settings'), icon: <SettingsIcon /> },
       ],
