@@ -84,6 +84,28 @@ export class ExamRepository {
   }
 
   /**
+   * List toàn bộ exam cho admin oversight.
+   *
+   * Admin không bị giới hạn theo instructor hay theo practice: đây là view
+   * quản trị nên thấy mọi đề chưa xoá mềm. Vẫn cap `take` như hai nhánh kia
+   * để một trang admin không kéo cả bảng về.
+   */
+  findAllForAdmin(limit = 100): Promise<Exam[]> {
+    return this.repo.find({
+      where: { deletedAt: IsNull() },
+      order: { createdAt: 'DESC' },
+      take: limit,
+    });
+  }
+
+  /**
+   * Đếm exam chưa xoá mềm (cho ô tổng ở trang admin).
+   */
+  countAll(): Promise<number> {
+    return this.repo.count({ where: { deletedAt: IsNull() } });
+  }
+
+  /**
    * Lưu exam (insert/update) - dùng trong transaction.
    */
   save(em: EntityManager, exam: Exam): Promise<Exam> {
