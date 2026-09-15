@@ -536,6 +536,132 @@
       "desc": "Create classes, assign tasks, auto-grading in one platform"
     }
   },
+  "enrollmentApi": {
+    "enroll": "Enroll for free",
+    "enrolling": "Enrolling...",
+    "enrolled": "Enrolled",
+    "start": "Start learning",
+    "continue": "Continue learning",
+    "cancel": "Unenroll",
+    "cancelConfirm": "Unenrolling deletes all of your progress in this course. Continue?",
+    "paidTitle": "Paid course",
+    "paidNotice": "Payments are not supported yet, so this course cannot be enrolled in.",
+    "progress": "Progress",
+    "progressOf": "{{done}}/{{total}} lessons",
+    "status": {
+      "active": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
+    },
+    "enrolledAt": "Enrolled on",
+    "lastAccessed": "Last studied",
+    "markComplete": "Mark as complete",
+    "completedLesson": "Completed",
+    "courseCompleted": "You have completed this course.",
+    "lockedTitle": "Enroll to study this lesson",
+    "lockedDescription": "You are not enrolled in this course; only preview lessons are open.",
+    "myCourses": "My courses",
+    "noEnrollments": "You have not enrolled in any course yet.",
+    "allCompleted": "You have completed every course you enrolled in.",
+    "browseCourses": "Browse courses",
+    "catalog": "All courses",
+    "filter": {
+      "all": "All",
+      "active": "In progress",
+      "completed": "Completed"
+    },
+    "students": {
+      "course": "Course",
+      "allCourses": "All my courses",
+      "student": "Student",
+      "unknownName": "No name",
+      "empty": "No students have enrolled yet.",
+      "total": "Total students",
+      "completed": "Completed",
+      "avgProgress": "Average progress"
+    }
+  },
+  "courseApi": {
+    "loginRequired": {
+      "title": "Sign in to browse courses",
+      "description": "The course list comes straight from the platform and is currently only available to signed-in users.",
+      "action": "Sign in"
+    },
+    "notFound": {
+      "title": "Course not found",
+      "description": "The course does not exist, is not published yet, or has been removed.",
+      "back": "Back to courses"
+    },
+    "uncategorized": "Uncategorized",
+    "catalogNotice": "Enrollment has no backend yet, so this page lists published courses instead of the courses you are enrolled in.",
+    "noCourses": "No courses yet.",
+    "noChapters": "This course has no chapters yet.",
+    "noLessons": "This chapter has no lessons yet.",
+    "noDescription": "This course has no description yet.",
+    "noContentUrl": "This lesson has no attached content.",
+    "openContent": "Open lesson content",
+    "selectLesson": "Pick a lesson from the list on the left.",
+    "progressNotSaved": "Progress is not saved because enrollment and progress tracking have no backend yet.",
+    "reviewsUnavailable": "Course reviews have no backend yet.",
+    "chaptersCount": "{{count}} chapters",
+    "lessonType": {
+      "video": "Video",
+      "document": "Document",
+      "quiz": "Quiz",
+      "assignment": "Assignment",
+      "live": "Live"
+    },
+    "level": {
+      "1": "Beginner",
+      "2": "Elementary",
+      "3": "Intermediate",
+      "4": "Advanced",
+      "5": "Expert"
+    },
+    "reviewStatus": {
+      "none": "Not submitted",
+      "pending": "Pending review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "actions": {
+      "submit": "Submit for review",
+      "publish": "Publish",
+      "backToList": "Back to courses"
+    },
+    "rejectReasonRequired": "Enter a rejection reason so the instructor knows what to fix.",
+    "editNotes": "Existing chapter and lesson titles cannot be edited because the backend has no update API — you can only add or remove them.",
+    "search": {
+      "hint": "Type a keyword to search published courses.",
+      "coursesOnly": "Only courses are searchable for now; exams, lessons and instructors have no search backend yet."
+    },
+    "comingSoon": {
+      "enrollment": {
+        "title": "My enrollments",
+        "description": "Manage the courses you are enrolled in, their expiry and payment.",
+        "missing": [
+          "content-service has an enrollments table but no enrollment entity or API",
+          "There is no payment service"
+        ]
+      },
+      "reviews": {
+        "title": "Course reviews",
+        "description": "Read and write reviews for a course.",
+        "missing": [
+          "content-service has a reviews table but no API to read or write reviews"
+        ]
+      },
+      "learningPath": {
+        "title": "Learning path",
+        "description": "A sequence of courses and exams arranged around your goal.",
+        "missing": [
+          "There is no service or table for learning paths",
+          "The gateway routes /api/learning-path but nothing serves it"
+        ]
+      }
+    }
+  },
   "courses": {
     "title": "Smart Learning,",
     "titleHighlight": "Daily Progress",
@@ -2551,6 +2677,50 @@
     }
   },
   "admin": {
+    "noBackend": {
+      "auditLog": {
+        "description": "Browse who did what, when and from where across the platform.",
+        "missing": [
+          "No service records an audit trail",
+          "There is no audit log endpoint to call"
+        ]
+      },
+      "security": {
+        "description": "Watch security events, blocked IPs, failed logins and active sessions.",
+        "missing": [
+          "No service collects security events or blocked IPs",
+          "auth-service does not expose failed-login counts or active sessions"
+        ]
+      },
+      "funnels": {
+        "description": "Follow users step by step through signup, enrollment and exams, with weekly retention cohorts.",
+        "missing": [
+          "No service tracks page visits or step-level conversion events",
+          "There is no funnel or cohort endpoint"
+        ]
+      },
+      "heatmaps": {
+        "description": "See where users click and how far they scroll on each page.",
+        "missing": [
+          "The web app does not record clicks or scroll depth",
+          "There is no heatmap endpoint"
+        ]
+      },
+      "instructorApproval": {
+        "description": "Review applications from people who want to teach and approve or reject them.",
+        "missing": [
+          "auth-service has no instructor application model or endpoint",
+          "Roles can only be changed directly from User management"
+        ]
+      }
+    },
+    "analyticsKpi": {
+      "trackedUsers": "Tracked users",
+      "passRate": "Pass rate",
+      "avgScore": "Average score",
+      "studyMinutes": "Study minutes"
+    },
+    "noDataSource": "No data source for this section yet",
     "wallet": {
       "title": "Multi-sig Wallet",
       "subtitle": "Manage treasury, signers and multi-signature transactions",
@@ -2784,8 +2954,17 @@
       "users": "Users",
       "courses": "Courses",
       "exams": "Exams",
-      "tokens": "Tokens Issued",
-      "uptime": "Uptime"
+      "tokens": "Tokens issued",
+      "uptime": "Uptime",
+      "allUsers": "All users",
+      "allCourses": "All courses",
+      "students": "Students",
+      "instructors": "Instructors",
+      "admins": "Admins",
+      "suspended": "Suspended",
+      "pendingApproval": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
     },
     "status": {
       "active": "Active",
@@ -2800,7 +2979,9 @@
       "user": "User",
       "role": "Role",
       "status": "Status",
-      "joined": "Joined"
+      "joined": "Joined",
+      "department": "Department",
+      "actions": "Actions"
     },
     "quick": {
       "addUser": "Add User",
@@ -2861,14 +3042,6 @@
       "email": "Email",
       "chooseRole": "Choose role",
       "chooseDept": "Choose department"
-    },
-    "table": {
-      "user": "User",
-      "role": "Role",
-      "status": "Status",
-      "joined": "Joined",
-      "department": "Department",
-      "actions": "Actions"
     },
     "instructorApproval": {
       "title": "Instructor Approval",
@@ -3011,16 +3184,16 @@
         "totalEvents": "Total events",
         "criticalEvents": "Critical events",
         "loginFailures": "Login failures",
-"logStorage": "Log storage",
-      "retention": "90-day retention",
-      "pagination": {
-        "range": "{{from}}-{{to}} of {{total}}",
-        "prev": "Prev",
-        "next": "Next",
-        "pageSize": "Show",
-        "perPage": "/ page"
-      }
-    },
+        "logStorage": "Log storage",
+        "retention": "90-day retention",
+        "pagination": {
+          "range": "{{from}}-{{to}} of {{total}}",
+          "prev": "Prev",
+          "next": "Next",
+          "pageSize": "Show",
+          "perPage": "/ page"
+        }
+      },
       "filters": {
         "searchPlaceholder": "Search by ID, user...",
         "allTypes": "All types",
@@ -3065,22 +3238,6 @@
         "severity": "Severity",
         "changes": "Changes"
       }
-    },
-    "stats": {
-      "users": "Users",
-      "courses": "Courses",
-      "exams": "Exams",
-      "tokens": "Tokens issued",
-      "uptime": "Uptime",
-      "allUsers": "All users",
-      "allCourses": "All courses",
-      "students": "Students",
-      "instructors": "Instructors",
-      "admins": "Admins",
-      "suspended": "Suspended",
-      "pendingApproval": "Pending",
-      "approved": "Approved",
-      "rejected": "Rejected"
     }
   },
   "analytics": {
@@ -3181,6 +3338,171 @@
       "retentionDays": "Retention (days)",
       "targetStorage": "Target storage",
       "runBackupNow": "Run backup now"
+    }
+  },
+  "examApi": {
+    "adminExams": {
+      "stats": {
+        "totalExams": "Total exams",
+        "totalAttempts": "Total attempts",
+        "inProgress": "In progress",
+        "awaitingGrading": "Awaiting grading",
+        "avgScore": "Avg score (%)",
+        "passRate": "Pass rate"
+      },
+      "table": {
+        "type": "Type",
+        "graded": "Graded"
+      },
+      "filterType": "Filter by exam type",
+      "searchPlaceholder": "Search by exam title...",
+      "noCourse": "No course linked"
+    },
+    "grading": {
+      "stats": {
+        "pending": "Awaiting grading",
+        "graded": "Graded",
+        "oldestPending": "Oldest pending submitted"
+      },
+      "queueTitle": "Grading queue",
+      "note": "The queue only returns student ids, not names. Grading runs the auto-grader; manual scoring has no API yet.",
+      "table": {
+        "student": "Student id",
+        "exam": "Exam",
+        "submittedAt": "Submitted",
+        "score": "Current score",
+        "actions": "Actions"
+      },
+      "grade": "Auto-grade",
+      "grading": "Grading…",
+      "gradeSuccess": "Graded: {{score}}/{{max}} ({{pct}}%)",
+      "gradeError": "Grading failed: {{message}}",
+      "empty": "Nothing is waiting to be graded"
+    },
+    "instructorDashboard": {
+      "stats": {
+        "pending": "Awaiting grading",
+        "graded": "Graded",
+        "proctored": "Proctored exams"
+      },
+      "myExams": "Your exams",
+      "noExams": "You have no exams yet",
+      "pendingCount": "{{count}} awaiting grading",
+      "noPending": "Nothing to grade",
+      "noCourseApi": "There is no API for an instructor's courses yet.",
+      "noActivityApi": "There is no recent-activity API yet.",
+      "leaderboardScope": "Platform-wide weekly leaderboard, not filtered to your students.",
+      "examsCompleted": "{{count}} exams taken"
+    },
+    "instructorAnalytics": {
+      "noTimeSeries": "The backend does not aggregate time series for instructors yet (enrollments, exam scores, completion), so there is no chart.",
+      "proctored": "Proctored"
+    },
+    "studentDashboard": {
+      "stats": {
+        "examsPassed": "Exams passed",
+        "streak": "Day streak"
+      },
+      "noCourseProgress": "There is no course progress API yet (content-service has no enrollment).",
+      "summaryTitle": "Learning summary",
+      "summary": {
+        "attempted": "Exams taken",
+        "passRate": "Pass rate",
+        "avgScore": "Average score",
+        "longestStreak": "Longest streak"
+      },
+      "locked": "Not earned yet",
+      "achievementsHint": "Badges light up once your learning stats meet their condition."
+    },
+    "examTaking": {
+      "loading": "Preparing your exam…",
+      "startError": "Could not start the exam.",
+      "backToExams": "Back to exams",
+      "noQuestions": "This exam has no questions yet.",
+      "noTimeLimit": "No time limit",
+      "multiSelectHint": "You can pick more than one answer.",
+      "answerPlaceholder": "Type your answer…",
+      "submitting": "Submitting…",
+      "submitError": "Submission failed: {{message}}"
+    },
+    "profile": {
+      "accountTitle": "Account details",
+      "role": "Role",
+      "status": "Status",
+      "emailVerified": "Email verified",
+      "joined": "Joined",
+      "yes": "Yes",
+      "no": "Not yet",
+      "noEditApi": "auth-service has no profile update endpoint, so details cannot be edited here.",
+      "password": {
+        "current": "Current password",
+        "new": "New password",
+        "confirm": "Confirm new password",
+        "mismatch": "The confirmation does not match.",
+        "tooShort": "The new password must be at least 8 characters.",
+        "failed": "Could not change the password: {{message}}",
+        "success": "Password changed.",
+        "submitting": "Updating…"
+      }
+    },
+    "settings": {
+      "languageNote": "The language applies immediately in this browser."
+    },
+    "comingSoon": {
+      "speechToText": {
+        "title": "Speech to text",
+        "description": "Record speech, transcribe it and score pronunciation while practising.",
+        "missing": [
+          "speech-service only has a Dockerfile and pyproject.toml, no source code",
+          "No endpoint accepts audio or stores practice history"
+        ]
+      },
+      "tenantDetail": {
+        "title": "Organization page",
+        "description": "Introduce an organization and its featured courses.",
+        "missing": [
+          "No tenant-service",
+          "Organizations and featured courses used to be hard-coded in the frontend"
+        ]
+      },
+      "userProfile": {
+        "title": "Public profile",
+        "description": "View a student's or instructor's profile, skills, courses and badges.",
+        "missing": [
+          "auth-service only has /me and the ADMIN-only /users/{id}; there is no public profile",
+          "No data for followers, skills, social links or badges"
+        ]
+      },
+      "examCreate": {
+        "title": "Create exam",
+        "description": "Compose an exam, pick questions, set the duration and proctoring options.",
+        "missing": [
+          "exam-suite has no POST /exams to save an exam",
+          "No API attaches questions to an exam (exam_sections)"
+        ]
+      },
+      "reports": {
+        "title": "Teaching reports",
+        "description": "Enrollment, completion, revenue and engagement reports over a date range.",
+        "missing": [
+          "No service aggregates metrics per instructor over time",
+          "No payment-service for revenue"
+        ]
+      },
+      "students": {
+        "title": "My students",
+        "description": "Students in your courses with their progress and scores.",
+        "missing": [
+          "GET /api/auth/users is ADMIN-only and does not filter by course",
+          "content-service has no enrollment or lesson progress"
+        ]
+      },
+      "settings": {
+        "description": "This setting is not stored anywhere yet.",
+        "missing": [
+          "No service stores instructor settings"
+        ]
+      }
     }
   },
   "examAdmin": {
@@ -4238,5 +4560,75 @@
     "monthOct": "Oct",
     "monthNov": "Nov",
     "monthDec": "Dec"
+  },
+  "comingSoon": {
+    "badge": "Coming soon",
+    "missingHeading": "What is missing",
+    "noFakeData": "This page shows no sample data, so nothing here can be mistaken for real figures.",
+    "blockchain": {
+      "title": "Blockchain certificates",
+      "description": "Issue certificates as NFTs and review token supply, contract and transaction history.",
+      "missing": [
+        "certificate.service.ts is a stub; signing on chain is still a TODO",
+        "No migration exists for certificate data",
+        "blockchain-suite only mints and verifies; there are no token endpoints"
+      ]
+    },
+    "ocr": {
+      "title": "Text recognition (OCR)",
+      "description": "Upload a photo of written work or a document and pull the text out of it.",
+      "missing": [
+        "The OCR service has only a Dockerfile and pyproject.toml, no source yet",
+        "There is no endpoint to call"
+      ]
+    },
+    "discussion": {
+      "title": "Discussions",
+      "description": "Course question-and-answer threads between students and instructors.",
+      "missing": [
+        "No backend service for discussions",
+        "No tables for posts and replies"
+      ]
+    },
+    "messages": {
+      "title": "Messages",
+      "description": "Direct messaging between students and instructors.",
+      "missing": [
+        "No messaging service",
+        "No realtime channel for conversations"
+      ]
+    },
+    "checkout": {
+      "title": "Checkout",
+      "description": "Buy courses and manage invoices.",
+      "missing": [
+        "No payment service",
+        "No payment provider integrated"
+      ]
+    },
+    "copyright": {
+      "title": "Copyright and plagiarism",
+      "description": "Register ownership of content, licence it, and handle disputes.",
+      "missing": [
+        "No backend for copyright registration",
+        "No plagiarism comparison service"
+      ]
+    },
+    "tenant": {
+      "title": "Multi-tenant organisations",
+      "description": "Run several organisations on one platform, each with its own data.",
+      "missing": [
+        "No tenant-service",
+        "No column or schema separating data per organisation"
+      ]
+    },
+    "recommendations": {
+      "title": "Learning recommendations",
+      "description": "Suggest the next course or lesson based on your progress.",
+      "missing": [
+        "No recommendation engine",
+        "The gateway routes /api/recommendations but nothing serves it"
+      ]
+    }
   }
 }

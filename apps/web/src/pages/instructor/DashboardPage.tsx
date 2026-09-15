@@ -1,40 +1,47 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import InstructorLayout from '@/components/layout/InstructorLayout';
-import { instructorApi, type InstructorCourseRow, type InstructorExamRow, type InstructorTopStudent, type InstructorActivityRow } from '@/services/api';
+import { examApi } from '@/services/api/exam.api';
+import { analyticsApi } from '@/services/api/analytics.api';
 import { useAuthStore } from '@/app/store/authStore';
 import { formatRelative } from '@/utils/time';
 
+/**
+ * Tổng quan giảng viên.
+ *
+ * Số thật: đề của giảng viên (`GET /exams`), hàng đợi chấm (`/exams/grading/*`)
+ * và bảng xếp hạng tuần (analytics — toàn nền tảng, chưa lọc theo học viên của
+ * giảng viên). Khoá học, số học viên, đánh giá và hoạt động gần đây chưa có
+ * API nên hiện trạng thái trống thay vì số tự bịa.
+ */
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuthStore();
 
-  const { data: stats } = useQuery({
-    queryKey: ['instructor', 'dashboard', 'stats'],
-    queryFn: () => instructorApi.dashboardStats(),
+  const { data: exams = [], isLoading: examsLoading, isError: examsError } = useQuery({
+    queryKey: ['instructor', 'exams', 'list'],
+    queryFn: () => examApi.listExams(),
+  });
+  const { data: gradingStats } = useQuery({
+    queryKey: ['exams', 'grading', 'stats'],
+    queryFn: () => examApi.getGradingStats(),
+  });
+  const { data: queue = [] } = useQuery({
+    queryKey: ['exams', 'grading', 'queue'],
+    queryFn: () => examApi.getGradingQueue(),
+  });
+  const { data: leaderboard = [], isError: leaderboardError } = useQuery({
+    queryKey: ['analytics', 'leaderboard', 'WEEKLY', 5],
+    queryFn: () => analyticsApi.getLeaderboard('WEEKLY', 5),
   });
 
-  const { data: courses = [] } = useQuery({
-    queryKey: ['instructor', 'dashboard', 'courses'],
-    queryFn: () => instructorApi.myCourses(),
-  });
-
-  const { data: exams = [] } = useQuery({
-    queryKey: ['instructor', 'dashboard', 'exams'],
-    queryFn: () => instructorApi.upcomingExams(),
-  });
-
-  const { data: topStudents = [] } = useQuery({
-    queryKey: ['instructor', 'dashboard', 'top-students'],
-    queryFn: () => instructorApi.topStudents(),
-  });
-
-  const { data: activity = [] } = useQuery({
-    queryKey: ['instructor', 'dashboard', 'activity'],
-    queryFn: () => instructorApi.activity(),
-  });
+  const pendingByExam = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const item of queue) map.set(item.examId, (map.get(item.examId) ?? 0) + 1);
+    return map;
+  }, [queue]);
 
   const greetingHour = new Date().getHours();
   const greetingKey = greetingHour < 12 ? 'instructor.dashboard.welcomeGreeting' : 'instructor.dashboard.welcomeTitle';
@@ -63,33 +70,14 @@ const DashboardPage: React.FC = () => {
       </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        <StatCard
-          color="blue"
-          icon={<BookIcon />}
-          value={stats?.courses ?? 0}
-          label={t('instructor.dashboard.stats.courses')}
-          change={`+${stats?.monthly_growth.courses ?? 0}`}
-        />
+        <StatCard color="blue" icon={<ExamIcon />} value={examsLoading ? '—' : exams.length} label={t('instructor.dashboard.stats.exams')} />
+        <StatCard color="orange" icon={<ClockIcon />} value={gradingStats?.pending ?? '—'} label={t('examApi.instructorDashboard.stats.pending')} />
+        <StatCard color="green" icon={<CheckIcon />} value={gradingStats?.graded ?? '—'} label={t('examApi.instructorDashboard.stats.graded')} />
         <StatCard
           color="teal"
-          icon={<UsersIcon />}
-          value={(stats?.students ?? 0).toLocaleString('en-US')}
-          label={t('instructor.dashboard.stats.students')}
-          change={`+${stats?.monthly_growth.students ?? 0}`}
-        />
-        <StatCard
-          color="orange"
-          icon={<ExamIcon />}
-          value={stats?.exams ?? 0}
-          label={t('instructor.dashboard.stats.exams')}
-          change={`+${stats?.monthly_growth.exams ?? 0}`}
-        />
-        <StatCard
-          color="green"
-          icon={<StarIcon />}
-          value={stats?.rating?.toFixed(1) ?? '0.0'}
-          label={t('instructor.dashboard.stats.rating')}
-          change={`+${stats?.monthly_growth.rating ?? 0}`}
+          icon={<ShieldIcon />}
+          value={examsLoading ? '—' : exams.filter(e => e.isProctored).length}
+          label={t('examApi.instructorDashboard.stats.proctored')}
         />
       </section>
 
@@ -102,62 +90,20 @@ const DashboardPage: React.FC = () => {
                 <span>{t('instructor.dashboard.myCourses')}</span>
               </CardTitleWithIcon>
             }
-            action={
-              <Link
-                to="/instructor/courses"
-                className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
-              >
-                {t('instructor.dashboard.viewAll')}
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            }
           >
-            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-              {courses.slice(0, 4).map((course: InstructorCourseRow) => (
-                <li key={course.id} className="py-3 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white flex-shrink-0">
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{course.title}</h3>
-                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      <span>
-                        {course.lessons_count} {t('instructor.dashboard.courseUnit')}
-                      </span>
-                      <span>•</span>
-                      <span>{formatRelative(course.updated_at)}</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 min-w-[120px]">
-                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      {course.enrollments} {t('instructor.dashboard.studentsUnit')}
-                    </span>
-                    <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"
-                        style={{ width: `${course.progress}%` }}
-                      />
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <EmptyState text={t('examApi.instructorDashboard.noCourseApi')} />
           </Card>
 
           <Card
             title={
               <CardTitleWithIcon color="warning">
                 <ExamIcon />
-                <span>{t('instructor.dashboard.upcomingExams')}</span>
+                <span>{t('examApi.instructorDashboard.myExams')}</span>
               </CardTitleWithIcon>
             }
             action={
               <Link
-                to="/instructor/grading"
+                to="/instructor/exams"
                 className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
               >
                 {t('instructor.dashboard.viewAll')}
@@ -167,51 +113,55 @@ const DashboardPage: React.FC = () => {
               </Link>
             }
           >
-            <ul className="space-y-3">
-              {exams.map((exam: InstructorExamRow) => {
-                const isPending = exam.pending_grading > 0;
-                return (
-                  <li
-                    key={exam.id}
-                    className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
-                      <DocumentIcon />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{exam.title}</h3>
-                      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        <span>
-                          {exam.participants} {t('instructor.dashboard.studentsUnit')}
-                        </span>
-                        <span>•</span>
-                        <span>
-                          {exam.pending_grading > 0
-                            ? `${t('instructor.dashboard.pendingGrading')}: ${exam.pending_grading} ${t('instructor.dashboard.courseUnit')}`
-                            : exam.expires_at
-                            ? `${t('instructor.dashboard.expiringSoon')}: ${formatRelative(exam.expires_at)}`
-                            : t('instructor.dashboard.waiting')}
-                        </span>
+            {examsError ? (
+              <EmptyState text={t('common.loadError')} tone="error" />
+            ) : examsLoading ? (
+              <Spinner />
+            ) : exams.length === 0 ? (
+              <EmptyState text={t('examApi.instructorDashboard.noExams')} />
+            ) : (
+              <ul className="space-y-3">
+                {exams.slice(0, 5).map(exam => {
+                  const pending = pendingByExam.get(exam.id) ?? 0;
+                  return (
+                    <li
+                      key={exam.id}
+                      className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
+                        <DocumentIcon />
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <button className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
-                        {t('instructor.dashboard.monitors')}
-                      </button>
-                      <button
-                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                          isPending
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600'
-                        }`}
-                      >
-                        {isPending ? t('instructor.dashboard.gradeNow') : t('instructor.dashboard.results')}
-                      </button>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{exam.title}</h3>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          <span>{t(`student.exams.type.${exam.examType}`)}</span>
+                          <span>•</span>
+                          <span>
+                            {exam.timeLimitMinutes !== null
+                              ? `${exam.timeLimitMinutes} ${t('shared.durationUnit')}`
+                              : t('shared.none')}
+                          </span>
+                          <span>•</span>
+                          <span>{formatRelative(exam.updatedAt)}</span>
+                        </div>
+                      </div>
+                      {pending > 0 ? (
+                        <Link
+                          to="/instructor/grading"
+                          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors flex-shrink-0"
+                        >
+                          {t('examApi.instructorDashboard.pendingCount', { count: pending })}
+                        </Link>
+                      ) : (
+                        <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
+                          {t('examApi.instructorDashboard.noPending')}
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </Card>
         </div>
 
@@ -227,14 +177,14 @@ const DashboardPage: React.FC = () => {
               <QuickAction color="purple" icon={<BookIcon />} href="/instructor/courses/create">
                 {t('instructor.nav.createCourse')}
               </QuickAction>
-              <QuickAction color="teal" icon={<DocumentIcon />} href="/instructor/exams/create">
-                {t('instructor.nav.createExam')}
+              <QuickAction color="teal" icon={<DocumentIcon />} href="/instructor/grading">
+                {t('instructor.grading.title')}
               </QuickAction>
               <QuickAction color="orange" icon={<SparklesIcon />} href="/instructor/ai-question">
                 {t('instructor.dashboard.aiQuestion')}
               </QuickAction>
               <QuickAction color="green" icon={<ChartIcon />} href="/instructor/analytics">
-                {t('instructor.dashboard.export')}
+                {t('instructor.analytics.title')}
               </QuickAction>
             </div>
           </Card>
@@ -247,35 +197,45 @@ const DashboardPage: React.FC = () => {
               </CardTitleWithIcon>
             }
           >
-            <ul className="space-y-3">
-              {topStudents.map((student: InstructorTopStudent) => (
-                <li key={student.id} className="flex items-center gap-3">
-                  <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                      student.rank === 1
-                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
-                        : student.rank === 2
-                        ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200'
-                        : student.rank === 3
-                        ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300'
-                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-                    }`}
-                  >
-                    {student.rank}
-                  </div>
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                    {getInitials(student.full_name)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">
-                      {student.full_name}
-                    </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">{student.course}</div>
-                  </div>
-                  <div className="text-base font-bold text-blue-600 dark:text-blue-400">{student.score}</div>
-                </li>
-              ))}
-            </ul>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{t('examApi.instructorDashboard.leaderboardScope')}</p>
+            {leaderboardError ? (
+              <EmptyState text={t('common.loadError')} tone="error" />
+            ) : leaderboard.length === 0 ? (
+              <EmptyState text={t('common.noData')} />
+            ) : (
+              <ul className="space-y-3">
+                {leaderboard.map(entry => {
+                  const name = entry.displayName ?? entry.userId.slice(0, 8);
+                  return (
+                    <li key={entry.userId} className="flex items-center gap-3">
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                          entry.rank === 1
+                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                            : entry.rank === 2
+                            ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200'
+                            : entry.rank === 3
+                            ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300'
+                            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                        }`}
+                      >
+                        {entry.rank}
+                      </div>
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        {getInitials(name)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">{name}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">
+                          {t('examApi.instructorDashboard.examsCompleted', { count: entry.examsCompleted })}
+                        </div>
+                      </div>
+                      <div className="text-base font-bold text-blue-600 dark:text-blue-400">{entry.score}</div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </Card>
 
           <Card
@@ -286,27 +246,7 @@ const DashboardPage: React.FC = () => {
               </CardTitleWithIcon>
             }
           >
-            <ul className="space-y-3">
-              {activity.map((item: InstructorActivityRow) => (
-                <li key={item.id} className="flex items-start gap-3">
-                  <div className={`mt-1 w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${activityColor(item.type)}`}>
-                    {activityIcon(item.type)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className="text-sm text-slate-700 dark:text-slate-300 leading-snug"
-                      dangerouslySetInnerHTML={{
-                        __html: item.message.replace(
-                          /\*\*(.+?)\*\*/g,
-                          '<strong class="font-semibold text-slate-900 dark:text-white">$1</strong>',
-                        ),
-                      }}
-                    />
-                    <span className="text-xs text-slate-500 dark:text-slate-400">{formatRelative(item.created_at)}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <EmptyState text={t('examApi.instructorDashboard.noActivityApi')} />
           </Card>
         </div>
       </div>
@@ -314,15 +254,30 @@ const DashboardPage: React.FC = () => {
   );
 };
 
+const EmptyState: React.FC<{ text: string; tone?: 'muted' | 'error' }> = ({ text, tone = 'muted' }) => (
+  <div
+    className={`py-6 text-center text-sm ${
+      tone === 'error' ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'
+    }`}
+  >
+    {text}
+  </div>
+);
+
+const Spinner: React.FC = () => (
+  <div className="py-6 text-center">
+    <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+  </div>
+);
+
 interface StatCardProps {
   color: 'blue' | 'teal' | 'orange' | 'green';
   icon: React.ReactNode;
   value: string | number;
   label: string;
-  change: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ color, icon, value, label, change }) => {
+const StatCard: React.FC<StatCardProps> = ({ color, icon, value, label }) => {
   const colorMap: Record<StatCardProps['color'], string> = {
     blue: 'from-blue-500 to-cyan-500',
     teal: 'from-teal-500 to-emerald-500',
@@ -340,12 +295,6 @@ const StatCard: React.FC<StatCardProps> = ({ color, icon, value, label, change }
         <div className="flex-1 min-w-0">
           <div className="text-2xl font-bold text-slate-900 dark:text-white">{value}</div>
           <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{label}</div>
-          <div className="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-2">
-            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <path d="M5 10l7-7m0 0l7 7m-7-7v18" />
-            </svg>
-            {change}
-          </div>
         </div>
       </div>
     </div>
@@ -416,48 +365,6 @@ const QuickAction: React.FC<QuickActionProps> = ({ color, icon, href, children }
   );
 };
 
-const activityColor = (type: 'enrollment' | 'submission' | 'graded' | 'review') => {
-  switch (type) {
-    case 'enrollment':
-      return 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300';
-    case 'submission':
-      return 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300';
-    case 'graded':
-      return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300';
-    case 'review':
-      return 'bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300';
-  }
-};
-
-const activityIcon = (type: 'enrollment' | 'submission' | 'graded' | 'review') => {
-  switch (type) {
-    case 'enrollment':
-      return (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-        </svg>
-      );
-    case 'submission':
-      return (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-      );
-    case 'graded':
-      return (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      );
-    case 'review':
-      return (
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      );
-  }
-};
-
 const getInitials = (name: string) =>
   name.split(' ').filter(Boolean).map(s => s.charAt(0)).slice(0, 2).join('').toUpperCase();
 
@@ -467,23 +374,28 @@ const BookIcon = () => (
   </svg>
 );
 
-const UsersIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-  </svg>
-);
-
 const ExamIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
   </svg>
 );
 
-const StarIcon = () => (
+const ClockIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const ShieldIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
   </svg>
 );
 

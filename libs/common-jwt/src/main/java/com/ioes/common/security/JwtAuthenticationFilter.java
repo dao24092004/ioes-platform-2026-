@@ -100,6 +100,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(principal.getUserId(), null, authorities);
+                // Principal vẫn là UUID như trước; tên và email đi kèm ở details
+                // cho service nào cần (vd content-service chụp tên học viên khi ghi danh).
+                authentication.setDetails(principal);
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception ex) {

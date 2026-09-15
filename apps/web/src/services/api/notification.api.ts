@@ -75,4 +75,35 @@ export function getUserInbox(userId: string): Promise<NotificationRecord[]> {
   return unwrap(apiClient.get<ApiEnvelope<NotificationRecord[]>>(`${BASE}/user/${userId}`));
 }
 
-export const notificationApi = { send, sendTemplated, getUserInbox };
+/** Ánh xạ 1-1 với record `NotificationStatsResponse`. Nhóm trạng thái và nhóm kênh đều cộng lại bằng `total`. */
+export interface NotificationStats {
+  total: number;
+  pending: number;
+  sent: number;
+  failed: number;
+  retrying: number;
+  email: number;
+  push: number;
+  sms: number;
+  inApp: number;
+}
+
+/**
+ * Khớp record `NotificationTemplateResponse`: chỉ có tên — không có trigger,
+ * kênh hay cờ bật/tắt. `name` là giá trị đưa vào `template` khi `sendTemplated`.
+ */
+export interface NotificationTemplate {
+  name: string;
+}
+
+/** Đếm trên toàn bảng nên chỉ admin/super_admin gọi được, người khác nhận 403. */
+export function getStats(): Promise<NotificationStats> {
+  return unwrap(apiClient.get<ApiEnvelope<NotificationStats>>(`${BASE}/stats`));
+}
+
+/** Chỉ admin/super_admin gọi được. */
+export function getTemplates(): Promise<NotificationTemplate[]> {
+  return unwrap(apiClient.get<ApiEnvelope<NotificationTemplate[]>>(`${BASE}/templates`));
+}
+
+export const notificationApi = { send, sendTemplated, getUserInbox, getStats, getTemplates };

@@ -2,10 +2,13 @@ package com.ioes.notification.domain.service;
 
 import com.ioes.common.exception.ApiException;
 import com.ioes.notification.domain.model.Notification;
+import com.ioes.notification.domain.model.NotificationStats;
 import com.ioes.notification.domain.model.NotificationStatus;
+import com.ioes.notification.domain.model.NotificationTemplate;
 import com.ioes.notification.domain.model.NotificationType;
 import com.ioes.notification.domain.port.in.NotificationUseCase;
 import com.ioes.notification.domain.port.out.NotificationRepositoryPort;
+import com.ioes.notification.domain.port.out.NotificationTemplatePort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +32,7 @@ public class NotificationService implements NotificationUseCase {
     public static final int INBOX_LIMIT = 50;
 
     private final NotificationRepositoryPort notificationRepositoryPort;
+    private final NotificationTemplatePort notificationTemplatePort;
     private final EmailSender emailSender;
 
     @Value("${notification.retry.max-attempts:3}")
@@ -99,6 +103,22 @@ public class NotificationService implements NotificationUseCase {
     @Override
     public List<Notification> getUserNotifications(UUID userId) {
         return notificationRepositoryPort.findByUserId(userId, INBOX_LIMIT);
+    }
+
+    @Override
+    public Notification getNotification(UUID id) {
+        return notificationRepositoryPort.findById(id)
+                .orElseThrow(() -> ApiException.notFound("Notification not found: " + id));
+    }
+
+    @Override
+    public NotificationStats stats() {
+        return notificationRepositoryPort.stats();
+    }
+
+    @Override
+    public List<NotificationTemplate> templates() {
+        return notificationTemplatePort.list();
     }
 
     @Override

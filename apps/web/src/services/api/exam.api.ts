@@ -90,7 +90,8 @@ export interface Question {
   explanation: string | null;
   estimatedTimeSeconds: number | null;
   topicId: string;
-  options?: Array<{ id: string; optionText: string; isCorrect?: boolean }>;
+  /** Học viên xem lượt của mình thì backend xoá `isCorrect` khỏi phương án. */
+  options?: Array<{ id: string; optionText: string; isCorrect?: boolean; sortOrder?: number }>;
 }
 
 export interface StartExamResult {
@@ -249,6 +250,170 @@ export function toResultView(attempt: ExamAttempt, exam?: Exam): ResultView {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Nộp bài và chấm bài — `SubmissionController` (`exams/:examId/submissions`)
+// ---------------------------------------------------------------------------
+
+/** Khớp `AnswerSubmissionDto`: câu trắc nghiệm gửi id phương án, câu tự luận gửi văn bản. */
+export interface AnswerSubmission {
+  questionId: string;
+  answerText?: string;
+  selectedOptionIds?: string[];
+}
+
+export interface SubmitExamResult {
+  attemptId: string;
+  submittedAt: string;
+  autoSubmitted: boolean;
+}
+
+export interface GradeResult {
+  score: number;
+  maxScore: number;
+  percentageScore: number;
+  passed: boolean;
+  autoGradedCount: number;
+  manualGradedCount: number;
+  finalGrading: boolean;
+}
+
+/**
+ * `POST /exams/:examId/submissions` — nộp lượt đang làm của người đăng nhập.
+ *
+ * Lưu ý phía backend: `SubmissionController` không gắn `@UseGuards(JwtAuthGuard)`
+ * như `ExamController`, nên `@UserId()` chỉ có giá trị khi có guard nào khác
+ * gắn `request.user`. Nếu service trả "No active attempt ... user=undefined"
+ * thì lỗi nằm ở controller đó, không phải ở payload này.
+ */
+export async function submitExam(
+  examId: string,
+  answers: AnswerSubmission[],
+  isAutoSubmit = false,
+): Promise<SubmitExamResult> {
+  return unwrap(
+    apiClient.post<ApiEnvelope<SubmitExamResult>>(`${EXAMS}/${examId}/submissions`, {
+      answers,
+      isAutoSubmit,
+    }),
+  );
+}
+
+/**
+ * `POST /exams/:examId/submissions/:attemptId/grade` — chấm tự động phần trắc
+ * nghiệm. Controller bỏ qua `manualScores` trong body (`void body`), nên chưa
+ * có cách nhập điểm tay qua API này.
+ */
+export async function gradeAttempt(examId: string, attemptId: string): Promise<GradeResult> {
+  const raw = await unwrap(
+    apiClient.post<ApiEnvelope<GradeResult>>(
+      `${EXAMS}/${examId}/submissions/${attemptId}/grade`,
+      {},
+    ),
+  );
+  return {
+    ...raw,
+    score: toNumber(raw.score) ?? 0,
+    maxScore: toNumber(raw.maxScore) ?? 0,
+    percentageScore: toNumber(raw.percentageScore) ?? 0,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Giám sát của admin và hàng đợi chấm — nhánh `feature/exam-admin-oversight`
+// ---------------------------------------------------------------------------
+
+/** Khớp `AdminExamRow`. Chỉ có id khoá học / giảng viên, không có tên. */
+export interface AdminExamRow {
+  id: string;
+  title: string;
+  courseId: string | null;
+  instructorId: string;
+  examType: ExamType;
+  timeLimitMinutes: number | null;
+  passingScore: number | null;
+  participants: number;
+  gradedAttempts: number;
+  /** Phần trăm, null khi chưa chấm xong bài nào. */
+  avgScore: number | null;
+  createdAt: string;
+}
+
+/**
+ * Khớp `AdminExamStats`. Không có ô "đáng ngờ": vi phạm giám thị chỉ nằm
+ * trong Redis theo từng phiên, backend không gộp được.
+ */
+export interface AdminExamStats {
+  totalExams: number;
+  totalAttempts: number;
+  inProgress: number;
+  awaitingGrading: number;
+  graded: number;
+  passed: number;
+  passRate: number | null;
+  avgScore: number | null;
+}
+
+/** Khớp `GradingQueueItem`. Chỉ có `userId`, không có tên học viên. */
+export interface GradingQueueItem {
+  attemptId: string;
+  examId: string;
+  userId: string;
+  submittedAt: string | null;
+  waitingSeconds: number | null;
+  score: number | null;
+  maxScore: number | null;
+}
+
+/** Khớp `GradingQueueStats`. */
+export interface GradingQueueStats {
+  pending: number;
+  graded: number;
+  oldestPendingSubmittedAt: string | null;
+}
+
+/** `GET /exams/admin/overview` — chỉ ADMIN. */
+export async function getAdminOverview(): Promise<AdminExamRow[]> {
+  const rows = await unwrap(apiClient.get<ApiEnvelope<AdminExamRow[]>>(`${EXAMS}/admin/overview`));
+  return rows.map(row => ({
+    ...row,
+    passingScore: toNumber(row.passingScore),
+    avgScore: toNumber(row.avgScore),
+  }));
+}
+
+/** `GET /exams/admin/stats` — chỉ ADMIN. */
+export async function getAdminStats(): Promise<AdminExamStats> {
+  const stats = await unwrap(apiClient.get<ApiEnvelope<AdminExamStats>>(`${EXAMS}/admin/stats`));
+  return { ...stats, passRate: toNumber(stats.passRate), avgScore: toNumber(stats.avgScore) };
+}
+
+/**
+ * `GET /exams/grading/queue` — bài đã nộp còn chờ chấm, cũ nhất trước.
+ * Giảng viên chỉ thấy bài của đề mình tạo; admin thấy toàn bộ.
+ */
+export async function getGradingQueue(limit = 50): Promise<GradingQueueItem[]> {
+  const items = await unwrap(
+    apiClient.get<ApiEnvelope<GradingQueueItem[]>>(`${EXAMS}/grading/queue`, { params: { limit } }),
+  );
+  return items.map(item => ({
+    ...item,
+    score: toNumber(item.score),
+    maxScore: toNumber(item.maxScore),
+  }));
+}
+
+/** `GET /exams/grading/stats`. */
+export function getGradingStats(): Promise<GradingQueueStats> {
+  return unwrap(apiClient.get<ApiEnvelope<GradingQueueStats>>(`${EXAMS}/grading/stats`));
+}
+
+/*
+ * Không bọc `/api/v1/exam-attempts/**` (exam-session): controller đó chỉ gắn
+ * `DevAuthBypassGuard`, guard này trả `false` khi `DEV_AUTH_BYPASS` khác
+ * `'true'`, nên mọi request mang JWT thật đều bị 403. Lưu đáp án từng câu và
+ * báo cáo giám thị chỉ dùng được sau khi controller đó đổi sang JwtAuthGuard.
+ */
+
 export const examApi = {
   listExams,
   getExam,
@@ -256,6 +421,12 @@ export const examApi = {
   listAttempts,
   getAttempt,
   cancelAttempt,
+  submitExam,
+  gradeAttempt,
+  getAdminOverview,
+  getAdminStats,
+  getGradingQueue,
+  getGradingStats,
   toStudentExamView,
   toResultView,
 };

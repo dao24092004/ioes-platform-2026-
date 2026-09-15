@@ -1,5 +1,6 @@
 package com.ioes.content.interfaces.rest;
 
+import com.ioes.common.dto.UserPrincipal;
 import com.ioes.content.domain.exception.ContentAccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -44,6 +45,18 @@ final class Caller {
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
                 .orElse("");
+    }
+
+    /**
+     * Tên, email và vai trò trong token, do JwtAuthenticationFilter gắn vào
+     * {@code details}. Token không mang claim nào thì các trường đó là null.
+     */
+    static UserPrincipal principal() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getDetails() instanceof UserPrincipal principal) {
+            return principal;
+        }
+        return UserPrincipal.builder().userId(id()).build();
     }
 
     static boolean isAdmin() {

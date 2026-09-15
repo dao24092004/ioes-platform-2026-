@@ -4,16 +4,26 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import InstructorLayout from '@/components/layout/InstructorLayout';
 import PaginationBar from '@/components/common/PaginationBar';
-import { instructorApi, type InstructorCourseRow } from '@/services/api';
+import { contentApi, courseStat, type Course } from '@/services/api/content.api';
 import { formatRelative } from '@/utils/time';
 
 type StatusFilter = 'all' | 'draft' | 'published' | 'archived';
 type SortBy = 'recent' | 'enrollments' | 'title';
 
+/** Backend chặn 100 bản ghi mỗi trang; giảng viên hiếm khi có nhiều hơn thế. */
+const MAX_COURSES = 100;
+
 const statusStyles: Record<string, { bg: string; text: string; dot: string }> = {
   draft: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400', dot: 'bg-slate-400' },
   published: { bg: 'bg-emerald-50 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
   archived: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' },
+};
+
+const reviewStyles: Record<string, string> = {
+  none: 'text-slate-500 dark:text-slate-400',
+  pending: 'text-amber-600 dark:text-amber-400',
+  approved: 'text-emerald-600 dark:text-emerald-400',
+  rejected: 'text-red-600 dark:text-red-400',
 };
 
 const CoursesPage: React.FC = () => {
@@ -24,23 +34,35 @@ const CoursesPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const { data: courses = [], isLoading } = useQuery({
-    queryKey: ['instructor', 'courses', 'list'],
-    queryFn: () => instructorApi.myCourses(),
+  // `mine=true` lấy id từ token, nên không thể xem nhầm khoá của người khác.
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['content', 'courses', 'mine'],
+    queryFn: () => contentApi.listCourses({ mine: true, perPage: MAX_COURSES }),
   });
+  const courses = useMemo(() => data?.data ?? [], [data]);
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['content', 'categories'],
+    queryFn: () => contentApi.listCategories(),
+    staleTime: 5 * 60_000,
+  });
+  const categoryName = useMemo(() => {
+    const byId = new Map(categories.map(c => [c.id, c.name]));
+    return (id: string | null) => (id ? byId.get(id) : undefined) ?? t('courseApi.uncategorized');
+  }, [categories, t]);
 
   const filtered = useMemo(() => {
     let arr = courses;
-    if (status !== 'all') arr = arr.filter((c: InstructorCourseRow) => c.status === status);
+    if (status !== 'all') arr = arr.filter((c: Course) => c.status === status);
     if (search.trim()) {
       const q = search.toLowerCase();
-      arr = arr.filter((c: InstructorCourseRow) => c.title.toLowerCase().includes(q) || c.category.toLowerCase().includes(q));
+      arr = arr.filter((c: Course) => c.title.toLowerCase().includes(q) || categoryName(c.categoryId).toLowerCase().includes(q));
     }
-    if (sort === 'enrollments') arr = [...arr].sort((a, b) => b.enrollments - a.enrollments);
+    if (sort === 'enrollments') arr = [...arr].sort((a, b) => (courseStat(b, 'enrollments') ?? 0) - (courseStat(a, 'enrollments') ?? 0));
     else if (sort === 'title') arr = [...arr].sort((a, b) => a.title.localeCompare(b.title));
-    else arr = [...arr].sort((a, b) => +new Date(b.updated_at) - +new Date(a.updated_at));
+    else arr = [...arr].sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt));
     return arr;
-  }, [courses, status, search, sort]);
+  }, [courses, status, search, sort, categoryName]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
@@ -53,12 +75,12 @@ const CoursesPage: React.FC = () => {
   }, [status, search, sort, pageSize]);
 
   const totals = useMemo(() => {
-    const total = courses.length;
-    const published = courses.filter((c: InstructorCourseRow) => c.status === 'published').length;
-    const drafts = courses.filter((c: InstructorCourseRow) => c.status === 'draft').length;
-    const students = courses.reduce((acc: number, c: InstructorCourseRow) => acc + c.enrollments, 0);
+    const total = data?.meta.total ?? courses.length;
+    const published = courses.filter((c: Course) => c.status === 'published').length;
+    const drafts = courses.filter((c: Course) => c.status === 'draft').length;
+    const students = courses.reduce((acc: number, c: Course) => acc + (courseStat(c, 'enrollments') ?? 0), 0);
     return { total, published, drafts, students };
-  }, [courses]);
+  }, [courses, data]);
 
   return (
     <InstructorLayout
@@ -131,6 +153,8 @@ const CoursesPage: React.FC = () => {
           <div className="p-12 text-center">
             <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
           </div>
+        ) : isError ? (
+          <div className="p-12 text-center text-sm text-red-600">{t('common.loadError')}</div>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
             <div className="w-14 h-14 mx-auto mb-3 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
@@ -146,13 +170,19 @@ const CoursesPage: React.FC = () => {
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {paged.map((c: InstructorCourseRow) => {
+            {paged.map((c: Course) => {
               const ss = statusStyles[c.status] ?? statusStyles.draft;
+              const review = c.reviewStatus ?? 'none';
+              const enrollments = courseStat(c, 'enrollments');
               return (
                 <div key={c.id} className="px-6 py-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white flex-shrink-0">
-                    <BookSvg />
-                  </div>
+                  {c.thumbnailUrl ? (
+                    <img src={c.thumbnailUrl} alt={c.title} loading="lazy" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white flex-shrink-0">
+                      <BookSvg />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-sm font-semibold truncate">{c.title}</h3>
@@ -160,25 +190,27 @@ const CoursesPage: React.FC = () => {
                         <span className={`w-1.5 h-1.5 rounded-full ${ss.dot}`} />
                         {t(`instructor.courses.status.${c.status}`)}
                       </span>
+                      <span className={`text-[11px] font-semibold ${reviewStyles[review]}`}>
+                        {t(`courseApi.reviewStatus.${review}`)}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                       <span className="inline-flex items-center gap-1">
-                        <TagSvg /> {c.category}
+                        <TagSvg /> {categoryName(c.categoryId)}
                       </span>
+                      {enrollments !== null && (
+                        <>
+                          <span>•</span>
+                          <span>{enrollments.toLocaleString('en-US')} {t('instructor.courses.studentsUnit')}</span>
+                        </>
+                      )}
                       <span>•</span>
-                      <span>{c.lessons_count} {t('instructor.courses.lessons')}</span>
-                      <span>•</span>
-                      <span>{c.enrollments.toLocaleString('en-US')} {t('instructor.courses.studentsUnit')}</span>
-                      <span>•</span>
-                      <span>{t('instructor.courses.updated')} {formatRelative(c.updated_at)}</span>
+                      <span>{t('instructor.courses.updated')} {formatRelative(c.updatedAt)}</span>
                     </div>
-                    {c.status === 'published' && c.progress > 0 && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="flex-1 max-w-xs h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all" style={{ width: `${c.progress}%` }} />
-                        </div>
-                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{c.progress}%</span>
-                      </div>
+                    {c.reviewStatus === 'rejected' && c.rejectionReason && (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-400 line-clamp-1">
+                        {t('admin.approval.rejectionReason')}: {c.rejectionReason}
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
@@ -188,13 +220,6 @@ const CoursesPage: React.FC = () => {
                     >
                       {t('instructor.courses.edit')}
                     </Link>
-                    <Link
-                      to={`/instructor/courses/${c.id}/edit`}
-                      className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors"
-                      title={t('instructor.courses.viewStats')}
-                    >
-                      <ChartSvg />
-                    </Link>
                   </div>
                 </div>
               );
@@ -202,7 +227,7 @@ const CoursesPage: React.FC = () => {
           </div>
         )}
 
-        {!isLoading && filtered.length > 0 && (
+        {!isLoading && !isError && filtered.length > 0 && (
           <PaginationBar
             i18nKey="instructor.courses"
             page={safePage}
@@ -267,11 +292,6 @@ const TagSvg = () => (
   <svg className="w-3 h-3 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
     <line x1="7" y1="7" x2="7.01" y2="7" />
-  </svg>
-);
-const ChartSvg = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M3 3v18h18M9 17V9m4 8V5m4 12v-6" />
   </svg>
 );
 

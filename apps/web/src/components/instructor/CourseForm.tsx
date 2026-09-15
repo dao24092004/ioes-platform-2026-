@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
+import { contentApi, type LessonType } from '@/services/api/content.api';
 
-export type CoursePricingModel = 'free' | 'paid' | 'subscription';
-export type CourseLevel = 1 | 2 | 3;
+/** Backend chỉ có giá (`price`), không có gói subscription. */
+export type CoursePricingModel = 'free' | 'paid';
+/** Khớp ràng buộc `difficulty_level BETWEEN 1 AND 5` của bảng courses. */
+export type CourseLevel = 1 | 2 | 3 | 4 | 5;
 
 export interface LessonDraft {
   id: string;
   title: string;
-  type: 'video' | 'document' | 'quiz';
+  type: LessonType;
   duration: string;
 }
 
@@ -21,9 +25,11 @@ export interface CourseFormData {
   title: string;
   shortDescription: string;
   fullDescription: string;
+  /** Id danh mục thật, lấy từ `GET /api/v1/categories`. */
   category: string;
   level: CourseLevel;
-  tags: string[];
+  /** Backend chưa có API upload ảnh, nên nhận URL ảnh có sẵn. */
+  thumbnailUrl: string;
   chapters: ChapterDraft[];
   pricingModel: CoursePricingModel;
   price: string;
@@ -36,16 +42,8 @@ export interface CourseFormProps {
   submitLabel?: string;
 }
 
-const CATEGORIES = [
-  { value: 'web', label: 'Web Development' },
-  { value: 'mobile', label: 'Mobile Development' },
-  { value: 'ai', label: 'AI / Machine Learning' },
-  { value: 'data', label: 'Data Science' },
-  { value: 'design', label: 'UI/UX Design' },
-  { value: 'cloud', label: 'Cloud Computing' },
-  { value: 'security', label: 'Cybersecurity' },
-  { value: 'blockchain', label: 'Blockchain' },
-];
+const LEVELS: CourseLevel[] = [1, 2, 3, 4, 5];
+const LESSON_TYPES: LessonType[] = ['video', 'document', 'quiz', 'assignment', 'live'];
 
 const newChapter = (): ChapterDraft => ({
   id: `ch-${Math.random().toString(36).slice(2, 9)}`,
@@ -69,26 +67,13 @@ const CourseForm: React.FC<CourseFormProps> = ({ initialData, onSubmit, isSubmit
     fullDescription: initialData?.fullDescription ?? '',
     category: initialData?.category ?? '',
     level: initialData?.level ?? 1,
-    tags: initialData?.tags ?? [],
+    thumbnailUrl: initialData?.thumbnailUrl ?? '',
     chapters: initialData?.chapters ?? [newChapter()],
     pricingModel: initialData?.pricingModel ?? 'free',
     price: initialData?.price ?? '',
   });
 
-  const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState<Partial<Record<keyof CourseFormData, string>>>({});
-
-  const handleAddTag = () => {
-    const trimmed = tagInput.trim();
-    if (trimmed && data.tags.length < 5 && !data.tags.includes(trimmed)) {
-      setData({ ...data, tags: [...data.tags, trimmed] });
-      setTagInput('');
-    }
-  };
-
-  const handleRemoveTag = (idx: number) => {
-    setData({ ...data, tags: data.tags.filter((_, i) => i !== idx) });
-  };
 
   const handleAddChapter = () => {
     setData({ ...data, chapters: [...data.chapters, newChapter()] });
@@ -171,15 +156,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ initialData, onSubmit, isSubmit
       <Stepper step={step} setStep={setStep} />
 
       {step === 1 && (
-        <BasicInfoStep
-          data={data}
-          setData={setData}
-          errors={errors}
-          tagInput={tagInput}
-          setTagInput={setTagInput}
-          onAddTag={handleAddTag}
-          onRemoveTag={handleRemoveTag}
-        />
+        <BasicInfoStep data={data} setData={setData} errors={errors} />
       )}
 
       {step === 2 && (
@@ -280,22 +257,15 @@ interface BasicInfoStepProps {
   data: CourseFormData;
   setData: (data: CourseFormData) => void;
   errors: Partial<Record<keyof CourseFormData, string>>;
-  tagInput: string;
-  setTagInput: (v: string) => void;
-  onAddTag: () => void;
-  onRemoveTag: (idx: number) => void;
 }
 
-const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
-  data,
-  setData,
-  errors,
-  tagInput,
-  setTagInput,
-  onAddTag,
-  onRemoveTag,
-}) => {
+const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ data, setData, errors }) => {
   const { t } = useTranslation();
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    queryKey: ['content', 'categories'],
+    queryFn: contentApi.listCategories,
+    staleTime: 5 * 60_000,
+  });
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5">
       <h2 className="text-base font-bold text-slate-900 dark:text-white">{t('instructor.course.info.title')}</h2>
@@ -340,11 +310,12 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
             value={data.category}
             onChange={e => setData({ ...data, category: e.target.value })}
             className="input-base"
+            disabled={categoriesLoading}
           >
             <option value="">{t('instructor.course.info.selectCategory')}</option>
-            {CATEGORIES.map(c => (
-              <option key={c.value} value={c.value}>
-                {c.label}
+            {categories.map(c => (
+              <option key={c.id} value={c.id}>
+                {c.name}
               </option>
             ))}
           </select>
@@ -356,59 +327,31 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
             onChange={e => setData({ ...data, level: Number(e.target.value) as CourseLevel })}
             className="input-base"
           >
-            <option value={1}>{t('instructor.course.levelOptions.beginner')}</option>
-            <option value={2}>{t('instructor.course.levelOptions.intermediate')}</option>
-            <option value={3}>{t('instructor.course.levelOptions.advanced')}</option>
+            {LEVELS.map(level => (
+              <option key={level} value={level}>
+                {t(`courseApi.level.${level}`)}
+              </option>
+            ))}
           </select>
         </Field>
       </div>
 
       <Field label={t('instructor.course.info.thumbnail')}>
-        <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-6 text-center hover:border-blue-400 transition-colors cursor-pointer">
-          <svg className="w-10 h-10 text-slate-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            {t('instructor.course.info.uploadHint')}{' '}
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">
-              {t('instructor.course.info.uploadClick')}
-            </span>
-          </p>
-          <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">{t('instructor.course.info.uploadSpec')}</p>
-        </div>
-      </Field>
-
-      <Field label={t('instructor.course.tags.title')} hint={t('instructor.course.tags.hint')}>
-        <div className="input-base flex flex-wrap gap-2 items-center py-2">
-          {data.tags.map((tag, idx) => (
-            <span
-              key={idx}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold"
-            >
-              {tag}
-              <button
-                type="button"
-                onClick={() => onRemoveTag(idx)}
-                className="hover:text-blue-900 dark:hover:text-blue-100"
-              >
-                ×
-              </button>
-            </span>
-          ))}
-          <input
-            type="text"
-            value={tagInput}
-            onChange={e => setTagInput(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                onAddTag();
-              }
-            }}
-            placeholder={data.tags.length === 0 ? t('instructor.course.tags.placeholder') : ''}
-            className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-sm"
+        <input
+          type="url"
+          maxLength={500}
+          value={data.thumbnailUrl}
+          onChange={e => setData({ ...data, thumbnailUrl: e.target.value })}
+          placeholder="https://"
+          className="input-base"
+        />
+        {data.thumbnailUrl.trim() && (
+          <img
+            src={data.thumbnailUrl.trim()}
+            alt={data.title}
+            className="mt-3 w-full max-w-sm aspect-video object-cover rounded-xl border border-slate-200 dark:border-slate-700"
           />
-        </div>
+        )}
       </Field>
     </div>
   );
@@ -484,9 +427,11 @@ const CurriculumStep: React.FC<CurriculumStepProps> = ({
                     onChange={e => onUpdateLesson(chapter.id, lesson.id, 'type', e.target.value)}
                     className="input-base !w-auto text-xs py-2"
                   >
-                    <option value="video">Video</option>
-                    <option value="document">Doc</option>
-                    <option value="quiz">Quiz</option>
+                    {LESSON_TYPES.map(type => (
+                      <option key={type} value={type}>
+                        {t(`courseApi.lessonType.${type}`)}
+                      </option>
+                    ))}
                   </select>
                   <input
                     type="text"
@@ -543,7 +488,7 @@ const PricingStep: React.FC<PricingStepProps> = ({ data, setData, errors }) => {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5">
       <h2 className="text-base font-bold text-slate-900 dark:text-white">{t('instructor.course.pricing.title')}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <PricingCard
           selected={data.pricingModel === 'free'}
           onClick={() => setData({ ...data, pricingModel: 'free' })}
@@ -560,30 +505,19 @@ const PricingStep: React.FC<PricingStepProps> = ({ data, setData, errors }) => {
           desc={t('instructor.course.pricing.paidDesc')}
           icon={<DollarIcon />}
         />
-        <PricingCard
-          selected={data.pricingModel === 'subscription'}
-          onClick={() => setData({ ...data, pricingModel: 'subscription' })}
-          color="purple"
-          title={t('instructor.course.pricing.subscription')}
-          desc={t('instructor.course.pricing.subscriptionDesc')}
-          icon={<CrownIcon />}
-        />
       </div>
 
       {data.pricingModel === 'paid' && (
-        <Field label="Price (USD)" error={errors.price} required>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={data.price}
-              onChange={e => setData({ ...data, price: e.target.value })}
-              className="input-base pl-7"
-              placeholder="99.00"
-            />
-          </div>
+        <Field label={`${t('instructor.course.pricing.paid')} (VND)`} error={errors.price} required>
+          <input
+            type="number"
+            min="0"
+            step="1000"
+            value={data.price}
+            onChange={e => setData({ ...data, price: e.target.value })}
+            className="input-base"
+            placeholder="499000"
+          />
         </Field>
       )}
     </div>
@@ -593,7 +527,7 @@ const PricingStep: React.FC<PricingStepProps> = ({ data, setData, errors }) => {
 interface PricingCardProps {
   selected: boolean;
   onClick: () => void;
-  color: 'emerald' | 'blue' | 'purple';
+  color: 'emerald' | 'blue';
   title: string;
   desc: string;
   icon: React.ReactNode;
@@ -603,7 +537,6 @@ const PricingCard: React.FC<PricingCardProps> = ({ selected, onClick, color, tit
   const colorMap: Record<PricingCardProps['color'], string> = {
     emerald: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-300',
     blue: 'text-blue-600 bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300',
-    purple: 'text-purple-600 bg-purple-100 dark:bg-purple-900/40 dark:text-purple-300',
   };
   return (
     <button
@@ -652,12 +585,6 @@ const DollarIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <line x1="12" y1="1" x2="12" y2="23" />
     <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-  </svg>
-);
-
-const CrownIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M2 20h20M5 20V8l4 4 3-7 3 7 4-4v12" />
   </svg>
 );
 

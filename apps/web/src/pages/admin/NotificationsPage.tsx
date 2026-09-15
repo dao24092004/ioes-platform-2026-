@@ -2,17 +2,20 @@ import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import AdminLayout from '@/components/layout/AdminLayout';
-import { notificationsApi, type NotifChannel, type NotifTemplate } from '@/services/api';
 import {
   notificationApi,
   type NotificationRecord,
   type NotificationStatus,
+  type NotificationTemplate,
   type NotificationType,
 } from '@/services/api/notification.api';
 import { useAuthStore } from '@/app/store/authStore';
 import { ApiError } from '@/config/api.config';
 import { formatRelative } from '@/utils/time';
 import { ANIMATION, TEST_IDS } from '@/constants/ui';
+
+/** Kênh hiển thị trên giao diện gửi thông báo. */
+type NotifChannel = 'inApp' | 'email' | 'push';
 
 /**
  * Kênh hiển thị trên giao diện sang enum `NotificationType` phía Java. Sai
@@ -58,12 +61,6 @@ const channelIcons: Record<NotifChannel, React.ReactNode> = {
   push: <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 01-3.46 0" /></svg>,
 };
 
-const channelStyles: Record<NotifChannel, { bg: string; text: string }> = {
-  inApp: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400' },
-  email: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400' },
-  push: { bg: 'bg-purple-50 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400' },
-};
-
 const NotificationsPage: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuthStore();
@@ -76,12 +73,10 @@ const NotificationsPage: React.FC = () => {
   const [sentFlash, setSentFlash] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
-  // Thống kê và mẫu vẫn là dữ liệu giả: `stats`/`templates` chưa có endpoint
-  // nào cả. Hộp thư gọi thật `GET /notifications/user/{userId}` — bằng id
-  // của chính người admin đang đăng nhập, vì backend chỉ cho đọc hộp thư của
-  // mình (admin đọc được của người khác, nhưng trang này không có ô chọn
-  // người dùng để làm việc đó).
-  const { data: stats } = useQuery({ queryKey: ['notif', 'stats'], queryFn: () => notificationsApi.stats() });
+  // Thống kê (`/notifications/stats`) đếm trên toàn bảng; hộp thư gọi
+  // `GET /notifications/user/{userId}` bằng id của chính admin đang đăng nhập
+  // vì trang này không có ô chọn người dùng.
+  const { data: stats } = useQuery({ queryKey: ['notif', 'stats'], queryFn: () => notificationApi.getStats() });
   const {
     data: inbox,
     isLoading: isInboxLoading,
@@ -91,7 +86,10 @@ const NotificationsPage: React.FC = () => {
     queryFn: () => notificationApi.getUserInbox(user!.id),
     enabled: Boolean(user?.id),
   });
-  const { data: templates } = useQuery({ queryKey: ['notif', 'templates'], queryFn: () => notificationsApi.templates() });
+  const { data: templates, isLoading: isTemplatesLoading } = useQuery({
+    queryKey: ['notif', 'templates'],
+    queryFn: () => notificationApi.getTemplates(),
+  });
 
   const filtered = useMemo(() => {
     const arr = inbox ?? [];
@@ -137,17 +135,17 @@ const NotificationsPage: React.FC = () => {
   };
 
   const statCards = [
-    { value: stats?.sent24h ?? 0, label: t('notificationsAdmin.stats.sent24h'), color: 'blue' },
-    { value: stats?.unread ?? 0, label: t('notificationsAdmin.stats.unread'), color: 'amber' },
-    { value: stats?.templates ?? 0, label: t('notificationsAdmin.stats.templates'), color: 'emerald' },
-    { value: stats?.subscribers ?? 0, label: t('notificationsAdmin.stats.subscribers'), color: 'purple' },
+    { value: stats?.total ?? 0, label: t('shared.total'), color: 'blue' },
+    { value: stats?.pending ?? 0, label: t('notificationsAdmin.inbox.filters.pending'), color: 'amber' },
+    { value: stats?.sent ?? 0, label: t('notificationsAdmin.inbox.filters.sent'), color: 'emerald' },
+    { value: stats?.failed ?? 0, label: t('notificationsAdmin.inbox.filters.failed'), color: 'red' },
   ];
 
   const colorMap: Record<string, string> = {
     blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
     amber: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
     emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
-    purple: 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+    red: 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400',
   };
 
   const filterKeys: Array<typeof filter> = ['all', 'pending', 'sent', 'failed', 'retrying'];
@@ -264,56 +262,34 @@ const NotificationsPage: React.FC = () => {
             </div>
           </div>
 
+          {/* `NotificationTemplateResponse` chỉ có tên: không có trigger, kênh, cờ bật/tắt hay endpoint sửa. */}
           <div
             data-testid={TEST_IDS.TEMPLATE_ROW}
             className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]"
             style={{ animationDelay: `${3 * ANIMATION.STAGGER_DURATION_S}s` }}
           >
-            <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
+            <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <h2 className="text-base font-semibold">{t('notificationsAdmin.templates.title')}</h2>
+              <span className="text-xs text-slate-500 tabular-nums">{templates?.length ?? 0}</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase tracking-wider text-slate-500">
                     <th className="text-left px-6 py-3 font-semibold">{t('notificationsAdmin.templates.name')}</th>
-                    <th className="text-left px-6 py-3 font-semibold">{t('notificationsAdmin.templates.trigger')}</th>
-                    <th className="text-left px-6 py-3 font-semibold">{t('notificationsAdmin.templates.channel')}</th>
-                    <th className="text-left px-6 py-3 font-semibold">{t('notificationsAdmin.templates.active')}</th>
-                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {(templates ?? []).map((tpl: NotifTemplate) => {
-                    const ch = channelStyles[tpl.channel];
-                    return (
-                      <tr key={tpl.id} className="border-t border-slate-100 dark:border-slate-800 transition-all hover:bg-blue-50/50 dark:hover:bg-blue-900/10">
-                        <td className="px-6 py-3 text-sm font-semibold">{tpl.name}</td>
-                        <td className="px-6 py-3"><code className="text-xs font-mono px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded">{tpl.trigger}</code></td>
-                        <td className="px-6 py-3">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold ${ch.bg} ${ch.text}`}>
-                            {channelIcons[tpl.channel]}
-                            {t(`shared.channelShort.${tpl.channel}`)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-3">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                            tpl.active
-                              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${tpl.active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
-                            {tpl.active ? t('shared.on') : t('shared.off')}
-                          </span>
-                        </td>
-                        <td className="px-6 py-3 text-right">
-                          <button className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline transition-all">
-                            {t('notificationsAdmin.templates.edit')}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {!isTemplatesLoading && (templates ?? []).length === 0 && (
+                    <tr><td className="px-6 py-8 text-center text-sm text-slate-500">{t('common.noData')}</td></tr>
+                  )}
+                  {(templates ?? []).map((tpl: NotificationTemplate) => (
+                    <tr key={tpl.name} className="border-t border-slate-100 dark:border-slate-800 transition-all hover:bg-blue-50/50 dark:hover:bg-blue-900/10">
+                      <td className="px-6 py-3">
+                        <code className="text-xs font-mono px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded">{tpl.name}</code>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

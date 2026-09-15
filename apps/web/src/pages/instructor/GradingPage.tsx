@@ -1,174 +1,138 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import InstructorLayout from '@/components/layout/InstructorLayout';
-import { instructorApi, type GradingSession } from '@/services/api';
+import { examApi, type GradeResult, type GradingQueueItem } from '@/services/api/exam.api';
 import { formatRelative } from '@/utils/time';
 
-type FilterStatus = 'all' | 'clean' | 'warning' | 'flagged';
-
+/**
+ * Hàng đợi chấm bài — `GET /exams/grading/stats`, `/exams/grading/queue` và
+ * `POST /exams/:examId/submissions/:attemptId/grade`.
+ *
+ * Bảng cũ có điểm tập trung, số vi phạm và trạng thái clean/warning/flagged
+ * cho từng phiên; backend không lưu mấy số đó xuống bảng (vi phạm chỉ nằm
+ * trong Redis) nên đã bỏ. Hàng đợi chỉ trả `userId`, chưa có tên học viên.
+ */
 const GradingPage: React.FC = () => {
   const { t } = useTranslation();
-  const [filter, setFilter] = useState<FilterStatus>('all');
+  const queryClient = useQueryClient();
 
-  const { data: stats } = useQuery({
-    queryKey: ['instructor', 'grading', 'stats'],
-    queryFn: () => instructorApi.gradingStats(),
+  const { data: stats, isError: statsError } = useQuery({
+    queryKey: ['exams', 'grading', 'stats'],
+    queryFn: () => examApi.getGradingStats(),
   });
-
-  const { data: sessions = [] } = useQuery({
-    queryKey: ['instructor', 'grading', 'sessions'],
-    queryFn: () => instructorApi.gradingSessions(),
+  const { data: queue = [], isLoading, isError } = useQuery({
+    queryKey: ['exams', 'grading', 'queue'],
+    queryFn: () => examApi.getGradingQueue(),
   });
+  // Tên đề lấy từ danh sách đề giảng viên nhìn thấy; hàng đợi chỉ có examId.
+  const { data: exams = [] } = useQuery({
+    queryKey: ['instructor', 'exams', 'list'],
+    queryFn: () => examApi.listExams(),
+  });
+  const titleById = useMemo(() => new Map(exams.map(e => [e.id, e.title])), [exams]);
 
-  const filtered = useMemo(
-    () => (filter === 'all' ? sessions : sessions.filter((s: GradingSession) => s.status === filter)),
-    [filter, sessions],
-  );
+  const grade = useMutation<GradeResult, Error, GradingQueueItem>({
+    mutationFn: item => examApi.gradeAttempt(item.examId, item.attemptId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['exams', 'grading'] });
+    },
+  });
 
   return (
-    <InstructorLayout
-      title={t('instructor.grading.title')}
-      subtitle={t('instructor.grading.subtitle')}
-      headerActions={
-        <button className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition-colors">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          {t('instructor.grading.export')}
-        </button>
-      }
-    >
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    <InstructorLayout title={t('instructor.grading.title')} subtitle={t('instructor.grading.subtitle')}>
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <StatBox color="amber" value={stats?.pending ?? '—'} label={t('examApi.grading.stats.pending')} />
+        <StatBox color="emerald" value={stats?.graded ?? '—'} label={t('examApi.grading.stats.graded')} />
         <StatBox
           color="blue"
-          value={stats?.total ?? 0}
-          label={t('instructor.grading.stats.total')}
-        />
-        <StatBox
-          color="emerald"
-          value={stats?.clean ?? 0}
-          label={t('instructor.grading.stats.clean')}
-        />
-        <StatBox
-          color="amber"
-          value={stats?.warning ?? 0}
-          label={t('instructor.grading.stats.warning')}
-        />
-        <StatBox
-          color="rose"
-          value={`${stats?.avgAttention ?? 0}%`}
-          label={t('instructor.grading.stats.attention')}
+          value={stats?.oldestPendingSubmittedAt ? formatRelative(stats.oldestPendingSubmittedAt) : t('shared.none')}
+          label={t('examApi.grading.stats.oldestPending')}
         />
       </section>
 
+      {(statsError || isError) && (
+        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400">
+          {t('common.loadError')}
+        </div>
+      )}
+
+      {grade.isError && (
+        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400">
+          {t('examApi.grading.gradeError', { message: grade.error.message })}
+        </div>
+      )}
+      {grade.isSuccess && (
+        <div className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-sm text-emerald-700 dark:text-emerald-300">
+          {t('examApi.grading.gradeSuccess', {
+            score: grade.data.score,
+            max: grade.data.maxScore,
+            pct: grade.data.percentageScore.toFixed(1),
+          })}
+        </div>
+      )}
+
       <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h2 className="text-base font-bold text-slate-900 dark:text-white">
-            {t('instructor.grading.sessionList')}
-          </h2>
-          <div className="flex items-center gap-2 flex-wrap">
-            {(['all', 'clean', 'warning', 'flagged'] as FilterStatus[]).map(status => (
-              <button
-                key={status}
-                type="button"
-                onClick={() => setFilter(status)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-                  filter === status
-                    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                {t(`instructor.grading.filters.${status}`)}
-              </button>
-            ))}
-          </div>
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white">{t('examApi.grading.queueTitle')}</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('examApi.grading.note')}</p>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               <tr>
-                <th className="text-left px-5 py-3">{t('instructor.grading.table.student')}</th>
-                <th className="text-left px-5 py-3">{t('instructor.grading.table.time')}</th>
-                <th className="text-left px-5 py-3">{t('instructor.grading.table.attention')}</th>
-                <th className="text-left px-5 py-3">{t('instructor.grading.table.violations')}</th>
-                <th className="text-left px-5 py-3">{t('instructor.grading.table.status')}</th>
-                <th className="text-right px-5 py-3">{t('instructor.grading.table.actions')}</th>
+                <th className="text-left px-5 py-3">{t('examApi.grading.table.student')}</th>
+                <th className="text-left px-5 py-3">{t('examApi.grading.table.exam')}</th>
+                <th className="text-left px-5 py-3">{t('examApi.grading.table.submittedAt')}</th>
+                <th className="text-left px-5 py-3">{t('examApi.grading.table.score')}</th>
+                <th className="text-right px-5 py-3">{t('examApi.grading.table.actions')}</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-slate-500 dark:text-slate-400">
-                    {t('instructor.grading.empty')}
+                  <td colSpan={5} className="px-5 py-12 text-center">
+                    <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                  </td>
+                </tr>
+              ) : queue.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-5 py-12 text-center text-slate-500 dark:text-slate-400">
+                    {t('examApi.grading.empty')}
                   </td>
                 </tr>
               ) : (
-                filtered.map((session: GradingSession) => (
-                  <tr
-                    key={session.id}
-                    className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40"
-                  >
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar src={session.student_avatar} name={session.student_name} />
-                        <div>
-                          <div className="font-semibold text-slate-900 dark:text-white">{session.student_name}</div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400">{session.exam_title}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
-                      {formatRelative(session.started_at)}
-                    </td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${
-                              session.attention_score >= 80
-                                ? 'bg-emerald-500'
-                                : session.attention_score >= 50
-                                ? 'bg-amber-500'
-                                : 'bg-rose-500'
-                            }`}
-                            style={{ width: `${session.attention_score}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                          {session.attention_score}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3">
-                      {session.violations === 0 ? (
-                        <span className="text-slate-500 dark:text-slate-400">—</span>
-                      ) : (
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ${
-                            session.violations >= 4
-                              ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
-                              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
-                          }`}
+                queue.map(item => {
+                  const busy = grade.isPending && grade.variables?.attemptId === item.attemptId;
+                  return (
+                    <tr
+                      key={item.attemptId}
+                      className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                    >
+                      <td className="px-5 py-3 font-mono text-xs text-slate-700 dark:text-slate-300">{item.userId.slice(0, 8)}</td>
+                      <td className="px-5 py-3 font-semibold text-slate-900 dark:text-white">
+                        {titleById.get(item.examId) ?? <span className="font-mono text-xs">{item.examId.slice(0, 8)}</span>}
+                      </td>
+                      <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
+                        {item.submittedAt ? formatRelative(item.submittedAt) : t('shared.none')}
+                      </td>
+                      <td className="px-5 py-3 tabular-nums text-slate-700 dark:text-slate-300">
+                        {item.score !== null && item.maxScore !== null ? `${item.score}/${item.maxScore}` : t('shared.none')}
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => grade.mutate(item)}
+                          disabled={grade.isPending}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60 disabled:opacity-60 transition-colors"
                         >
-                          {session.violations}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3">
-                      <StatusBadge status={session.status} />
-                    </td>
-                    <td className="px-5 py-3 text-right">
-                      <button
-                        type="button"
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
-                      >
-                        {t('instructor.grading.view')}
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                          {busy ? t('examApi.grading.grading') : t('examApi.grading.grade')}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -179,7 +143,7 @@ const GradingPage: React.FC = () => {
 };
 
 interface StatBoxProps {
-  color: 'blue' | 'emerald' | 'amber' | 'rose';
+  color: 'blue' | 'emerald' | 'amber';
   value: string | number;
   label: string;
 }
@@ -189,44 +153,12 @@ const StatBox: React.FC<StatBoxProps> = ({ color, value, label }) => {
     blue: 'border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-900/20',
     emerald: 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/20',
     amber: 'border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/20',
-    rose: 'border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-900/20',
   };
   return (
     <div className={`rounded-2xl p-4 border ${colorMap[color]}`}>
       <div className="text-3xl font-bold text-slate-900 dark:text-white">{value}</div>
       <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">{label}</div>
     </div>
-  );
-};
-
-interface AvatarProps {
-  src: string | null;
-  name: string;
-}
-
-const Avatar: React.FC<AvatarProps> = ({ src, name }) => {
-  const initials = name.split(' ').filter(Boolean).map(s => s.charAt(0)).slice(0, 2).join('').toUpperCase();
-  if (src) {
-    return <img src={src} alt={name} className="w-9 h-9 rounded-full object-cover" />;
-  }
-  return (
-    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold">
-      {initials}
-    </div>
-  );
-};
-
-const StatusBadge: React.FC<{ status: GradingSession['status'] }> = ({ status }) => {
-  const { t } = useTranslation();
-  const map = {
-    clean: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-    warning: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-    flagged: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
-  };
-  return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${map[status]}`}>
-      {t(`instructor.grading.status.${status}`)}
-    </span>
   );
 };
 

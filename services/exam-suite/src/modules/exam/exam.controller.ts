@@ -1,9 +1,12 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Get,
   Param,
+  ParseIntPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -18,12 +21,22 @@ import { ExamService } from './exam.service';
 import { Exam } from './entities/exam.entity';
 import { ExamAttempt } from './entities/exam-attempt.entity';
 import { Question } from '../question-bank/entities/question.entity';
+import {
+  AdminExamRow,
+  AdminExamStats,
+  GradingQueueItem,
+} from './dto/admin-exam.dto';
+import { GradingQueueStats } from './repositories/attempt.repository';
 
 /**
  * REST API cho exam flow (BA §10.2).
  *
  * Endpoints:
  * - GET    /exams                     - list exams visible cho user
+ * - GET    /exams/admin/overview      - bảng giám sát của admin (kèm số liệu)
+ * - GET    /exams/admin/stats         - cụm số tổng cho trang quản trị
+ * - GET    /exams/grading/queue       - bài chờ chấm
+ * - GET    /exams/grading/stats       - số liệu hàng đợi chấm
  * - GET    /exams/:id                 - chi tiết exam
  * - POST   /exams/:id/start           - start attempt (student)
  * - GET    /attempts                  - list attempts của current user
@@ -41,6 +54,44 @@ export class ExamController {
     @CurrentUser() user: UserPrincipalDto,
   ): Promise<ApiResponse<Exam[]>> {
     return this.examService.list(user.userId, user.role);
+  }
+
+  /**
+   * Bốn route dưới đây phải đứng TRƯỚC `@Get(':id')`: Nest so khớp theo thứ tự
+   * khai báo, nên nếu để sau thì `:id` nuốt luôn 'admin' và 'grading' rồi ném
+   * lỗi exam-not-found.
+   */
+  @Get('admin/overview')
+  @Roles('ADMIN')
+  async adminOverview(): Promise<ApiResponse<AdminExamRow[]>> {
+    return this.examService.adminOverview();
+  }
+
+  @Get('admin/stats')
+  @Roles('ADMIN')
+  async adminStats(): Promise<ApiResponse<AdminExamStats>> {
+    return this.examService.adminStats();
+  }
+
+  /**
+   * Giảng viên chỉ thấy bài nộp cho đề của chính mình; admin thấy toàn bộ.
+   * Phạm vi do service quyết định từ role, không nhận từ query param.
+   */
+  @Get('grading/queue')
+  @Roles('INSTRUCTOR', 'ADMIN')
+  async gradingQueue(
+    @CurrentUser() user: UserPrincipalDto,
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
+  ): Promise<ApiResponse<GradingQueueItem[]>> {
+    return this.examService.gradingQueue(user.role, user.userId, limit);
+  }
+
+  @Get('grading/stats')
+  @Roles('INSTRUCTOR', 'ADMIN')
+  async gradingStats(
+    @CurrentUser() user: UserPrincipalDto,
+  ): Promise<ApiResponse<GradingQueueStats>> {
+    return this.examService.gradingStats(user.role, user.userId);
   }
 
   @Get(':id')

@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/components/layout/AdminLayout';
-import { usersApi } from '@/services/api';
-import type { User, UserRole, UserStatus } from '@/types/db';
+import {
+  usersApi,
+  type AdminUser,
+  type UserRole,
+  type UserStatus,
+} from '@/services/api/users.api';
 
 const getInitials = (name: string) =>
   name.split(' ').filter(Boolean).map(s => s.charAt(0)).slice(0, 2).join('').toUpperCase();
@@ -14,6 +18,13 @@ const formatDate = (iso: string | null | undefined) => {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 };
 
+/**
+ * Danh bạ người dùng thật từ `GET /api/auth/users`.
+ *
+ * `AdminUserResponse` không có phòng ban nên cột đó bị bỏ; backend cũng không
+ * có endpoint tạo người dùng (tài khoản chỉ sinh ra qua đăng ký) nên nút và
+ * hộp thoại "Thêm người dùng" bị gỡ.
+ */
 const UserManagementPage: React.FC = () => {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -22,7 +33,6 @@ const UserManagementPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<UserStatus | 'all'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'name_asc'>('newest');
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [showModal, setShowModal] = useState(false);
   const [page, setPage] = useState(1);
   const perPage = 6;
 
@@ -31,11 +41,11 @@ const UserManagementPage: React.FC = () => {
     queryFn: () => usersApi.stats(),
   });
 
-  const { data: listData, isLoading, isFetching } = useQuery({
+  const { data: listData, isLoading, isFetching, isError } = useQuery({
     queryKey: ['users', 'list', { search, roleFilter, statusFilter, sortBy, page }],
     queryFn: () => usersApi.list({
       page,
-      per_page: perPage,
+      perPage,
       search: search || undefined,
       role: roleFilter,
       status: statusFilter,
@@ -44,7 +54,8 @@ const UserManagementPage: React.FC = () => {
   });
 
   const updateStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: UserStatus }) => usersApi.updateStatus(id, status),
+    mutationFn: ({ id, status }: { id: string; status: Exclude<UserStatus, 'deleted'> }) =>
+      usersApi.updateStatus(id, status),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] });
     },
@@ -58,7 +69,7 @@ const UserManagementPage: React.FC = () => {
   });
 
   const deleteUser = useMutation({
-    mutationFn: (id: string) => usersApi.delete(id),
+    mutationFn: (id: string) => usersApi.deleteUser(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] });
     },
@@ -66,7 +77,7 @@ const UserManagementPage: React.FC = () => {
 
   const users = listData?.data ?? [];
   const total = listData?.meta.total ?? 0;
-  const totalPages = listData?.meta.total_pages ?? 1;
+  const totalPages = Math.max(1, listData?.meta.totalPages ?? 1);
 
   const toggleRow = (id: string) => {
     const next = new Set(selected);
@@ -75,13 +86,13 @@ const UserManagementPage: React.FC = () => {
   };
 
   const toggleAll = () => {
-    if (users.every((u: User) => selected.has(u.id))) {
+    if (users.every((u: AdminUser) => selected.has(u.id))) {
       const next = new Set(selected);
-      users.forEach((u: User) => next.delete(u.id));
+      users.forEach((u: AdminUser) => next.delete(u.id));
       setSelected(next);
     } else {
       const next = new Set(selected);
-      users.forEach((u: User) => next.add(u.id));
+      users.forEach((u: AdminUser) => next.add(u.id));
       setSelected(next);
     }
   };
@@ -102,7 +113,6 @@ const UserManagementPage: React.FC = () => {
   };
 
   const statusBadge = (status: UserStatus) => {
-    // DB statuses: pending | active | suspended | deleted
     const map: Record<UserStatus, { cls: string; dot: string }> = {
       active: { cls: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400', dot: 'bg-emerald-500' },
       pending: { cls: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400', dot: 'bg-amber-500' },
@@ -118,32 +128,17 @@ const UserManagementPage: React.FC = () => {
   };
 
   const statsCards = [
-    { value: stats?.total ?? 0, label: t('admin.stats.allUsers'), color: 'blue', key: 'all' as const, filterTo: 'all' as UserStatus | 'all', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg> },
-    { value: stats?.students ?? 0, label: t('admin.stats.students'), color: 'green', key: 'student' as const, filterTo: 'all' as UserStatus | 'all', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg> },
-    { value: stats?.instructors ?? 0, label: t('admin.stats.instructors'), color: 'orange', key: 'instructor' as const, filterTo: 'all' as UserStatus | 'all', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2zM22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" /></svg> },
-    { value: (stats?.admins ?? 0) + (stats?.super_admins ?? 0), label: t('admin.stats.admins'), color: 'purple', key: 'admin' as const, filterTo: 'all' as UserStatus | 'all', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3 7h7l-5.5 4 2 7-6.5-4-6.5 4 2-7L2 9h7z" /></svg> },
-    { value: stats?.suspended ?? 0, label: t('admin.stats.suspended'), color: 'red', key: 'suspended' as const, filterTo: 'suspended' as UserStatus | 'all', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></svg> },
+    { value: stats?.total ?? 0, label: t('admin.stats.allUsers'), color: 'blue', key: 'all' as const, icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg> },
+    { value: stats?.students ?? 0, label: t('admin.stats.students'), color: 'green', key: 'student' as const, icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg> },
+    { value: stats?.instructors ?? 0, label: t('admin.stats.instructors'), color: 'orange', key: 'instructor' as const, icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2zM22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" /></svg> },
+    { value: (stats?.admins ?? 0) + (stats?.superAdmins ?? 0), label: t('admin.stats.admins'), color: 'purple', key: 'admin' as const, icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3 7h7l-5.5 4 2 7-6.5-4-6.5 4 2-7L2 9h7z" /></svg> },
+    { value: stats?.suspended ?? 0, label: t('admin.stats.suspended'), color: 'red', key: 'suspended' as const, icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></svg> },
   ];
 
   return (
     <AdminLayout
       title={t('admin.users.title')}
       subtitle={t('admin.users.subtitle')}
-      headerActions={
-        <>
-          <button className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:-translate-y-0.5">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
-            {t('admin.users.export')}
-          </button>
-          <button
-            onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-            {t('admin.users.addUser')}
-          </button>
-        </>
-      }
     >
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
@@ -284,19 +279,18 @@ const UserManagementPage: React.FC = () => {
                     onClick={toggleAll}
                     disabled={users.length === 0}
                     className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center ${
-                      users.length > 0 && users.every((u: User) => selected.has(u.id))
+                      users.length > 0 && users.every((u: AdminUser) => selected.has(u.id))
                         ? 'bg-blue-600 border-blue-600'
                         : 'border-slate-300 dark:border-slate-600 hover:border-blue-500'
                     }`}
                   >
-                    {users.length > 0 && users.every((u: User) => selected.has(u.id)) && (
+                    {users.length > 0 && users.every((u: AdminUser) => selected.has(u.id)) && (
                       <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
                     )}
                   </button>
                 </th>
                 <th className="text-left px-4 py-4 font-semibold">{t('admin.table.user')}</th>
                 <th className="text-left px-4 py-4 font-semibold">{t('admin.table.role')}</th>
-                <th className="text-left px-4 py-4 font-semibold">{t('admin.table.department')}</th>
                 <th className="text-left px-4 py-4 font-semibold">{t('admin.table.joined')}</th>
                 <th className="text-left px-4 py-4 font-semibold">{t('admin.table.status')}</th>
                 <th className="text-left px-4 py-4 font-semibold">{t('admin.table.actions')}</th>
@@ -304,14 +298,17 @@ const UserManagementPage: React.FC = () => {
             </thead>
             <tbody>
               {isLoading && (
-                <tr><td colSpan={7} className="text-center py-12 text-slate-500">
+                <tr><td colSpan={6} className="text-center py-12 text-slate-500">
                   <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                 </td></tr>
               )}
-              {!isLoading && users.length === 0 && (
-                <tr><td colSpan={7} className="text-center py-12 text-slate-500">{t('admin.users.noResults')}</td></tr>
+              {isError && (
+                <tr><td colSpan={6} className="text-center py-12 text-red-600 dark:text-red-400">{t('admin.users.noResults')}</td></tr>
               )}
-              {users.map((u: User) => (
+              {!isLoading && !isError && users.length === 0 && (
+                <tr><td colSpan={6} className="text-center py-12 text-slate-500">{t('admin.users.noResults')}</td></tr>
+              )}
+              {users.map((u: AdminUser) => (
                 <tr key={u.id} className="border-t border-slate-100 dark:border-slate-800 transition-all hover:bg-blue-50/50 dark:hover:bg-blue-900/10 group">
                   <td className="px-4 py-4">
                     <button
@@ -325,20 +322,20 @@ const UserManagementPage: React.FC = () => {
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
-                      {u.avatar_url ? (
-                        <img src={u.avatar_url} alt={u.full_name} className="w-10 h-10 rounded-xl object-cover transition-all group-hover:scale-110 group-hover:rotate-[5deg] group-hover:shadow-lg group-hover:shadow-blue-500/30" />
+                      {u.avatarUrl ? (
+                        <img src={u.avatarUrl} alt={u.fullName} className="w-10 h-10 rounded-xl object-cover transition-all group-hover:scale-110 group-hover:rotate-[5deg] group-hover:shadow-lg group-hover:shadow-blue-500/30" />
                       ) : (
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center font-semibold text-sm transition-all group-hover:scale-110 group-hover:rotate-[5deg] group-hover:shadow-lg group-hover:shadow-blue-500/30">
-                          {getInitials(u.full_name)}
+                          {getInitials(u.fullName)}
                         </div>
                       )}
                       <div className="min-w-0">
                         <div className="font-semibold text-sm flex items-center gap-1.5">
-                          {u.full_name}
-                          {u.email_verified && (
+                          {u.fullName}
+                          {u.emailVerified && (
                             <svg className="w-3.5 h-3.5 text-emerald-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" /></svg>
                           )}
-                          {u.mfa_enabled && (
+                          {u.mfaEnabled && (
                             <svg className="w-3.5 h-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
                           )}
                         </div>
@@ -347,17 +344,12 @@ const UserManagementPage: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-4 py-4">{roleBadge(u.role)}</td>
-                  <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">
-                    {u.metadata?.department ? String(u.metadata.department) : '—'}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-400">{formatDate(u.created_at)}</td>
+                  <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-400">{formatDate(u.createdAt)}</td>
                   <td className="px-4 py-4">{statusBadge(u.status)}</td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-1.5">
-                      <button className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center">
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-                      </button>
-                      {u.status === 'suspended' || u.status === 'deleted' ? (
+                      {/* Người dùng đã xoá mềm không mở khoá lại được qua PATCH status. */}
+                      {u.status === 'deleted' ? null : u.status === 'suspended' ? (
                         <button
                           onClick={() => updateStatus.mutate({ id: u.id, status: 'active' })}
                           className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all flex items-center justify-center"
@@ -417,68 +409,6 @@ const UserManagementPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Add user modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-[fadeIn_.2s_ease-out]">
-          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-[fadeInUp_.3s_ease-out]">
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <h2 className="text-lg font-bold">{t('admin.users.addNew')}</h2>
-              <button onClick={() => setShowModal(false)} className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-all">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-1.5">{t('admin.users.fullName')}</label>
-                <input type="text" placeholder="Nguyễn Văn A" className="w-full px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1.5">{t('admin.users.email')}</label>
-                <input type="email" placeholder="email@fpt.edu.vn" className="w-full px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1.5">{t('admin.table.role')}</label>
-                <select className="w-full px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all">
-                  <option value="">{t('admin.users.chooseRole')}</option>
-                  <option value="student">{t('admin.role.student')}</option>
-                  <option value="instructor">{t('admin.role.instructor')}</option>
-                  <option value="admin">{t('admin.role.admin')}</option>
-                  <option value="guest">{t('admin.role.guest')}</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1.5">{t('admin.table.department')}</label>
-                <select className="w-full px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all">
-                  <option value="">{t('admin.users.chooseDept')}</option>
-                  <option>Khoa Công nghệ thông tin</option>
-                  <option>Khoa Toán</option>
-                  <option>Khoa Kinh tế</option>
-                  <option>Khoa Ngoại ngữ</option>
-                  <option>Phòng CNTT</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1.5">{t('admin.table.status')}</label>
-                <select className="w-full px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all">
-                  <option value="active">{t('admin.status.active')}</option>
-                  <option value="pending">{t('admin.status.pending')}</option>
-                  <option value="suspended">{t('admin.status.suspended')}</option>
-                </select>
-              </div>
-            </div>
-            <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2 bg-slate-50 dark:bg-slate-800/30">
-              <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                {t('common.cancel')}
-              </button>
-              <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
-                {t('common.save')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </AdminLayout>
   );
 };
