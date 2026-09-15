@@ -1,14 +1,18 @@
 package com.ioes.notification.infrastructure.persistence.adapter;
 
 import com.ioes.notification.domain.model.Notification;
+import com.ioes.notification.domain.model.NotificationStats;
 import com.ioes.notification.domain.model.NotificationStatus;
+import com.ioes.notification.domain.model.NotificationType;
 import com.ioes.notification.domain.port.out.NotificationRepositoryPort;
 import com.ioes.notification.infrastructure.persistence.entity.NotificationEntity;
 import com.ioes.notification.infrastructure.persistence.repository.NotificationJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,6 +50,21 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
                 .stream()
                 .map(this::toDomain)
                 .toList();
+    }
+
+    @Override
+    public NotificationStats stats() {
+        Map<NotificationStatus, Long> byStatus = new EnumMap<>(NotificationStatus.class);
+        for (NotificationJpaRepository.StatusTally tally : jpaRepository.tallyByStatus()) {
+            byStatus.put(tally.getStatus(), tally.getTotal());
+        }
+
+        Map<NotificationType, Long> byType = new EnumMap<>(NotificationType.class);
+        for (NotificationJpaRepository.TypeTally tally : jpaRepository.tallyByType()) {
+            byType.put(tally.getType(), tally.getTotal());
+        }
+
+        return NotificationStats.from(byStatus, byType);
     }
 
     private NotificationEntity toEntity(Notification n) {

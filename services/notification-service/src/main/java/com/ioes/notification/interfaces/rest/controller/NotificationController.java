@@ -3,7 +3,10 @@ package com.ioes.notification.interfaces.rest.controller;
 import com.ioes.common.dto.ApiResponse;
 import com.ioes.common.exception.ApiException;
 import com.ioes.notification.domain.port.in.NotificationUseCase;
+import com.ioes.notification.domain.model.Notification;
 import com.ioes.notification.interfaces.rest.dto.NotificationResponse;
+import com.ioes.notification.interfaces.rest.dto.NotificationStatsResponse;
+import com.ioes.notification.interfaces.rest.dto.NotificationTemplateResponse;
 import com.ioes.notification.interfaces.rest.dto.SendNotificationRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -69,9 +72,47 @@ public class NotificationController {
         return ResponseEntity.ok(ApiResponse.success("Notifications retrieved", notifications));
     }
 
+    /**
+     * GET /notifications/stats — delivery head-count across the whole table.
+     *
+     * <p>Declared before {@code /{id}} so the literal path is not swallowed by
+     * the UUID pattern.
+     */
+    @GetMapping("/stats")
+    public ResponseEntity<ApiResponse<NotificationStatsResponse>> stats() {
+        NotificationStatsResponse stats = NotificationStatsResponse.from(notificationUseCase.stats());
+        return ResponseEntity.ok(ApiResponse.success("Notification stats retrieved", stats));
+    }
+
+    /** GET /notifications/templates — what sendTemplated will accept. */
+    @GetMapping("/templates")
+    public ResponseEntity<ApiResponse<List<NotificationTemplateResponse>>> templates() {
+        List<NotificationTemplateResponse> templates = notificationUseCase.templates().stream()
+                .map(NotificationTemplateResponse::from)
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success("Notification templates retrieved", templates));
+    }
+
+    /**
+     * GET /notifications/{id} — one notification.
+     *
+     * <p>The row has to be loaded before the caller can be checked against it,
+     * since ownership lives on the row. A notification with no user attached
+     * (one addressed straight to an email address) is readable by admins only,
+     * because there is no owner for it to belong to.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<NotificationResponse>> getNotification(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.success("Notification retrieved", null));
+        Notification notification = notificationUseCase.getNotification(id);
+
+        if (notification.getUserId() == null) {
+            requireAdmin();
+        } else {
+            requireOwnerOrAdmin(notification.getUserId());
+        }
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Notification retrieved", NotificationResponse.from(notification)));
     }
 
     /**
@@ -94,6 +135,18 @@ public class NotificationController {
                 .anyMatch(ADMIN_ROLES::contains);
 
         if (!callerId.equals(userId) && !isAdmin) {
+            throw ApiException.forbidden("Cannot view another user's notifications");
+        }
+    }
+
+    private void requireAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(ADMIN_ROLES::contains);
+
+        if (!isAdmin) {
             throw ApiException.forbidden("Cannot view another user's notifications");
         }
     }

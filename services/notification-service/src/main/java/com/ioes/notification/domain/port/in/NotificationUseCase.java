@@ -1,6 +1,8 @@
 package com.ioes.notification.domain.port.in;
 
 import com.ioes.notification.domain.model.Notification;
+import com.ioes.notification.domain.model.NotificationStats;
+import com.ioes.notification.domain.model.NotificationTemplate;
 import com.ioes.notification.domain.model.NotificationType;
 
 import java.util.List;
@@ -21,6 +23,19 @@ public interface NotificationUseCase {
      * introducing pagination.
      */
     List<Notification> getUserNotifications(UUID userId);
+
+    /**
+     * One notification by id. Throws rather than returning an empty optional so
+     * that a missing row and a row the caller may not see are indistinguishable
+     * to the controller, which decides what the caller is allowed to know.
+     */
+    Notification getNotification(UUID id);
+
+    /** Delivery head-count across the whole table. */
+    NotificationStats stats();
+
+    /** Templates {@link #sendTemplated(TemplatedCommand)} will accept. */
+    List<NotificationTemplate> templates();
 
     record SendCommand(
             UUID userId,
