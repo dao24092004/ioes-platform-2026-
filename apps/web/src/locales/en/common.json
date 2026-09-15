@@ -2784,8 +2784,17 @@
       "users": "Users",
       "courses": "Courses",
       "exams": "Exams",
-      "tokens": "Tokens Issued",
-      "uptime": "Uptime"
+      "tokens": "Tokens issued",
+      "uptime": "Uptime",
+      "allUsers": "All users",
+      "allCourses": "All courses",
+      "students": "Students",
+      "instructors": "Instructors",
+      "admins": "Admins",
+      "suspended": "Suspended",
+      "pendingApproval": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
     },
     "status": {
       "active": "Active",
@@ -2800,7 +2809,9 @@
       "user": "User",
       "role": "Role",
       "status": "Status",
-      "joined": "Joined"
+      "joined": "Joined",
+      "department": "Department",
+      "actions": "Actions"
     },
     "quick": {
       "addUser": "Add User",
@@ -2861,14 +2872,6 @@
       "email": "Email",
       "chooseRole": "Choose role",
       "chooseDept": "Choose department"
-    },
-    "table": {
-      "user": "User",
-      "role": "Role",
-      "status": "Status",
-      "joined": "Joined",
-      "department": "Department",
-      "actions": "Actions"
     },
     "instructorApproval": {
       "title": "Instructor Approval",
@@ -3011,16 +3014,16 @@
         "totalEvents": "Total events",
         "criticalEvents": "Critical events",
         "loginFailures": "Login failures",
-"logStorage": "Log storage",
-      "retention": "90-day retention",
-      "pagination": {
-        "range": "{{from}}-{{to}} of {{total}}",
-        "prev": "Prev",
-        "next": "Next",
-        "pageSize": "Show",
-        "perPage": "/ page"
-      }
-    },
+        "logStorage": "Log storage",
+        "retention": "90-day retention",
+        "pagination": {
+          "range": "{{from}}-{{to}} of {{total}}",
+          "prev": "Prev",
+          "next": "Next",
+          "pageSize": "Show",
+          "perPage": "/ page"
+        }
+      },
       "filters": {
         "searchPlaceholder": "Search by ID, user...",
         "allTypes": "All types",
@@ -3065,22 +3068,6 @@
         "severity": "Severity",
         "changes": "Changes"
       }
-    },
-    "stats": {
-      "users": "Users",
-      "courses": "Courses",
-      "exams": "Exams",
-      "tokens": "Tokens issued",
-      "uptime": "Uptime",
-      "allUsers": "All users",
-      "allCourses": "All courses",
-      "students": "Students",
-      "instructors": "Instructors",
-      "admins": "Admins",
-      "suspended": "Suspended",
-      "pendingApproval": "Pending",
-      "approved": "Approved",
-      "rejected": "Rejected"
     }
   },
   "analytics": {
@@ -4238,5 +4225,75 @@
     "monthOct": "Oct",
     "monthNov": "Nov",
     "monthDec": "Dec"
+  },
+  "comingSoon": {
+    "badge": "Coming soon",
+    "missingHeading": "What is missing",
+    "noFakeData": "This page shows no sample data, so nothing here can be mistaken for real figures.",
+    "blockchain": {
+      "title": "Blockchain certificates",
+      "description": "Issue certificates as NFTs and review token supply, contract and transaction history.",
+      "missing": [
+        "certificate.service.ts is a stub; signing on chain is still a TODO",
+        "No migration exists for certificate data",
+        "blockchain-suite only mints and verifies; there are no token endpoints"
+      ]
+    },
+    "ocr": {
+      "title": "Text recognition (OCR)",
+      "description": "Upload a photo of written work or a document and pull the text out of it.",
+      "missing": [
+        "The OCR service has only a Dockerfile and pyproject.toml, no source yet",
+        "There is no endpoint to call"
+      ]
+    },
+    "discussion": {
+      "title": "Discussions",
+      "description": "Course question-and-answer threads between students and instructors.",
+      "missing": [
+        "No backend service for discussions",
+        "No tables for posts and replies"
+      ]
+    },
+    "messages": {
+      "title": "Messages",
+      "description": "Direct messaging between students and instructors.",
+      "missing": [
+        "No messaging service",
+        "No realtime channel for conversations"
+      ]
+    },
+    "checkout": {
+      "title": "Checkout",
+      "description": "Buy courses and manage invoices.",
+      "missing": [
+        "No payment service",
+        "No payment provider integrated"
+      ]
+    },
+    "copyright": {
+      "title": "Copyright and plagiarism",
+      "description": "Register ownership of content, licence it, and handle disputes.",
+      "missing": [
+        "No backend for copyright registration",
+        "No plagiarism comparison service"
+      ]
+    },
+    "tenant": {
+      "title": "Multi-tenant organisations",
+      "description": "Run several organisations on one platform, each with its own data.",
+      "missing": [
+        "No tenant-service",
+        "No column or schema separating data per organisation"
+      ]
+    },
+    "recommendations": {
+      "title": "Learning recommendations",
+      "description": "Suggest the next course or lesson based on your progress.",
+      "missing": [
+        "No recommendation engine",
+        "The gateway routes /api/recommendations but nothing serves it"
+      ]
+    }
   }
 }

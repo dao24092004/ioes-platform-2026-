@@ -3862,5 +3862,75 @@
     "monthOct": "T10",
     "monthNov": "T11",
     "monthDec": "T12"
+  },
+  "comingSoon": {
+    "badge": "Sắp phát triển",
+    "missingHeading": "Còn thiếu",
+    "noFakeData": "Trang này không hiển thị dữ liệu mẫu, để không ai nhầm là số liệu thật.",
+    "blockchain": {
+      "title": "Chứng chỉ blockchain",
+      "description": "Phát hành chứng chỉ dạng NFT, xem nguồn cung token, hợp đồng và lịch sử giao dịch.",
+      "missing": [
+        "certificate.service.ts mới là bản nháp, phần ký lên chuỗi vẫn là TODO",
+        "Chưa có migration nào cho dữ liệu chứng chỉ",
+        "blockchain-suite chỉ có mint và verify, chưa có endpoint token"
+      ]
+    },
+    "ocr": {
+      "title": "Nhận dạng chữ trong ảnh (OCR)",
+      "description": "Tải ảnh bài làm hoặc tài liệu lên và trích xuất văn bản.",
+      "missing": [
+        "Service OCR mới chỉ có Dockerfile và pyproject.toml, chưa có mã nguồn",
+        "Chưa có endpoint nào để gọi"
+      ]
+    },
+    "discussion": {
+      "title": "Thảo luận",
+      "description": "Hỏi đáp theo khoá học giữa học viên và giảng viên.",
+      "missing": [
+        "Chưa có service backend cho thảo luận",
+        "Chưa có bảng dữ liệu cho bài đăng và trả lời"
+      ]
+    },
+    "messages": {
+      "title": "Tin nhắn",
+      "description": "Nhắn tin trực tiếp giữa học viên và giảng viên.",
+      "missing": [
+        "Chưa có service nhắn tin",
+        "Chưa có kênh thời gian thực cho hội thoại"
+      ]
+    },
+    "checkout": {
+      "title": "Thanh toán",
+      "description": "Mua khoá học và quản lý hoá đơn.",
+      "missing": [
+        "Chưa có payment service",
+        "Chưa tích hợp cổng thanh toán nào"
+      ]
+    },
+    "copyright": {
+      "title": "Bản quyền và chống đạo văn",
+      "description": "Đăng ký quyền sở hữu nội dung, cấp phép và xử lý tranh chấp.",
+      "missing": [
+        "Chưa có backend cho đăng ký bản quyền",
+        "Chưa có dịch vụ đối chiếu đạo văn"
+      ]
+    },
+    "tenant": {
+      "title": "Nhiều tổ chức (multi-tenant)",
+      "description": "Quản lý nhiều tổ chức trên cùng một hệ thống, mỗi tổ chức có dữ liệu riêng.",
+      "missing": [
+        "Chưa có tenant-service",
+        "Chưa có cột hay lược đồ phân tách dữ liệu theo tổ chức"
+      ]
+    },
+    "recommendations": {
+      "title": "Gợi ý học tập",
+      "description": "Đề xuất khoá học và bài học tiếp theo dựa trên tiến độ của bạn.",
+      "missing": [
+        "Chưa có recommendation engine",
+        "Gateway có route /api/recommendations nhưng không có controller nào phía sau"
+      ]
+    }
   }
 }
