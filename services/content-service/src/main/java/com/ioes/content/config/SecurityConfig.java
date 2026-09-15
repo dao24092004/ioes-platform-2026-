@@ -77,6 +77,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/courses/*/approve", "/api/v1/courses/*/reject")
                             .hasAnyAuthority("admin", "super_admin")
 
+                        // Danh sách học viên: giảng viên (khoá của mình) và quản trị.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/students")
+                            .hasAnyAuthority("instructor", "admin", "super_admin")
+
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)

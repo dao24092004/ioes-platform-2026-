@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
@@ -36,6 +37,18 @@ public class CourseRepositoryAdapter implements CourseRepository {
     @Override
     public Optional<Course> findById(UUID id) {
         return jpaRepository.findById(id);
+    }
+
+    @Override
+    public List<Course> findAllByIds(Collection<UUID> ids) {
+        return ids.isEmpty() ? List.of() : jpaRepository.findAllById(ids);
+    }
+
+    @Override
+    public List<UUID> findIdsByInstructorId(UUID instructorId) {
+        return jpaRepository.findByInstructorIdAndDeletedAtIsNull(instructorId).stream()
+                .map(JpaCourseRepository.IdOnly::getId)
+                .toList();
     }
 
     @Override

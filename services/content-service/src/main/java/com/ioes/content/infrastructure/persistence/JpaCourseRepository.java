@@ -16,6 +16,9 @@ public interface JpaCourseRepository
 
     boolean existsBySlug(String slug);
 
+    /** Chỉ lấy cột id, không nạp cả khoá học. */
+    List<IdOnly> findByInstructorIdAndDeletedAtIsNull(UUID instructorId);
+
     @Query("""
             SELECT c.status AS status, COUNT(c) AS total
             FROM Course c
@@ -46,5 +49,9 @@ public interface JpaCourseRepository
     interface ReviewTally {
         String getStatus();
         long getTotal();
+    }
+
+    interface IdOnly {
+        UUID getId();
     }
 }

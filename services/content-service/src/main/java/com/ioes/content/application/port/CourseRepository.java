@@ -4,6 +4,7 @@ import com.ioes.content.domain.model.Course;
 import com.ioes.content.domain.model.CourseStatus;
 import com.ioes.content.domain.model.ReviewStatus;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,6 +16,12 @@ public interface CourseRepository {
     Course save(Course course);
 
     Optional<Course> findById(UUID id);
+
+    /** Nhiều khoá theo id, kể cả bản đã xoá mềm — phía gọi tự lọc. */
+    List<Course> findAllByIds(Collection<UUID> ids);
+
+    /** Id các khoá chưa xoá mềm mà một giảng viên đứng tên. */
+    List<UUID> findIdsByInstructorId(UUID instructorId);
 
     boolean existsBySlug(String slug);
 
