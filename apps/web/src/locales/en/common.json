@@ -586,6 +586,7 @@
     "loginRequired": {
       "title": "Sign in to browse courses",
       "description": "The course list comes straight from the platform and is currently only available to signed-in users.",
+      "preview": "Preview some popular courses",
       "action": "Sign in"
     },
     "notFound": {
@@ -880,7 +881,7 @@
     "infoTitle": "Contact Information",
     "infoDesc": "Contact us through any channel below.",
     "address": "Office Address",
-    "addressValue": "Floor 15, ABC Tower, 123 Nguyen Hue, District 1, HCMC",
+    "addressValue": "235 Hoang Quoc Viet, Cau Giay, Hanoi\nElectric Power University - CS1",
     "hotline": "Hotline",
     "hotlineValue": "1900 1234 (8:00 - 22:00)\nTechnical Support: 1900 5678",
     "email": "Email",
@@ -950,6 +951,65 @@
     "terms": "Terms of Service",
     "cookies": "Cookie Policy",
     "copyright": "© 2024 IOES. All rights reserved."
+  },
+  "pricing": {
+    "badge": "Pricing",
+    "title": "Choose the Right Plan for You",
+    "subtitle": "Pick a plan that fits your needs and start learning today",
+    "period": "month",
+    "popular": "Most Popular",
+    "free": {
+      "name": "Free",
+      "desc": "For beginners getting started",
+      "amount": "Free",
+      "feature1": "Access 10 free courses",
+      "feature2": "Basic online exams",
+      "feature3": "Basic certificates",
+      "feature4": "Community support",
+      "cta": "Get Started"
+    },
+    "pro": {
+      "name": "Pro",
+      "desc": "For serious learners",
+      "feature1": "Access all courses (500+)",
+      "feature2": "AI Proctoring for exams",
+      "feature3": "Blockchain-verified certificates",
+      "feature4": "AI Mentor 24/7 support",
+      "feature5": "Detailed analytics reports",
+      "cta": "Get Pro"
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "desc": "For organizations & schools",
+      "price": "Contact Us",
+      "feature1": "All Pro features",
+      "feature2": "Unlimited account management",
+      "feature3": "Custom branding & domain",
+      "feature4": "24/7 priority support",
+      "cta": "Contact Sales"
+    },
+    "guarantee": "30-day money-back guarantee if you're not satisfied"
+  },
+  "partners": {
+    "title": "Partners & Institutions",
+    "subtitle": "Over 100 organizations trust IOES"
+  },
+  "landingFaq": {
+    "badge": "FAQ",
+    "title": "Frequently Asked Questions",
+    "subtitle": "Find quick answers to common questions",
+    "stillQuestions": "Still have other questions?",
+    "contactUs": "Contact us",
+    "question1": "Is IOES free?",
+    "answer1": "Yes, we offer a free plan with access to 10 basic courses. You can also upgrade to Pro for access to all courses and advanced features.",
+    "question2": "Are IOES certificates valuable?",
+    "answer2": "IOES certificates are verified on the Blockchain, have global validity and can be verified by any employer through a QR code or verification link.",
+    "question3": "How does AI Mentor work?",
+    "answer3": "AI Mentor is a 24/7 AI assistant available to answer questions, explain lessons, create practice quizzes, and analyze mistakes. You can chat directly on the platform.",
+    "question4": "Can I learn on my phone?",
+    "answer4": "Yes, IOES is fully compatible with all devices including smartphones, tablets, and desktops. The responsive interface automatically adjusts to screen size.",
+    "question5": "How can I become an IOES partner?",
+    "answer5": "To become a partner, contact our sales team at partnership@ioes.edu.vn or fill out the contact form. We will help with setup and customization according to your organization's needs."
   },
   "branding": {
     "login": {
@@ -3041,7 +3101,25 @@
       "fullName": "Full name",
       "email": "Email",
       "chooseRole": "Choose role",
-      "chooseDept": "Choose department"
+      "chooseDept": "Choose department",
+      "viewDetail": "View details",
+      "resetPassword": "Reset password",
+      "approve": "Approve account",
+      "detailTitle": "User Details",
+      "emailVerified": "Verified",
+      "phone": "Phone",
+      "bio": "Bio",
+      "lastLogin": "Last login",
+      "createdAt": "Created",
+      "updatedAt": "Last updated",
+      "resetPasswordConfirm": "Are you sure you want to reset password for {{name}}?",
+      "resetPasswordWarning": "A temporary password will be generated. Please ensure you securely send this password to the user.",
+      "resetSuccess": "Password reset successful!",
+      "tempPassword": "Temporary password",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "tempPasswordNote": "Require the user to change their password after logging in.",
+      "deleteConfirm": "Are you sure you want to delete user \"{{name}}\"? This action cannot be undone."
     },
     "instructorApproval": {
       "title": "Instructor Approval",
@@ -3703,6 +3781,9 @@
     "tokenSymbol": "IOES",
     "view": "View",
     "edit": "Edit",
+    "close": "Close",
+    "cancel": "Cancel",
+    "loading": "Loading...",
     "export": "Export",
     "block": "Block",
     "investigate": "Investigate",

@@ -307,7 +307,7 @@ const PracticeQuizPage: React.FC = () => {
             </span>
             <div className="w-28 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full transition-all duration-300"
+                className="h-full bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full transition-all duration-500"
                 style={{ width: `${((safeIdx + 1) / questions.length) * 100}%` }}
               />
             </div>

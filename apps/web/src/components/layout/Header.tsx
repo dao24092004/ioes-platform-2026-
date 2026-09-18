@@ -13,7 +13,7 @@ const Header: React.FC = () => {
 
   return (
     <header
-      className={`sticky top-0 z-30 h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 transition-all duration-300 ${
+      className={`sticky top-0 z-30 h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 transition-all duration-500 ${
         sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
       }`}
     >

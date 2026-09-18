@@ -157,7 +157,7 @@ const NotificationsPage: React.FC = () => {
           <div
             key={i}
             data-testid={TEST_IDS.ANALYTICS_KPI}
-            className="group relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/5 opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]"
+            className="group relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/5 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
             style={{ animationDelay: `${(i + 1) * ANIMATION.STAGGER_DURATION_S}s` }}
           >
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 transition-all group-hover:scale-110 group-hover:rotate-[10deg] ${colorMap[s.color]}`}>
@@ -178,7 +178,7 @@ const NotificationsPage: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         <div className="xl:col-span-8 space-y-6">
           <div
-            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]"
+            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
             style={{ animationDelay: `${2 * ANIMATION.STAGGER_DURATION_S}s` }}
           >
             <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-3">
@@ -265,7 +265,7 @@ const NotificationsPage: React.FC = () => {
           {/* `NotificationTemplateResponse` chỉ có tên: không có trigger, kênh, cờ bật/tắt hay endpoint sửa. */}
           <div
             data-testid={TEST_IDS.TEMPLATE_ROW}
-            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]"
+            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
             style={{ animationDelay: `${3 * ANIMATION.STAGGER_DURATION_S}s` }}
           >
             <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
@@ -298,7 +298,7 @@ const NotificationsPage: React.FC = () => {
 
         <div className="xl:col-span-4">
           <div
-            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden sticky top-24 opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]"
+            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden sticky top-24 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
             style={{ animationDelay: `${2.5 * ANIMATION.STAGGER_DURATION_S}s` }}
           >
             <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20">

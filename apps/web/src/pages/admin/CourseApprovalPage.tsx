@@ -149,7 +149,7 @@ const CourseApprovalPage: React.FC = () => {
             <button
               key={s.key}
               onClick={() => setFilter(s.key)}
-              className={`group text-left bg-white dark:bg-slate-900 rounded-2xl border p-5 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/5 opacity-0 animate-[fadeInUp_.6s_ease-out_forwards] ${
+              className={`group text-left bg-white dark:bg-slate-900 rounded-2xl border p-5 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/5 opacity-0 animate-[fadeInUp_1s_ease-out_forwards] ${
                 active ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-800'
               }`}
               style={{ animationDelay: `${(i + 1) * 0.1}s` }}
@@ -157,7 +157,7 @@ const CourseApprovalPage: React.FC = () => {
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all group-hover:rotate-[10deg] group-hover:scale-110 ${map[s.color as keyof typeof map]}`}>
                 {s.icon}
               </div>
-              <div className="text-3xl font-bold mb-1 animate-[countUp_.5s_ease_forwards]">{s.value}</div>
+              <div className="text-3xl font-bold mb-1 animate-[countUp_.8s_ease_forwards]">{s.value}</div>
               <div className="text-sm text-slate-500 dark:text-slate-400">{s.label}</div>
             </button>
           );
@@ -204,7 +204,7 @@ const CourseApprovalPage: React.FC = () => {
           return (
             <div
               key={c.id}
-              className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-800 opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]"
+              className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-800 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
               style={{ animationDelay: `${i * 0.05}s` }}
             >
               <div className="flex items-start gap-4 mb-3">
@@ -285,7 +285,7 @@ const CourseApprovalPage: React.FC = () => {
       {/* Preview modal */}
       {preview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-[fadeIn_.2s_ease-out]" onClick={closePreview}>
-          <div onClick={e => e.stopPropagation()} className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-[fadeInUp_.3s_ease-out] max-h-[90vh] overflow-y-auto">
+          <div onClick={e => e.stopPropagation()} className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-[fadeInUp_.5s_ease-out] max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-900 z-10">
               <div className="flex items-center gap-3">
                 {renderThumb(preview, 'sm')}

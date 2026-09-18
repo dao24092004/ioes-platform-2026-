@@ -189,7 +189,7 @@ const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed top-0 left-0 z-40 h-screen bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-all duration-300 ${
+      className={`fixed top-0 left-0 z-40 h-screen bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-all duration-500 ${
         sidebarCollapsed ? 'w-20' : 'w-64'
       }`}
     >
