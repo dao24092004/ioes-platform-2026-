@@ -569,6 +569,7 @@
     "loginRequired": {
       "title": "Đăng nhập để xem khoá học",
       "description": "Danh sách khoá học lấy trực tiếp từ hệ thống và hiện chỉ xem được sau khi đăng nhập.",
+      "preview": "Xem trước một số khóa học phổ biến",
       "action": "Đăng nhập"
     },
     "notFound": {
@@ -863,7 +864,7 @@
     "infoTitle": "Thông tin liên hệ",
     "infoDesc": "Hãy liên hệ với chúng tôi qua bất kỳ kênh nào dưới đây.",
     "address": "Địa chỉ văn phòng",
-    "addressValue": "Tầng 15, Tòa nhà ABC Tower, 123 Nguyễn Huệ, Quận 1, TP.HCM",
+    "addressValue": "235 Hoàng Quốc Việt, Cầu Giấy, Hà Nội\nĐại Học Điện Lực - CS1",
     "hotline": "Hotline",
     "hotlineValue": "1900 1234 (8:00 - 22:00)\nHỗ trợ kỹ thuật: 1900 5678",
     "email": "Email",
@@ -933,6 +934,65 @@
     "terms": "Điều khoản sử dụng",
     "cookies": "Chính sách cookie",
     "copyright": "© 2024 IOES. Mọi quyền được bảo lưu."
+  },
+  "pricing": {
+    "badge": "Bảng giá",
+    "title": "Gói dịch vụ phù hợp với bạn",
+    "subtitle": "Chọn gói phù hợp và bắt đầu hành trình học tập ngay hôm nay",
+    "period": "tháng",
+    "popular": "Phổ biến nhất",
+    "free": {
+      "name": "Miễn phí",
+      "desc": "Dành cho người mới bắt đầu",
+      "amount": "Miễn phí",
+      "feature1": "Truy cập 10 khóa học miễn phí",
+      "feature2": "Tham gia thi trực tuyến cơ bản",
+      "feature3": "Nhận chứng chỉ cơ bản",
+      "feature4": "Hỗ trợ từ cộng đồng",
+      "cta": "Bắt đầu ngay"
+    },
+    "pro": {
+      "name": "Pro",
+      "desc": "Dành cho người học nghiêm túc",
+      "feature1": "Truy cập tất cả khóa học (500+)",
+      "feature2": "Thi trực tuyến với AI Proctoring",
+      "feature3": "Chứng chỉ Blockchain xác thực",
+      "feature4": "AI Mentor 24/7 hỗ trợ",
+      "feature5": "Báo cáo phân tích chi tiết",
+      "cta": "Đăng ký Pro"
+    },
+    "enterprise": {
+      "name": "Doanh nghiệp",
+      "desc": "Dành cho tổ chức & trường học",
+      "price": "Liên hệ",
+      "feature1": "Tất cả tính năng Pro",
+      "feature2": "Quản lý tài khoản không giới hạn",
+      "feature3": "Custom branding & domain",
+      "feature4": "Hỗ trợ ưu tiên 24/7",
+      "cta": "Liên hệ sales"
+    },
+    "guarantee": "Cam kết hoàn tiền trong 30 ngày nếu không hài lòng"
+  },
+  "partners": {
+    "title": "Đối tác & Trường học",
+    "subtitle": "Hơn 100 tổ chức đã tin tưởng sử dụng IOES"
+  },
+  "landingFaq": {
+    "badge": "FAQ",
+    "title": "Câu hỏi thường gặp",
+    "subtitle": "Tìm câu trả lời nhanh cho những thắc mắc phổ biến",
+    "stillQuestions": "Bạn vẫn có câu hỏi khác?",
+    "contactUs": "Liên hệ với chúng tôi",
+    "question1": "IOES có miễn phí không?",
+    "answer1": "Có, chúng tôi cung cấp gói miễn phí với quyền truy cập 10 khóa học cơ bản. Bạn cũng có thể nâng cấp lên gói Pro để truy cập tất cả khóa học và tính năng nâng cao.",
+    "question2": "Chứng chỉ của IOES có giá trị không?",
+    "answer2": "Chứng chỉ của IOES được xác minh trên Blockchain, có giá trị toàn cầu và có thể kiểm chứng bởi bất kỳ nhà tuyển dụng nào thông qua mã QR hoặc link xác minh.",
+    "question3": "AI Mentor hoạt động như thế nào?",
+    "answer3": "AI Mentor là trợ lý AI 24/7 có sẵn để trả lời câu hỏi, giải thích bài giảng, tạo quiz ôn tập và phân tích lỗi sai. Bạn có thể trò chuyện trực tiếp trên nền tảng.",
+    "question4": "Tôi có thể học trên điện thoại không?",
+    "answer4": "Có, IOES hoàn toàn tương thích với mọi thiết bị bao gồm điện thoại thông minh, máy tính bảng và máy tính để bàn. Giao diện responsive tự động điều chỉnh theo kích thước màn hình.",
+    "question5": "Làm thế nào để trở thành đối tác của IOES?",
+    "answer5": "Để trở thành đối tác, bạn có thể liên hệ với đội ngũ kinh doanh qua email partnership@ioes.edu.vn hoặc điền form liên hệ. Chúng tôi sẽ hỗ trợ setup và tùy chỉnh theo nhu cầu của tổ chức bạn."
   },
   "branding": {
     "login": {
@@ -2680,6 +2740,9 @@
     "all": "Tất cả",
     "none": "—",
     "justNow": "vừa xong",
+    "close": "Đóng",
+    "cancel": "Hủy",
+    "loading": "Đang tải...",
     "minutesAgo": "{{n}} phút trước",
     "hoursAgo": "{{n}} giờ trước",
     "daysAgo": "{{n}} ngày trước",
@@ -3075,7 +3138,25 @@
       "fullName": "Họ và tên",
       "email": "Email",
       "chooseRole": "Chọn vai trò",
-      "chooseDept": "Chọn phòng ban"
+      "chooseDept": "Chọn phòng ban",
+      "viewDetail": "Xem chi tiết",
+      "resetPassword": "Đặt lại mật khẩu",
+      "approve": "Duyệt tài khoản",
+      "detailTitle": "Chi tiết người dùng",
+      "emailVerified": "Đã xác minh",
+      "phone": "Số điện thoại",
+      "bio": "Giới thiệu",
+      "lastLogin": "Đăng nhập cuối",
+      "createdAt": "Ngày tạo",
+      "updatedAt": "Cập nhật lần cuối",
+      "resetPasswordConfirm": "Bạn có chắc muốn đặt lại mật khẩu cho {{name}}?",
+      "resetPasswordWarning": "Mật khẩu tạm thời sẽ được tạo. Hãy đảm bảo gửi mật khẩu này cho người dùng một cách bảo mật.",
+      "resetSuccess": "Đặt lại mật khẩu thành công!",
+      "tempPassword": "Mật khẩu tạm thời",
+      "copy": "Sao chép",
+      "copied": "Đã sao chép!",
+      "tempPasswordNote": "Yêu cầu người dùng đổi mật khẩu sau khi đăng nhập.",
+      "deleteConfirm": "Bạn có chắc muốn xóa người dùng \"{{name}}\"? Hành động này không thể hoàn tác."
     },
     "table": {
       "user": "Người dùng",

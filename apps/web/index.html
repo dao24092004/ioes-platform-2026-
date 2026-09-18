@@ -8,6 +8,12 @@
     <title>IOES Platform</title>
   </head>
   <body>
+    <script>
+      // Ngăn trình duyệt tự khôi phục scroll position khi refresh
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

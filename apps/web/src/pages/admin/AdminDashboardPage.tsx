@@ -82,14 +82,14 @@ const AdminDashboardPage: React.FC = () => {
       {/* Stats grid */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
         {statCards.map((s, i) => (
-          <div key={i} className="group relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-800 opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-blue-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          <div key={i} className="group relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-800 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-blue-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             <div className="relative flex items-start justify-between mb-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all group-hover:rotate-[10deg] group-hover:scale-110 ${colorClasses[s.color]}`}>
                 {s.icon}
               </div>
             </div>
-            <div className="relative text-3xl font-bold mb-1 transition-all group-hover:text-blue-600 group-hover:scale-105 origin-left animate-[countUp_.5s_ease_forwards]">
+            <div className="relative text-3xl font-bold mb-1 transition-all group-hover:text-blue-600 group-hover:scale-105 origin-left animate-[countUp_.8s_ease_forwards]">
               {s.value}
             </div>
             <div className="relative text-sm text-slate-500 dark:text-slate-400">{s.label}</div>
@@ -100,7 +100,7 @@ const AdminDashboardPage: React.FC = () => {
       {/* Main grid */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* Recent users */}
-        <div className="xl:col-span-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_.6s_ease-out_forwards] [animation-delay:.2s] hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all duration-300">
+        <div className="xl:col-span-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.2s] hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all duration-300">
           <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <h2 className="flex items-center gap-2.5 text-base font-semibold">
               <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-transform hover:rotate-[10deg] hover:scale-110">
@@ -167,7 +167,7 @@ const AdminDashboardPage: React.FC = () => {
         {/* Right column */}
         <div className="xl:col-span-4 space-y-6">
           {/* Quick actions */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_.6s_ease-out_forwards] [animation-delay:.3s] hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.3s] hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all">
             <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
               <h2 className="text-base font-semibold">{t('admin.dashboard.quickActions')}</h2>
             </div>
@@ -190,7 +190,7 @@ const AdminDashboardPage: React.FC = () => {
                     to={qa.link}
                     className="group relative overflow-hidden flex flex-col items-center gap-2 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-xl transition-all hover:-translate-y-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-lg hover:shadow-blue-500/10"
                   >
-                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-blue-500/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-blue-500/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                     <div className={`relative w-11 h-11 rounded-xl flex items-center justify-center transition-all group-hover:scale-110 group-hover:rotate-[10deg] ${map[qa.color]}`}>
                       {qa.icon}
                     </div>
@@ -202,7 +202,7 @@ const AdminDashboardPage: React.FC = () => {
           </div>
 
           {/* Recent activity — chưa service nào công bố luồng hoạt động */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_.6s_ease-out_forwards] [animation-delay:.35s]">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.35s]">
             <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
               <h2 className="flex items-center gap-2.5 text-base font-semibold">
                 <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center">
@@ -215,7 +215,7 @@ const AdminDashboardPage: React.FC = () => {
           </div>
 
           {/* System status — chưa có endpoint tổng hợp health các service */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_.6s_ease-out_forwards] [animation-delay:.4s]">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.4s]">
             <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
               <h2 className="flex items-center gap-2.5 text-base font-semibold">
                 <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center">

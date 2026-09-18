@@ -25,6 +25,7 @@ const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage'));
 const VerifyEmailPage = lazy(() => import('@/pages/auth/VerifyEmailPage'));
 const OAuthCallbackPage = lazy(() => import('@/pages/auth/OAuthCallbackPage'));
+const AuthLayout = lazy(() => import('@/pages/auth/AuthLayout'));
 
 // Error Pages
 const NotFoundPage = lazy(() => import('@/pages/error/404'));
@@ -128,8 +129,10 @@ const AppRoutes: React.FC = () => {
         <Route path="/legal/:slug" element={<LegalPage />} />
 
         {/* Auth Routes */}
-        <Route path="/auth/login" element={<LoginPage />} />
-        <Route path="/auth/register" element={<RegisterPage />} />
+        <Route element={<AuthLayout />}>
+          <Route path="/auth/login" element={<LoginPage />} />
+          <Route path="/auth/register" element={<RegisterPage />} />
+        </Route>
         <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
         <Route path="/auth/oauth/callback" element={<OAuthCallbackPage />} />

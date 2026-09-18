@@ -136,7 +136,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ title, subtitle, children
       )}
 
       <aside
-        className={`fixed top-0 left-0 bottom-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-transform duration-300 ${
+        className={`fixed top-0 left-0 bottom-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-transform duration-500 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
@@ -222,7 +222,7 @@ const StudentLayout: React.FC<StudentLayoutProps> = ({ title, subtitle, children
         </div>
       </aside>
 
-      <div className="lg:pl-64 transition-all duration-300">
+      <div className="lg:pl-64 transition-all duration-500">
         <header className="sticky top-0 z-30 h-[72px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center justify-between h-full px-6 lg:px-8 pl-16 lg:pl-8">
             <div>

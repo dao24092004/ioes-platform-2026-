@@ -111,4 +111,13 @@ export function deleteUser(id: string): Promise<void> {
   return unwrapVoid(apiClient.delete<ApiEnvelope<null>>(`${BASE}/${id}`));
 }
 
-export const usersApi = { list, stats, getById, updateStatus, updateRole, deleteUser };
+/** Đặt lại mật khẩu người dùng; backend trả mật khẩu tạm mới. */
+export interface ResetPasswordResponse {
+  temporaryPassword: string;
+}
+
+export function resetPassword(id: string): Promise<ResetPasswordResponse> {
+  return unwrap(apiClient.post<ApiEnvelope<ResetPasswordResponse>>(`${BASE}/${id}/reset-password`));
+}
+
+export const usersApi = { list, stats, getById, updateStatus, updateRole, deleteUser, resetPassword };

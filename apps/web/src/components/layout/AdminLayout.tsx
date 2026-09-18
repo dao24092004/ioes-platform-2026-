@@ -119,7 +119,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, he
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-transform duration-300 ${
+        className={`fixed top-0 left-0 bottom-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-transform duration-500 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
@@ -196,11 +196,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, he
       </aside>
 
       {/* Main */}
-      <div className="lg:pl-64 transition-all duration-300">
+      <div className="lg:pl-64 transition-all duration-500">
         {/* Header */}
         <header className="sticky top-0 z-30 h-[72px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center justify-between h-full px-6 lg:px-8 pl-16 lg:pl-8">
-            <div className="opacity-0 animate-[fadeIn_.5s_ease_forwards]">
+            <div className="opacity-0 animate-[fadeIn_1s_ease_forwards]">
               <h1 className="text-xl lg:text-2xl font-bold">{title}</h1>
               {subtitle && <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{subtitle}</p>}
             </div>

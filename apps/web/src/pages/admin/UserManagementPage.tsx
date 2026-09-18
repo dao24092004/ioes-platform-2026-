@@ -9,6 +9,233 @@ import {
   type UserStatus,
 } from '@/services/api/users.api';
 
+// ============================================
+// COMPONENT CON TÊN: UserDetailModal
+// ============================================
+interface UserDetailModalProps {
+  user: AdminUser;
+  onClose: () => void;
+}
+
+const UserDetailModal: React.FC<UserDetailModalProps> = ({ user, onClose }) => {
+  const { t } = useTranslation();
+
+  const formatDate = (iso: string | null | undefined) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
+      <div
+        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-[fadeInUp_.3s_ease-out]"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+          <h2 className="text-xl font-bold">{t('admin.users.detailTitle')}</h2>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        </div>
+
+        {/* Avatar & Name */}
+        <div className="p-6 flex flex-col items-center border-b border-slate-200 dark:border-slate-800">
+          {user.avatarUrl ? (
+            <img src={user.avatarUrl} alt={user.fullName} className="w-20 h-20 rounded-2xl object-cover mb-3" />
+          ) : (
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center font-bold text-2xl mb-3">
+              {user.fullName.split(' ').filter(Boolean).map(s => s.charAt(0)).slice(0, 2).join('')}
+            </div>
+          )}
+          <h3 className="text-lg font-bold">{user.fullName}</h3>
+          <p className="text-sm text-slate-500">{user.email}</p>
+          <div className="flex items-center gap-2 mt-2">
+            {user.emailVerified && (
+              <span className="px-2 py-1 text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg">{t('admin.users.emailVerified')}</span>
+            )}
+            {user.mfaEnabled && (
+              <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg">2FA</span>
+            )}
+          </div>
+        </div>
+
+        {/* Info Grid */}
+        <div className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.role')}</label>
+              <p className="font-semibold mt-1">{t(`admin.role.${user.role === 'super_admin' ? 'superAdmin' : user.role}`)}</p>
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.status')}</label>
+              <p className="font-semibold mt-1">{t(`admin.status.${user.status}`)}</p>
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.phone')}</label>
+              <p className="font-semibold mt-1">{user.phone ?? '—'}</p>
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 uppercase tracking-wider">ID</label>
+              <p className="font-mono text-xs mt-1 break-all">{user.id}</p>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.bio')}</label>
+            <p className="mt-1 text-sm">{user.bio ?? '—'}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.lastLogin')}</label>
+              <p className="text-sm mt-1">{formatDate(user.lastLoginAt)}</p>
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 uppercase tracking-wider">IP</label>
+              <p className="text-sm mt-1">{user.lastLoginIp ?? '—'}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.createdAt')}</label>
+              <p className="text-sm mt-1">{formatDate(user.createdAt)}</p>
+            </div>
+            <div>
+              <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.updatedAt')}</label>
+              <p className="text-sm mt-1">{formatDate(user.updatedAt)}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-semibold bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          >
+            {t('shared.close')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================
+// COMPONENT CON TÊN: ResetPasswordModal
+// ============================================
+interface ResetPasswordModalProps {
+  user: AdminUser;
+  onClose: () => void;
+}
+
+const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ user, onClose }) => {
+  const { t } = useTranslation();
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const resetMutation = useMutation({
+    mutationFn: () => usersApi.resetPassword(user.id),
+    onSuccess: (data) => {
+      setTempPassword(data.temporaryPassword);
+    },
+  });
+
+  const handleCopy = () => {
+    if (tempPassword) {
+      navigator.clipboard.writeText(tempPassword);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
+      <div
+        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md animate-[fadeInUp_.3s_ease-out]"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+          <h2 className="text-xl font-bold">{t('admin.users.resetPassword')}</h2>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          {!tempPassword ? (
+            <>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                {t('admin.users.resetPasswordConfirm', { name: user.fullName })}
+              </p>
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    {t('admin.users.resetPasswordWarning')}
+                  </p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                </div>
+                <p className="font-semibold text-emerald-600 dark:text-emerald-400">{t('admin.users.resetSuccess')}</p>
+              </div>
+              <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4">
+                <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.tempPassword')}</label>
+                <div className="flex items-center gap-2 mt-1">
+                  <code className="flex-1 font-mono text-lg font-bold break-all">{tempPassword}</code>
+                  <button
+                    onClick={handleCopy}
+                    className="px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
+                  >
+                    {copied ? t('admin.users.copied') : t('admin.users.copy')}
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 mt-3">{t('admin.users.tempPasswordNote')}</p>
+            </>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-semibold bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          >
+            {tempPassword ? t('shared.close') : t('shared.cancel')}
+          </button>
+          {!tempPassword && (
+            <button
+              onClick={() => resetMutation.mutate()}
+              disabled={resetMutation.isPending}
+              className="px-4 py-2 text-sm font-semibold bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+            >
+              {resetMutation.isPending ? t('shared.loading') : t('admin.users.resetPassword')}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const getInitials = (name: string) =>
   name.split(' ').filter(Boolean).map(s => s.charAt(0)).slice(0, 2).join('').toUpperCase();
 
@@ -34,6 +261,8 @@ const UserManagementPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<'newest' | 'name_asc'>('newest');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
+  const [detailUser, setDetailUser] = useState<AdminUser | null>(null);
+  const [resetPasswordUser, setResetPasswordUser] = useState<AdminUser | null>(null);
   const perPage = 6;
 
   const { data: stats } = useQuery({
@@ -166,7 +395,7 @@ const UserManagementPage: React.FC = () => {
                 else if (s.key === 'admin') { setRoleFilter('admin'); setStatusFilter('all'); }
                 else if (s.key === 'suspended') { setRoleFilter('all'); setStatusFilter('suspended'); }
               }}
-              className={`group text-left bg-white dark:bg-slate-900 rounded-2xl border p-5 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/5 opacity-0 animate-[fadeInUp_.6s_ease-out_forwards] ${
+              className={`group text-left bg-white dark:bg-slate-900 rounded-2xl border p-5 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/5 opacity-0 animate-[fadeInUp_1s_ease-out_forwards] ${
                 active ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-800'
               }`}
               style={{ animationDelay: `${(i + 1) * 0.1}s` }}
@@ -174,7 +403,7 @@ const UserManagementPage: React.FC = () => {
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all group-hover:rotate-[10deg] group-hover:scale-110 ${map[s.color as keyof typeof map]}`}>
                 {s.icon}
               </div>
-              <div className="text-3xl font-bold mb-1 animate-[countUp_.5s_ease_forwards]">{s.value}</div>
+              <div className="text-3xl font-bold mb-1 animate-[countUp_.8s_ease_forwards]">{s.value}</div>
               <div className="text-sm text-slate-500 dark:text-slate-400">{s.label}</div>
             </button>
           );
@@ -183,7 +412,7 @@ const UserManagementPage: React.FC = () => {
 
       {/* Bulk actions bar */}
       {selected.size > 0 && (
-        <div className="mb-4 px-5 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center gap-3 animate-[fadeInUp_.3s_ease-out]">
+        <div className="mb-4 px-5 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center gap-3 animate-[fadeInUp_.5s_ease-out]">
           <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
             {selected.size} {t('admin.users.selected')}
           </span>
@@ -269,7 +498,7 @@ const UserManagementPage: React.FC = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_.6s_ease-out_forwards] [animation-delay:.2s]">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.2s]">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -348,8 +577,37 @@ const UserManagementPage: React.FC = () => {
                   <td className="px-4 py-4">{statusBadge(u.status)}</td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-1.5">
-                      {/* Người dùng đã xoá mềm không mở khoá lại được qua PATCH status. */}
-                      {u.status === 'deleted' ? null : u.status === 'suspended' ? (
+                      {/* Xem chi tiết */}
+                      <button
+                        onClick={() => setDetailUser(u)}
+                        className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center"
+                        title={t('admin.users.viewDetail')}
+                      >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                      </button>
+
+                      {/* Đặt lại mật khẩu */}
+                      <button
+                        onClick={() => setResetPasswordUser(u)}
+                        className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-amber-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all flex items-center justify-center"
+                        title={t('admin.users.resetPassword')}
+                      >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 7h2a5 5 0 015 5 5 5 0 01-5 5h-2M9 7H7a5 5 0 00-5 5 5 5 0 005 5h2M15 7V5a2 2 0 00-2-2H9a2 2 0 00-2 2v6" /></svg>
+                      </button>
+
+                      {/* Pending → Duyệt tài khoản */}
+                      {u.status === 'pending' && (
+                        <button
+                          onClick={() => updateStatus.mutate({ id: u.id, status: 'active' })}
+                          className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all flex items-center justify-center"
+                          title={t('admin.users.approve')}
+                        >
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                        </button>
+                      )}
+
+                      {/* Suspended → Mở khóa (về active) */}
+                      {u.status === 'suspended' && (
                         <button
                           onClick={() => updateStatus.mutate({ id: u.id, status: 'active' })}
                           className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all flex items-center justify-center"
@@ -357,7 +615,10 @@ const UserManagementPage: React.FC = () => {
                         >
                           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
                         </button>
-                      ) : (
+                      )}
+
+                      {/* Active → Khóa */}
+                      {u.status === 'active' && (
                         <button
                           onClick={() => updateStatus.mutate({ id: u.id, status: 'suspended' })}
                           className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center justify-center"
@@ -366,6 +627,19 @@ const UserManagementPage: React.FC = () => {
                           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="11" width="14" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
                         </button>
                       )}
+
+                      {/* Xoá người dùng */}
+                      <button
+                        onClick={() => {
+                          if (confirm(t('admin.users.deleteConfirm', { name: u.fullName }))) {
+                            deleteUser.mutate(u.id);
+                          }
+                        }}
+                        className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-red-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center justify-center"
+                        title={t('admin.users.delete')}
+                      >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -409,6 +683,14 @@ const UserManagementPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      {detailUser && (
+        <UserDetailModal user={detailUser} onClose={() => setDetailUser(null)} />
+      )}
+      {resetPasswordUser && (
+        <ResetPasswordModal user={resetPasswordUser} onClose={() => setResetPasswordUser(null)} />
+      )}
     </AdminLayout>
   );
 };
