@@ -76,10 +76,39 @@ public final class CourseCommands {
             Boolean isFree
     ) {}
 
+    /**
+     * Cập nhật chương. Trường null nghĩa là giữ nguyên, không phải xoá — giống
+     * cách {@link UpdateCourse} xử lý.
+     */
+    public record UpdateChapter(
+            @Size(max = 255) String title,
+            String description,
+            Integer sortOrder,
+            Boolean isFree
+    ) {}
+
     public record CreateLesson(
             @NotBlank @Size(max = 255) String title,
             String description,
             @NotNull LessonType lessonType,
+            @Size(max = 500) String contentUrl,
+            Integer durationMinutes,
+            Integer sortOrder,
+            Boolean isFree,
+            Boolean isPreview
+    ) {}
+
+    /**
+     * Cập nhật bài học. Trường null nghĩa là giữ nguyên.
+     *
+     * <p>{@code lessonType} được đặt riêng vì thay đổi kiểu bài học đồng nghĩa
+     * với thay đổi cấu trúc đáp án / bài tập liên quan — nó không bao giờ nên
+     * được gửi kèm một patch thường; client phải chọn lại một cách tường minh.
+     */
+    public record UpdateLesson(
+            @Size(max = 255) String title,
+            String description,
+            LessonType lessonType,
             @Size(max = 500) String contentUrl,
             Integer durationMinutes,
             Integer sortOrder,

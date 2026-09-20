@@ -141,6 +141,18 @@ public class CourseController {
         return structureUseCase.addChapter(courseId, command, Caller.id(), Caller.role());
     }
 
+    /**
+     * Cập nhật một phần chương. Trường null là giữ nguyên — khớp với
+     * {@code UpdateCourse} ở trên.
+     */
+    @PatchMapping("/{courseId}/chapters/{chapterId}")
+    public ChapterView updateChapter(
+            @PathVariable UUID courseId,
+            @PathVariable UUID chapterId,
+            @Valid @RequestBody CourseCommands.UpdateChapter command) {
+        return structureUseCase.updateChapter(chapterId, command, Caller.id(), Caller.role());
+    }
+
     @DeleteMapping("/{courseId}/chapters/{chapterId}")
     public ResponseEntity<Void> deleteChapter(
             @PathVariable UUID courseId, @PathVariable UUID chapterId) {
@@ -161,6 +173,21 @@ public class CourseController {
             @PathVariable UUID chapterId,
             @Valid @RequestBody CourseCommands.CreateLesson command) {
         return structureUseCase.addLesson(chapterId, command, Caller.id(), Caller.role());
+    }
+
+    /**
+     * Cập nhật một phần bài học. Trường null là giữ nguyên.
+     *
+     * <p>{@code lessonType} chỉ đổi khi client gửi rõ; vì đổi kiểu bài thay
+     * đổi cấu trúc đáp án nên không nên đi kèm patch thường.
+     */
+    @PatchMapping("/{courseId}/chapters/{chapterId}/lessons/{lessonId}")
+    public LessonView updateLesson(
+            @PathVariable UUID courseId,
+            @PathVariable UUID chapterId,
+            @PathVariable UUID lessonId,
+            @Valid @RequestBody CourseCommands.UpdateLesson command) {
+        return structureUseCase.updateLesson(lessonId, command, Caller.id(), Caller.role());
     }
 
     @DeleteMapping("/{courseId}/chapters/{chapterId}/lessons/{lessonId}")

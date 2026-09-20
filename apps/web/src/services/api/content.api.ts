@@ -165,6 +165,12 @@ export interface CreateChapterPayload {
   isFree?: boolean | null;
 }
 
+/**
+ * Trường null/bỏ trống là giữ nguyên, không phải xoá — khớp với backend
+ * `UpdateChapter`. {@link title} nếu gửi phải khớp {@link CreateChapterPayload}.
+ */
+export type UpdateChapterPayload = Partial<CreateChapterPayload>;
+
 /** Khớp record `CreateLesson`. */
 export interface CreateLessonPayload {
   title: string;
@@ -176,6 +182,12 @@ export interface CreateLessonPayload {
   isFree?: boolean | null;
   isPreview?: boolean | null;
 }
+
+/**
+ * Trường null/bỏ trống là giữ nguyên. {@link lessonType} là tuỳ chọn: nếu
+ * client muốn đổi kiểu bài thì phải gửi rõ.
+ */
+export type UpdateLessonPayload = Partial<CreateLessonPayload>;
 
 /** Lấy thân response và đổi lỗi axios thành `ApiError`, thay cho `unwrap`. */
 async function body<T>(promise: Promise<{ data: T }>): Promise<T> {
@@ -296,6 +308,18 @@ export function addChapter(courseId: string, payload: CreateChapterPayload): Pro
   return body(apiClient.post<Chapter>(`${COURSES}/${courseId}/chapters`, payload));
 }
 
+/**
+ * Cập nhật một phần chương. Trường null/bỏ trống là giữ nguyên — khớp với
+ * backend `UpdateChapter`.
+ */
+export function updateChapter(
+  courseId: string,
+  chapterId: string,
+  payload: UpdateChapterPayload,
+): Promise<Chapter> {
+  return body(apiClient.patch<Chapter>(`${COURSES}/${courseId}/chapters/${chapterId}`, payload));
+}
+
 export function deleteChapter(courseId: string, chapterId: string): Promise<void> {
   return noContent(apiClient.delete(`${COURSES}/${courseId}/chapters/${chapterId}`));
 }
@@ -311,6 +335,24 @@ export function addLesson(
 ): Promise<Lesson> {
   return body(
     apiClient.post<Lesson>(`${COURSES}/${courseId}/chapters/${chapterId}/lessons`, payload),
+  );
+}
+
+/**
+ * Cập nhật một phần bài học. Trường null/bỏ trống là giữ nguyên — khớp với
+ * backend `UpdateLesson`.
+ */
+export function updateLesson(
+  courseId: string,
+  chapterId: string,
+  lessonId: string,
+  payload: UpdateLessonPayload,
+): Promise<Lesson> {
+  return body(
+    apiClient.patch<Lesson>(
+      `${COURSES}/${courseId}/chapters/${chapterId}/lessons/${lessonId}`,
+      payload,
+    ),
   );
 }
 
@@ -416,9 +458,11 @@ export const contentApi = {
   rejectCourse,
   publishCourse,
   addChapter,
+  updateChapter,
   deleteChapter,
   listLessons,
   addLesson,
+  updateLesson,
   deleteLesson,
   getEnrollmentState,
   enroll,
