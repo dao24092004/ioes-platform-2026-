@@ -3,6 +3,7 @@ import { ExamSessionService } from './exam-session.service';
 import { ExamSessionRepository } from './exam-session.repository';
 import { SessionCacheService } from './session-cache.service';
 import { KafkaPublisherService } from '../../common/kafka-publisher.service';
+import { ViolationCounterService } from './services/violation-counter.service';
 import {
   START_EXAM_USE_CASE,
   IStartExamUseCase,
@@ -47,6 +48,10 @@ describe('ExamSessionService — Kafka event publishing', () => {
         {
           provide: KafkaPublisherService,
           useValue: { publish: jest.fn().mockResolvedValue(undefined) },
+        },
+        {
+          provide: ViolationCounterService,
+          useValue: { clearAll: jest.fn().mockResolvedValue(undefined) },
         },
         {
           provide: START_EXAM_USE_CASE,

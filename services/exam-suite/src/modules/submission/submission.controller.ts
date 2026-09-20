@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -15,7 +16,9 @@ import {
 import {
   ApiResponse,
   CurrentUser,
+  JwtAuthGuard,
   Roles,
+  RolesGuard,
   UserId,
   UserPrincipalDto,
 } from '@ioes/common-node';
@@ -37,6 +40,7 @@ import { GradeExamDto } from '../exam/dto/grade-exam.dto';
   example: '00000000-0000-4000-8000-000000000001',
 })
 @Controller('exams/:examId/submissions')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class SubmissionController {
   constructor(private readonly submissionService: SubmissionService) {}
 

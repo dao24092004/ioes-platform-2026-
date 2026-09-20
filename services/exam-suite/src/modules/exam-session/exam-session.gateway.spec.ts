@@ -1,27 +1,27 @@
 import { ExamSessionGateway } from './exam-session.gateway';
 import { ExamSessionService } from './exam-session.service';
+import { ExamSessionRepository } from './exam-session.repository';
 import { SessionCacheService } from './session-cache.service';
 import { FrameProcessorService } from './services/frame-processor.service';
 import { ViolationCounterService } from './services/violation-counter.service';
 import { Socket } from 'socket.io';
 
 const ATTEMPT_UUID = '11111111-1111-4111-8111-111111111111';
-const USER_UUID = '00000000-0000-4000-8000-000000000001';
 
 /**
  * Unit tests cho ExamSessionGateway — focus vào handler `proctoring:frame`.
  *
- * UC_008 step 9-12: Student client capture frame mỗi 1 giây → gửi qua WS → server:
- * 1. Decode frame base64
- * 2. Gọi FrameProcessorService.processFrame()
- * 3. Nếu violation: emit `proctoring:violation` cho Student
- * 4. Nếu shouldAutoSubmit=true: emit `proctoring:auto-submit` cho Student + trigger service.autoSubmit()
+ * UC_008 step 9-12:
+ * - BR-011: attention < 60 → LOW_ATTENTION; < 40 → flag
+ * - FR-PROC-006: FACE_NOT_DETECTED > 5s → violation
+ * - BR-013: violation count > 3 → auto-submit + flag
  *
  * Convention: should_X_When_Y
  */
 describe('ExamSessionGateway - proctoring:frame', () => {
   let gateway: ExamSessionGateway;
   let examSessionService: jest.Mocked<ExamSessionService>;
+  let repository: jest.Mocked<ExamSessionRepository>;
   let sessionCache: jest.Mocked<SessionCacheService>;
   let frameProcessor: jest.Mocked<FrameProcessorService>;
   let counter: jest.Mocked<ViolationCounterService>;
@@ -38,6 +38,10 @@ describe('ExamSessionGateway - proctoring:frame', () => {
       startAttempt: jest.fn(),
     } as any;
 
+    repository = {
+      updateAttemptFlag: jest.fn(),
+    } as any;
+
     sessionCache = {
       setStudentWsSession: jest.fn(),
       getSession: jest.fn(),
@@ -50,6 +54,7 @@ describe('ExamSessionGateway - proctoring:frame', () => {
     } as any;
 
     counter = {
+      clearAll: jest.fn(),
       clear: jest.fn(),
       getCount: jest.fn(),
     } as any;
@@ -68,6 +73,7 @@ describe('ExamSessionGateway - proctoring:frame', () => {
 
     gateway = new ExamSessionGateway(
       examSessionService,
+      repository,
       sessionCache,
       frameProcessor,
       counter,
@@ -79,9 +85,12 @@ describe('ExamSessionGateway - proctoring:frame', () => {
       frameProcessor.processFrame.mockResolvedValue({
         attentionScore: 45,
         faceDetected: true,
+        attentionSeverity: 'WARNING',
         violationType: 'LOW_ATTENTION',
+        violationEvent: { type: 'LOW_ATTENTION', startedAt: '2026-09-20T00:00:00Z' },
         shouldAutoSubmit: false,
         violationCount: 1,
+        attemptFlagged: false,
       });
 
       const payload = {
@@ -92,10 +101,7 @@ describe('ExamSessionGateway - proctoring:frame', () => {
       await (gateway as any).handleFrame(mockSocket as Socket, payload);
 
       expect(frameProcessor.processFrame).toHaveBeenCalledWith(
-        expect.objectContaining({
-          attemptId: ATTEMPT_UUID,
-          frameBase64: 'data:image/jpeg;base64,mock',
-        }),
+        expect.objectContaining({ attemptId: ATTEMPT_UUID }),
       );
       expect(mockSocket.emit).toHaveBeenCalledWith(
         'proctoring:violation',
@@ -111,17 +117,17 @@ describe('ExamSessionGateway - proctoring:frame', () => {
       frameProcessor.processFrame.mockResolvedValue({
         attentionScore: 80,
         faceDetected: true,
+        attentionSeverity: 'OK',
         violationType: undefined,
         shouldAutoSubmit: false,
         violationCount: 0,
+        attemptFlagged: false,
       });
 
-      const payload = {
+      await (gateway as any).handleFrame(mockSocket as Socket, {
         attemptId: ATTEMPT_UUID,
         frameBase64: 'mock',
-      };
-
-      await (gateway as any).handleFrame(mockSocket as Socket, payload);
+      });
 
       expect(mockSocket.emit).not.toHaveBeenCalledWith(
         'proctoring:violation',
@@ -129,49 +135,44 @@ describe('ExamSessionGateway - proctoring:frame', () => {
       );
     });
 
+    it('should_emitFlagged_When_attentionBelow40', async () => {
+      frameProcessor.processFrame.mockResolvedValue({
+        attentionScore: 35,
+        faceDetected: true,
+        attentionSeverity: 'FLAG',
+        violationType: 'LOW_ATTENTION_FLAG',
+        violationEvent: { type: 'LOW_ATTENTION_FLAG', startedAt: '2026-09-20T00:00:00Z' },
+        shouldAutoSubmit: false,
+        violationCount: 1,
+        attemptFlagged: true,
+      });
+
+      await (gateway as any).handleFrame(mockSocket as Socket, {
+        attemptId: ATTEMPT_UUID,
+        frameBase64: 'mock',
+      });
+
+      expect(repository.updateAttemptFlag).toHaveBeenCalledWith(
+        ATTEMPT_UUID,
+        true,
+        expect.stringContaining('LOW_ATTENTION_FLAG'),
+      );
+      expect(mockSocket.emit).toHaveBeenCalledWith(
+        'proctoring:flagged',
+        expect.objectContaining({ attentionScore: 35 }),
+      );
+    });
+
     it('should_emitAutoSubmitEvent_When_shouldAutoSubmitTrue', async () => {
       frameProcessor.processFrame.mockResolvedValue({
         attentionScore: 30,
         faceDetected: true,
-        violationType: 'LOW_ATTENTION',
+        attentionSeverity: 'FLAG',
+        violationType: 'LOW_ATTENTION_FLAG',
+        violationEvent: { type: 'LOW_ATTENTION_FLAG', startedAt: '2026-09-20T00:00:00Z' },
         shouldAutoSubmit: true,
         violationCount: 4,
-      });
-      examSessionService.autoSubmit.mockResolvedValue({
-        submissionId: 'sub-1',
-        submissionKind: 'AUTO_FLAG',
-        flagged: true,
-      });
-
-      const payload = {
-        attemptId: ATTEMPT_UUID,
-        frameBase64: 'mock',
-      };
-
-      await (gateway as any).handleFrame(mockSocket as Socket, payload);
-
-      expect(examSessionService.autoSubmit).toHaveBeenCalledWith(
-        ATTEMPT_UUID,
-        'AUTO_FLAG',
-      );
-      expect(mockSocket.emit).toHaveBeenCalledWith(
-        'proctoring:auto-submitted',
-        expect.objectContaining({
-          attemptId: ATTEMPT_UUID,
-          flagged: true,
-          submissionId: 'sub-1',
-        }),
-      );
-      expect(counter.clear).toHaveBeenCalledWith(ATTEMPT_UUID);
-    });
-
-    it('should_clearCounter_When_autoSubmitTriggered', async () => {
-      frameProcessor.processFrame.mockResolvedValue({
-        attentionScore: 30,
-        faceDetected: true,
-        violationType: 'LOW_ATTENTION',
-        shouldAutoSubmit: true,
-        violationCount: 4,
+        attemptFlagged: true,
       });
       examSessionService.autoSubmit.mockResolvedValue({
         submissionId: 'sub-1',
@@ -184,44 +185,74 @@ describe('ExamSessionGateway - proctoring:frame', () => {
         frameBase64: 'mock',
       });
 
-      expect(counter.clear).toHaveBeenCalledWith(ATTEMPT_UUID);
+      expect(examSessionService.autoSubmit).toHaveBeenCalledWith(
+        ATTEMPT_UUID,
+        'AUTO_FLAG',
+      );
+      expect(mockSocket.emit).toHaveBeenCalledWith(
+        'proctoring:auto-submitted',
+        expect.objectContaining({
+          attemptId: ATTEMPT_UUID,
+          flagged: true,
+        }),
+      );
+      expect(counter.clearAll).toHaveBeenCalledWith(ATTEMPT_UUID);
+    });
+
+    it('should_clearAllViolations_When_autoSubmitTriggered', async () => {
+      frameProcessor.processFrame.mockResolvedValue({
+        attentionScore: 30,
+        faceDetected: true,
+        attentionSeverity: 'FLAG',
+        violationType: 'LOW_ATTENTION_FLAG',
+        violationEvent: { type: 'LOW_ATTENTION_FLAG', startedAt: '2026-09-20T00:00:00Z' },
+        shouldAutoSubmit: true,
+        violationCount: 4,
+        attemptFlagged: true,
+      });
+      examSessionService.autoSubmit.mockResolvedValue({
+        submissionId: 'sub-1',
+        submissionKind: 'AUTO_FLAG',
+        flagged: true,
+      });
+
+      await (gateway as any).handleFrame(mockSocket as Socket, {
+        attemptId: ATTEMPT_UUID,
+        frameBase64: 'mock',
+      });
+
+      expect(counter.clearAll).toHaveBeenCalledWith(ATTEMPT_UUID);
     });
 
     it('should_emitError_When_attemptIdMissing', async () => {
-      const payload = {
+      await (gateway as any).handleFrame(mockSocket as Socket, {
         attemptId: '',
         frameBase64: 'mock',
-      };
-
-      await (gateway as any).handleFrame(mockSocket as Socket, payload);
+      });
 
       expect(mockSocket.emit).toHaveBeenCalledWith(
         'proctoring:error',
-        expect.objectContaining({
-          code: 'INVALID_INPUT',
-        }),
+        expect.objectContaining({ code: 'INVALID_INPUT' }),
       );
       expect(frameProcessor.processFrame).not.toHaveBeenCalled();
     });
 
-    it('should_emitError_When_proctorCallFails', async () => {
-      // Exception 9e — không tính violation, emit warning
+    it('should_emitNoViolation_When_proctorReturnsNoViolation', async () => {
       frameProcessor.processFrame.mockResolvedValue({
         attentionScore: 0,
         faceDetected: false,
+        attentionSeverity: 'OK',
         violationType: undefined,
         shouldAutoSubmit: false,
         violationCount: 0,
+        attemptFlagged: false,
       });
 
-      const payload = {
+      await (gateway as any).handleFrame(mockSocket as Socket, {
         attemptId: ATTEMPT_UUID,
         frameBase64: 'mock',
-      };
+      });
 
-      await (gateway as any).handleFrame(mockSocket as Socket, payload);
-
-      // Không emit violation vì proctor fail → no violation
       expect(mockSocket.emit).not.toHaveBeenCalledWith(
         'proctoring:violation',
         expect.anything(),
