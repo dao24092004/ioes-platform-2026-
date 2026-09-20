@@ -69,6 +69,20 @@ public final class CourseCommands {
             Integer sortOrder
     ) {}
 
+    /**
+     * Cập nhật danh mục. Trường null nghĩa là giữ nguyên.
+     *
+     * <p>{@code isActive} null nghĩa là giữ nguyên; muốn tắt phải gọi DELETE.
+     */
+    public record UpdateCategory(
+            @Size(max = 100) String name,
+            String description,
+            UUID parentId,
+            @Size(max = 50) String icon,
+            Integer sortOrder,
+            Boolean isActive
+    ) {}
+
     public record CreateChapter(
             @NotBlank @Size(max = 255) String title,
             String description,

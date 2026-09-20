@@ -64,4 +64,41 @@ public class CategoryUseCase {
         categoryRepository.save(category);
         log.info("Danh mục {} bị tắt", id);
     }
+
+    /**
+     * Cập nhật một phần danh mục. Trường null nghĩa là giữ nguyên.
+     * Thay đổi slug phải đảm bảo không trùng với danh mục khác.
+     */
+    @Transactional
+    public CategoryView update(UUID id, CourseCommands.UpdateCategory command) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ContentNotFoundException(CATEGORY, id));
+
+        if (command.name() != null) {
+            category.setName(command.name());
+        }
+        if (command.description() != null) {
+            category.setDescription(command.description());
+        }
+        if (command.parentId() != null) {
+            if (command.parentId().equals(id)) {
+                throw new IllegalArgumentException("Danh mục không thể là cha của chính nó");
+            }
+            if (categoryRepository.findById(command.parentId()).isEmpty()) {
+                throw new ContentNotFoundException(CATEGORY, command.parentId());
+            }
+            category.setParentId(command.parentId());
+        }
+        if (command.icon() != null) {
+            category.setIcon(command.icon());
+        }
+        if (command.sortOrder() != null) {
+            category.setSortOrder(command.sortOrder());
+        }
+        if (command.isActive() != null) {
+            category.setIsActive(command.isActive());
+        }
+
+        return CategoryView.from(categoryRepository.save(category));
+    }
 }
