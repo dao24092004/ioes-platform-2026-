@@ -149,12 +149,6 @@ const CONTACT_CARDS: ContactCard[] = [
   },
 ];
 
-const contactToneClass: Record<ContactCard['tone'], string> = {
-  blue: 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400',
-  emerald: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400',
-  amber: 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400',
-  purple: 'bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400',
-};
 
 const POPULAR_ARTICLES = [
   { key: 'a1', tagKey: 'tagGettingStarted' },

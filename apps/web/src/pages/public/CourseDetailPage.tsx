@@ -170,12 +170,9 @@ const Detail: React.FC = () => {
                     {t(`courseApi.level.${course.difficultyLevel}`)}
                   </span>
                 )}
-                {course.isFeatured && (
-                  <span className="px-3 py-1 bg-amber-500 backdrop-blur-sm rounded-full text-xs font-semibold text-white flex items-center gap-1">
-                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    Khóa học nổi bật
-                  </span>
-                )}
+                {/* Nhãn "khoá học nổi bật" đã bỏ: content-service không có trường
+                    `isFeatured`, nên điều kiện luôn sai và nhãn không bao giờ hiện.
+                    Thêm lại khi backend có cột tương ứng. */}
               </div>
             </AnimatedSection>
 
@@ -244,12 +241,10 @@ const Detail: React.FC = () => {
                   </div>
                 ) : (
                   <div className="text-4xl font-extrabold text-blue-600 dark:text-blue-400">
+                    {/* Không hiện giá gạch ngang: content-service chỉ có một cột `price`,
+                        không có giá gốc. Bịa ra một mức giá cao hơn để gạch đi là quảng
+                        cáo sai. Thêm lại khi có trường giá gốc thật. */}
                     {formatCoursePrice(course, t('courses.free'))}
-                    {course.originalPrice && course.originalPrice > (course.price ?? 0) && (
-                      <span className="block text-lg font-normal text-slate-400 line-through mt-1">
-                        {formatCoursePrice({ ...course, price: course.originalPrice }, '')}
-                      </span>
-                    )}
                   </div>
                 )}
               </div>

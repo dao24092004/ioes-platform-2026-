@@ -307,7 +307,6 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ isLoading, isFirst
   const textAccent = isDark ? 'text-cyan-400' : 'text-blue-600';
   const progressBg = isDark ? 'bg-slate-800/80' : 'bg-slate-200/80';
   const progressBorder = isDark ? 'border-slate-700/50' : 'border-slate-300/50';
-  const percentText = isDark ? 'text-slate-500' : 'text-slate-500';
   const linkText = isDark ? 'text-slate-500' : 'text-slate-400';
   const linkHover = isDark ? 'hover:text-cyan-400' : 'hover:text-blue-600';
 

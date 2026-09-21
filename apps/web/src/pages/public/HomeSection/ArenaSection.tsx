@@ -1,60 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CountUp } from './StatsSection';
 import { useAuthStore } from '@/app/store/authStore';
 
-interface CountUpProps {
-  end: number;
-  duration?: number;
-  suffix?: string;
-}
-
-const CountUpStandalone: React.FC<CountUpProps> = ({ end, duration = 2000, suffix = '' }) => {
-  const [count, setCount] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setCount(0);
-          setIsVisible(true);
-        } else {
-          setIsVisible(false);
-        }
-      },
-      { threshold: 0.3 }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!isVisible) return;
-
-    let startTime: number;
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      const easeOut = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(easeOut * end));
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
-
-    requestAnimationFrame(animate);
-  }, [isVisible, end, duration]);
-
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
-};
 
 const ArenaSection: React.FC = () => {
   const { t } = useTranslation();
