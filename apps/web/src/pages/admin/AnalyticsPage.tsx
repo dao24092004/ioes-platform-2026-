@@ -41,7 +41,7 @@ const LineChart: React.FC<{
         {[0, 25, 50, 75, 100].map(y => (
           <line key={y} x1="0" y1={y} x2="100" y2={y} stroke="currentColor" strokeOpacity="0.08" strokeWidth="0.2" />
         ))}
-        <path d={areaD} fill={fill} className="transition-all duration-700" />
+        <path d={areaD} fill={fill} className="transition-all duration-1000" />
         <path
           d={pathD}
           fill="none"
@@ -49,7 +49,7 @@ const LineChart: React.FC<{
           strokeWidth="0.6"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="transition-all duration-700"
+          className="transition-all duration-1000"
           vectorEffect="non-scaling-stroke"
           style={{ strokeWidth: 2 }}
         />
@@ -257,10 +257,10 @@ const AnalyticsPage: React.FC = () => {
           <div
             key={card.label}
             data-testid={TEST_IDS.ANALYTICS_KPI}
-            className="group relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/5 opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]"
+            className="group relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/5 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
             style={{ animationDelay: `${(i + 1) * ANIMATION.STAGGER_DURATION_S}s` }}
           >
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-blue-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-blue-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             <div className={`relative w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${colorMap[card.color].bg} ${colorMap[card.color].text} transition-all group-hover:scale-110 group-hover:rotate-[10deg]`}>
               {card.svg}
             </div>
@@ -275,7 +275,7 @@ const AnalyticsPage: React.FC = () => {
         {/* User growth (line) */}
         <div
           data-testid={TEST_IDS.ANALYTICS_KPI}
-          className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_.6s_ease-out_forwards] hover:shadow-lg hover:shadow-blue-500/5 transition-all"
+          className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_1s_ease-out_forwards] hover:shadow-lg hover:shadow-blue-500/5 transition-all"
           style={{ animationDelay: `${2 * ANIMATION.STAGGER_DURATION_S}s` }}
         >
           <div className="flex items-center justify-between mb-4">
@@ -291,7 +291,7 @@ const AnalyticsPage: React.FC = () => {
 
         {/* Role distribution (donut) */}
         <div
-          className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_.6s_ease-out_forwards] hover:shadow-lg hover:shadow-blue-500/5 transition-all"
+          className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_1s_ease-out_forwards] hover:shadow-lg hover:shadow-blue-500/5 transition-all"
           style={{ animationDelay: `${2.5 * ANIMATION.STAGGER_DURATION_S}s` }}
         >
           <h2 className="text-base font-semibold mb-4">{t('analytics.charts.roleDistribution')}</h2>
@@ -300,7 +300,7 @@ const AnalyticsPage: React.FC = () => {
 
         {/* Enrollments — chưa có chuỗi ghi danh theo ngày */}
         <div
-          className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]"
+          className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
           style={{ animationDelay: `${3 * ANIMATION.STAGGER_DURATION_S}s` }}
         >
           <div className="flex items-center justify-between mb-4">
@@ -311,7 +311,7 @@ const AnalyticsPage: React.FC = () => {
 
         {/* Exam completion — chưa có chuỗi hoàn thành bài thi */}
         <div
-          className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]"
+          className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
           style={{ animationDelay: `${3.5 * ANIMATION.STAGGER_DURATION_S}s` }}
         >
           <h2 className="text-base font-semibold mb-4">{t('analytics.charts.examCompletion')}</h2>
@@ -322,7 +322,7 @@ const AnalyticsPage: React.FC = () => {
       {/* Pass rate + Top courses — chưa có endpoint */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         <div
-          className="xl:col-span-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]"
+          className="xl:col-span-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
           style={{ animationDelay: `${4 * ANIMATION.STAGGER_DURATION_S}s` }}
         >
           <h2 className="text-base font-semibold mb-4">{t('analytics.charts.passRate')}</h2>
@@ -330,7 +330,7 @@ const AnalyticsPage: React.FC = () => {
         </div>
 
         <div
-          className="xl:col-span-7 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]"
+          className="xl:col-span-7 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
           style={{ animationDelay: `${4.5 * ANIMATION.STAGGER_DURATION_S}s` }}
         >
           <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">

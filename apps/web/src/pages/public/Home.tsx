@@ -4,10 +4,10 @@ import HeroSection from './HomeSection/HeroSection';
 import StatsSection from './HomeSection/StatsSection';
 import FeaturesSection from './HomeSection/FeaturesSection';
 import CoursesSection from './HomeSection/CoursesSection';
-import ArenaSection from './HomeSection/ArenaSection';
-import SkillTreeSection from './HomeSection/SkillTreeSection';
 import AiMentorSection from './HomeSection/AiMentorSection';
+import PricingSection from './HomeSection/PricingSection';
 import TestimonialsSection from './HomeSection/TestimonialsSection';
+import FaqSection from './HomeSection/FaqSection';
 import CtaSection from './HomeSection/CtaSection';
 import Footer from '../../components/public/Footer';
 
@@ -21,10 +21,10 @@ const Home: React.FC = () => {
       <StatsSection />
       <FeaturesSection />
       <CoursesSection />
-      <ArenaSection />
-      <SkillTreeSection />
       <AiMentorSection />
+      <PricingSection />
       <TestimonialsSection />
+      <FaqSection />
       <CtaSection />
 
       {/* Footer */}

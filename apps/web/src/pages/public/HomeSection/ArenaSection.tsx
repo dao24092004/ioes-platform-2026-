@@ -1,9 +1,65 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { CountUp } from './StatsSection';
+import { useAuthStore } from '@/app/store/authStore';
+
+interface CountUpProps {
+  end: number;
+  duration?: number;
+  suffix?: string;
+}
+
+const CountUpStandalone: React.FC<CountUpProps> = ({ end, duration = 2000, suffix = '' }) => {
+  const [count, setCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setCount(0);
+          setIsVisible(true);
+        } else {
+          setIsVisible(false);
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    let startTime: number;
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(easeOut * end));
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [isVisible, end, duration]);
+
+  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+};
 
 const ArenaSection: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated && !!s.accessToken);
 
   return (
     <section id="arena" className="py-24 bg-slate-50 dark:bg-slate-900 relative overflow-hidden">
@@ -134,12 +190,15 @@ const ArenaSection: React.FC = () => {
         </div>
 
         <div className="text-center mt-10">
-          <Link to="/auth/register" className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl font-bold shadow-lg hover:bg-purple-700 transition-colors">
+          <button 
+            onClick={() => navigate(isAuthenticated ? '/courses' : '/auth/register')}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl font-bold shadow-lg hover:bg-purple-700 transition-colors"
+          >
             {t('arena.joinNow')}
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
-          </Link>
+          </button>
         </div>
       </div>
     </section>

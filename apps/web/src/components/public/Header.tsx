@@ -24,8 +24,7 @@ const Header: React.FC<HeaderProps> = ({ activeSection: propActiveSection }) => 
   const isDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   const cycleTheme = () => {
-    const order: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system'];
-    const next = order[(order.indexOf(theme) + 1) % order.length];
+    const next: 'light' | 'dark' = theme === 'light' ? 'dark' : 'light';
     setTheme(next);
   };
 
@@ -102,13 +101,13 @@ const Header: React.FC<HeaderProps> = ({ activeSection: propActiveSection }) => 
       <div className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/25 dark:shadow-blue-500/30">
             <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="w-6 h-6">
               <path d="M12 14l9-5-9-5-9 5 9 5z" />
               <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
             </svg>
           </div>
-          <span className="text-xl font-bold text-slate-900 dark:text-white">IOES</span>
+          <span className="text-xl font-bold text-slate-900 dark:bg-gradient-to-r dark:from-blue-400 dark:via-cyan-400 dark:to-purple-400 dark:bg-clip-text dark:text-transparent">IOES</span>
         </Link>
 
         {/* Nav Links - Desktop */}

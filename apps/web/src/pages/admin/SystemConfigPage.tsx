@@ -111,7 +111,7 @@ const SectionCard: React.FC<{ title: string; children: React.ReactNode; icon: Re
   children,
   icon,
 }) => (
-  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_.6s_ease-out_forwards] hover:shadow-lg hover:shadow-blue-500/5 transition-all">
+  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] hover:shadow-lg hover:shadow-blue-500/5 transition-all">
     <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
       <span className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center">
         {icon}
@@ -253,7 +253,7 @@ const SystemConfigPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Sidebar nav */}
         <aside className="lg:col-span-3">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-2 sticky top-24 opacity-0 animate-[fadeInUp_.6s_ease-out_forwards]">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-2 sticky top-24 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]">
             {sections.map(s => (
               <button
                 key={s.key}
