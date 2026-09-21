@@ -94,10 +94,18 @@ export class ExamController {
     return this.examService.gradingStats(user.role, user.userId);
   }
 
+  /**
+   * Phạm vi xem do service quyết định từ role: student chỉ thấy exam đang mở
+   * cho học viên (cùng tập với GET /exams), instructor chỉ exam của mình,
+   * admin/super admin thấy tất cả. Không có quyền → 404 (ẩn existence).
+   */
   @Get(':id')
-  @Roles('STUDENT', 'INSTRUCTOR', 'ADMIN')
-  async getById(@Param('id') id: string): Promise<ApiResponse<Exam>> {
-    return this.examService.getById(id);
+  @Roles('STUDENT', 'INSTRUCTOR', 'ADMIN', 'SUPER_ADMIN')
+  async getById(
+    @Param('id') id: string,
+    @CurrentUser() user: UserPrincipalDto,
+  ): Promise<ApiResponse<Exam>> {
+    return this.examService.getById(id, user.userId, user.role);
   }
 
   @Post(':id/start')

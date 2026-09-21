@@ -19,6 +19,7 @@ import { ExamJoinRequestDto } from './dto/reconnect.dto';
 import { SessionCacheService } from './session-cache.service';
 import { FrameProcessorService } from './services/frame-processor.service';
 import { ViolationCounterService } from './services/violation-counter.service';
+import { verifyAccessToken } from '../../common/auth/jwt-auth.config';
 
 /**
  * WebSocket Gateway cho Student khi đang thi (UC_008).
@@ -38,7 +39,9 @@ import { ViolationCounterService } from './services/violation-counter.service';
  * - `exam:auto-submitted` — bị auto-submit
  * - `exam:error` — lỗi
  *
- * Auth: JWT qua handshake (`auth.token`).
+ * Auth: JWT qua handshake (`auth.token`, `?token=` hoặc header `Authorization: Bearer`).
+ * Token được verify chữ ký + exp + iss (cùng cấu hình với JwtAuthGuard);
+ * không hợp lệ → emit `exam:error` UNAUTHORIZED rồi ngắt kết nối.
  * Timer push bắt đầu sau khi `exam:join` thành công.
  */
 @WebSocketGateway({
@@ -72,15 +75,27 @@ export class ExamSessionGateway
 
   async handleConnection(client: Socket): Promise<void> {
     try {
-      const userId = await this.extractUserId(client);
-      if (!userId) {
+      const token = this.extractToken(client);
+      if (!token) {
         client.emit('exam:error', { code: 'UNAUTHORIZED', message: 'Missing token' });
         client.disconnect(true);
         return;
       }
-      // Attach userId for later handlers
-      (client.data as any).userId = userId;
-      this.logger.log(`[ws] connected sid=${client.id} user=${userId}`);
+      let principal: ReturnType<typeof verifyAccessToken>;
+      try {
+        principal = verifyAccessToken(token);
+      } catch (err) {
+        this.logger.warn(
+          `[ws] rejected sid=${client.id}: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        client.emit('exam:error', { code: 'UNAUTHORIZED', message: 'Invalid or expired token' });
+        client.disconnect(true);
+        return;
+      }
+      // Attach principal for later handlers
+      (client.data as any).userId = principal.userId;
+      (client.data as any).role = principal.role;
+      this.logger.log(`[ws] connected sid=${client.id} user=${principal.userId}`);
     } catch (err) {
       this.logger.error(`[ws] connection error: ${err}`);
       client.disconnect(true);
@@ -323,21 +338,19 @@ export class ExamSessionGateway
 
   // ========== Private helpers ==========
 
-  private async extractUserId(client: Socket): Promise<string | null> {
-    // Lấy từ handshake auth hoặc query
-    const token =
-      (client.handshake.auth?.token as string) ??
-      (client.handshake.query?.token as string);
-    if (!token) return null;
-    // TODO: verify JWT signature; tạm thời parse payload
-    try {
-      const payload = JSON.parse(
-        Buffer.from(token.split('.')[1], 'base64').toString(),
-      );
-      return payload?.sub ?? null;
-    } catch {
-      return null;
+  /** Lấy raw token từ handshake auth, query hoặc header Authorization. */
+  private extractToken(client: Socket): string | null {
+    const fromAuth = client.handshake.auth?.token;
+    if (typeof fromAuth === 'string' && fromAuth) {
+      return fromAuth.startsWith('Bearer ') ? fromAuth.substring(7) : fromAuth;
     }
+    const fromQuery = client.handshake.query?.token;
+    if (typeof fromQuery === 'string' && fromQuery) return fromQuery;
+    const header = client.handshake.headers?.authorization;
+    if (typeof header === 'string' && header.startsWith('Bearer ')) {
+      return header.substring(7);
+    }
+    return null;
   }
 
   private startTimerPush(client: Socket, attemptId: string, deadlineEpochMs: number) {

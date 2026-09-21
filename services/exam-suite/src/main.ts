@@ -6,22 +6,18 @@ import {
   GlobalExceptionFilter,
   HttpExceptionFilter,
   StructuredLogger,
-  MetricsController,
-  JwtAuthGuard,
 } from '@ioes/common-node';
 import { CorrelationIdMiddleware } from '@ioes/common-node';
 import { HttpLoggingInterceptor } from '@ioes/common-node';
 import { AuditLogInterceptor } from '@ioes/common-node';
+import { configureJwtAuth } from './common/auth/jwt-auth.config';
 
 async function bootstrap(): Promise<void> {
   const logger = new StructuredLogger('ExamSuite');
 
-  // Configure JWT Guard
-  JwtAuthGuard.configure({
-    secret: process.env.JWT_SECRET ?? 'development-secret-change-in-prod',
-    algorithms: ['HS256', 'HS384', 'HS512'],
-    // iss/aud check disabled for local dev - enable in production
-  });
+  // Configure JWT Guard — fail-fast nếu JWT_SECRET thiếu/ngắn (không có fallback).
+  // Verify chữ ký + exp + iss (JWT_ISSUER, mặc định "ioes-platform").
+  configureJwtAuth();
 
   // HTTP app (REST only)
   const app = await NestFactory.create(AppModule, {

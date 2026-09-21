@@ -2,8 +2,10 @@ import { Module, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HttpModule } from '@nestjs/axios';
+import { ScheduleModule } from '@nestjs/schedule';
 import { EurekaClient } from '@ioes/common-node';
 import { ExamModule } from './modules/exam/exam.module';
+import { ExamSessionModule } from './modules/exam-session/exam-session.module';
 import { SubmissionModule } from './modules/submission/submission.module';
 import { HealthModule } from './modules/health/health.module';
 import { QuestionBankModule } from './modules/question-bank/question-bank.module';
@@ -15,6 +17,8 @@ import { SnakeCaseNamingStrategy } from './config/snake-case.naming-strategy';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    // AutoSubmitScheduler (@Cron) của ExamSessionModule cần scheduler registry.
+    ScheduleModule.forRoot(),
     HttpModule.registerAsync({
       useFactory: () => ({
         timeout: 5000,
@@ -45,6 +49,8 @@ import { SnakeCaseNamingStrategy } from './config/snake-case.naming-strategy';
     HealthModule,
     QuestionBankModule,
     ExamEventsModule,
+    // UC_008/UC_009: /api/v1/exam-attempts, WS /exam-session, proctoring, auto-submit cron.
+    ExamSessionModule,
   ],
   providers: [EurekaClient],
 })

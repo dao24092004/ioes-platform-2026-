@@ -51,6 +51,6 @@ export class AnswerDraftEntity {
   savedAt!: Date;
 
   @ManyToOne(() => ExamAttemptEntity, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'attemptId' })
+  @JoinColumn({ name: 'attempt_id' })
   attempt?: ExamAttemptEntity;
 }

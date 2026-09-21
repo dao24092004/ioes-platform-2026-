@@ -1,13 +1,12 @@
-import { Module, Provider } from '@nestjs/common';
+import { Logger, Module, Provider } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtAuthGuard, RolesGuard } from '@ioes/common-node';
 import { ExamAttemptEntity } from './entities/exam-attempt.entity';
 import { AnswerDraftEntity } from './entities/answer-draft.entity';
 import { SubmissionEntity } from './entities/submission.entity';
 import { ExamSessionRepository } from './exam-session.repository';
 import { SessionCacheService, REDIS_CLIENT } from './session-cache.service';
 import { ExamSessionService } from './exam-session.service';
-import { ExamSessionController, DevAuthBypassGuard } from './exam-session.controller';
+import { ExamSessionController } from './exam-session.controller';
 import { ExamSessionGateway } from './exam-session.gateway';
 import { StartExamUseCase, CONTENT_SERVICE_CLIENT } from './use-cases/start-exam.use-case';
 import { SaveAnswerUseCase } from './use-cases/save-answer.use-case';
@@ -17,7 +16,7 @@ import { AutoSubmitScheduler } from './schedulers/auto-submit.scheduler';
 import { KafkaPublisherService } from '../../common/kafka-publisher.service';
 import { ContentServiceHttpClient } from '../../common/content-service.client';
 import { MockContentServiceClient } from '../../common/mock-content-service.client';
-import { serviceUrls, wsConfig, redisConfig, appConfig } from '../../config/app.config';
+import { wsConfig, redisConfig, appConfig } from '../../config/app.config';
 import { FrameProcessorService } from './services/frame-processor.service';
 import { ViolationCounterService } from './services/violation-counter.service';
 import {
@@ -25,10 +24,20 @@ import {
   MockProctorClient,
   HttpProctorClient,
 } from './services/ai-proctor.client';
+import { ExamModule } from '../exam/exam.module';
 import Redis from 'ioredis';
 
 const useMockContent = process.env.DEV_MOCK_CONTENT_SERVICE === 'true';
-const useMockAiProctor = process.env.DEV_MOCK_AI_PROCTOR !== 'false'; // default mock khi dev
+
+/**
+ * Mock AI proctor CHỈ khi bật tường minh `DEV_MOCK_AI_PROCTOR=true`.
+ * Mặc định (kể cả dev) gọi ai-suite thật qua AI_PROCTOR_URL; nếu ai-suite
+ * không chạy, FrameProcessorService coi frame là "không vi phạm" (exception 9e)
+ * và log warn — không bao giờ âm thầm bỏ giám sát ở production.
+ */
+export function shouldUseMockAiProctor(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.DEV_MOCK_AI_PROCTOR === 'true';
+}
 
 /**
  * Providers dùng Symbol để inject theo interface (DI theo contract).
@@ -68,14 +77,19 @@ const useCaseProviders: Provider[] = [
  * - 3 entities (TypeORM)
  * - Repository (1 singleton cho cả module)
  * - 4 use-cases (mỗi cái 1 class)
- * - SessionCacheService (Redis)
+ * - SessionCacheService + ViolationCounterService (Redis)
  * - KafkaPublisherService (outbox sẽ thêm sau)
- * - Controller (REST)
- * - Gateway (WebSocket)
- * - JwtAuthGuard + RolesGuard (cho REST)
+ * - Controller (REST, JwtAuthGuard + RolesGuard của common-node)
+ * - Gateway (WebSocket, verify JWT lúc handshake)
+ * - AutoSubmitScheduler (cần ScheduleModule.forRoot() ở AppModule)
+ *
+ * ExamModule: lấy ExamRepository để kiểm tra instructor sở hữu exam (UC_009).
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([ExamAttemptEntity, AnswerDraftEntity, SubmissionEntity])],
+  imports: [
+    TypeOrmModule.forFeature([ExamAttemptEntity, AnswerDraftEntity, SubmissionEntity]),
+    ExamModule,
+  ],
   controllers: [ExamSessionController],
   providers: [
     ...useCaseProviders,
@@ -118,13 +132,19 @@ const useCaseProviders: Provider[] = [
     },
     {
       provide: PROCTOR_CLIENT,
-      useFactory: (url: string, timeout: number, useMock: boolean) =>
-        useMock ? new MockProctorClient() : new HttpProctorClient(url, timeout),
-      inject: ['AI_PROCTOR_URL', 'AI_PROCTOR_TIMEOUT_MS', Symbol.for('USE_MOCK_AI_PROCTOR')],
-    },
-    {
-      provide: Symbol.for('USE_MOCK_AI_PROCTOR'),
-      useValue: useMockAiProctor,
+      useFactory: (url: string, timeout: number) => {
+        const logger = new Logger('ExamSessionModule');
+        if (shouldUseMockAiProctor()) {
+          logger.warn(
+            '[ai-proctor] DEV_MOCK_AI_PROCTOR=true → dùng MockProctorClient ' +
+              '(luôn trả attention=80, KHÔNG phát hiện vi phạm). Không dùng ở production.',
+          );
+          return new MockProctorClient();
+        }
+        logger.log(`[ai-proctor] HttpProctorClient url=${url} timeoutMs=${timeout}`);
+        return new HttpProctorClient(url, timeout);
+      },
+      inject: ['AI_PROCTOR_URL', 'AI_PROCTOR_TIMEOUT_MS'],
     },
     ViolationCounterService,
     FrameProcessorService,

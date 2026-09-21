@@ -1,5 +1,10 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { IProctorClient, FrameAnalysisRequest, FrameAnalysisResponse } from './ai-proctor.client';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
+import {
+  IProctorClient,
+  FrameAnalysisRequest,
+  FrameAnalysisResponse,
+  PROCTOR_CLIENT,
+} from './ai-proctor.client';
 import { ViolationCounterService } from './violation-counter.service';
 
 /**
@@ -58,13 +63,14 @@ export class FrameProcessorService {
   private readonly ttlSec: number;
 
   constructor(
-    @Inject('PROCTOR_CLIENT') private readonly proctorClient: IProctorClient,
+    // Module bind PROCTOR_CLIENT = Symbol.for('PROCTOR_CLIENT'); string token cũ không resolve được.
+    @Inject(PROCTOR_CLIENT) private readonly proctorClient: IProctorClient,
     private readonly counter: ViolationCounterService,
-    violationThreshold: number = 3,
-    ttlSec: number = 1800,
+    @Optional() @Inject('VIOLATION_THRESHOLD') violationThreshold?: number,
+    @Optional() @Inject('VIOLATION_TTL_SEC') ttlSec?: number,
   ) {
-    this.violationThreshold = violationThreshold;
-    this.ttlSec = ttlSec;
+    this.violationThreshold = violationThreshold ?? 3;
+    this.ttlSec = ttlSec ?? 1800;
   }
 
   /**

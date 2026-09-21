@@ -23,6 +23,17 @@ import {
   AttemptNotInGradedStateError,
 } from '../exam/errors/exam.errors';
 import { ExamEventsPublisher } from '../exam-events/exam-events.publisher';
+import { isAdminRole } from '../../common/auth/roles';
+
+/** Điểm chấm tay: questionId → { score (0..points của câu), feedback? }. */
+export type ManualScores = Record<string, { score: number; feedback?: string }>;
+
+export interface GradeAttemptOptions {
+  /** examId trên route; nếu có thì attempt phải thuộc exam này. */
+  examId?: string;
+  manualScores?: ManualScores;
+  correlationId?: string;
+}
 
 /**
  * Plain object shape cho answers trong submit payload.
@@ -248,35 +259,44 @@ export class SubmissionService {
    * POST /exams/:examId/submissions/:attemptId/grade
    *
    * Security:
-   * - Chỉ INSTRUCTOR của exam hoặc ADMIN mới trigger được
+   * - Chỉ INSTRUCTOR của exam hoặc ADMIN/SUPER_ADMIN mới trigger được
    * - Re-grade: nếu attempt GRADED rồi, throw error
+   *
+   * Chấm tay (`manualScores`): chỉ áp dụng cho câu cần chấm tay (essay/coding,
+   * hoặc câu auto-grade không đủ dữ liệu). Câu đã chấm tay ở lần gọi trước được
+   * giữ nguyên nếu lần này không gửi lại. Attempt chỉ chuyển GRADED khi không
+   * còn câu nào chờ chấm tay; trước đó có thể gọi lại endpoint nhiều lần.
    */
   async gradeAttempt(
     attemptId: string,
     callerUserId: string,
     callerRole: string,
-    correlationId?: string,
+    options: GradeAttemptOptions = {},
   ): Promise<ApiResponse<{
     score: number;
     maxScore: number;
     percentageScore: number;
     passed: boolean;
     autoGradedCount: number;
+    /** Số câu đã có điểm chấm tay (lần này hoặc lần trước). */
     manualGradedCount: number;
+    /** Số câu (có trả lời) còn chờ chấm tay. */
+    pendingManualCount: number;
     finalGrading: boolean;
   }>> {
+    const { manualScores = {}, correlationId } = options;
     return this.dataSource.transaction(async (em) => {
       // Load attempt với exam (no lock - check role trước)
       const attempt = await em.findOne(ExamAttempt, {
         where: { id: attemptId },
         relations: ['exam'],
       });
-      if (!attempt) {
+      if (!attempt || (options.examId && attempt.examId !== options.examId)) {
         throw new AttemptNotFoundError(attemptId);
       }
 
-      // Authorization: chỉ instructor của exam hoặc admin
-      if (callerRole !== 'ADMIN') {
+      // Authorization: chỉ instructor của exam hoặc admin/super admin
+      if (!isAdminRole(callerRole)) {
         if (callerRole !== 'INSTRUCTOR') {
           throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
         }
@@ -339,21 +359,54 @@ export class SubmissionService {
         answers.map((a) => [a.questionId, a]),
       );
 
+      // Validate manualScores: câu phải thuộc attempt, điểm trong [0, points]
+      const questionById = new Map(orderedQuestions.map((q) => [q.id, q]));
+      for (const [questionId, entry] of Object.entries(manualScores)) {
+        const q = questionById.get(questionId);
+        if (!q) {
+          throw new HttpException(
+            `manualScores: question ${questionId} is not part of attempt ${attemptId}`,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        const score = entry?.score;
+        if (
+          typeof score !== 'number' ||
+          !Number.isFinite(score) ||
+          score < 0 ||
+          score > Number(q.points)
+        ) {
+          throw new HttpException(
+            `manualScores: score for question ${questionId} must be a number between 0 and ${q.points}`,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
       // Grade each answer
       let autoGradedScore = 0;
-      let manualGradedCount = 0;
+      let manualGradedScore = 0;
       let autoGradedCount = 0;
+      let manualGradedCount = 0;
+      let pendingManualCount = 0;
       const answersToUpdate: Answer[] = [];
 
       for (const q of orderedQuestions) {
         const answer = answerMap.get(q.id);
+        const manual = manualScores[q.id];
         const result = this.gradingService.autoGrade(q, {
           answerText: answer?.answerText,
           selectedOptionIds: answer?.selectedOptionIds,
         });
 
-        if (answer) {
-          if (!result.requiresManual) {
+        if (!result.requiresManual) {
+          if (manual) {
+            throw new HttpException(
+              `manualScores: question ${q.id} is auto-graded and cannot be scored manually`,
+              HttpStatus.BAD_REQUEST,
+            );
+          }
+          if (answer) {
             answer.isCorrect = result.isCorrect ?? undefined;
             answer.pointsEarned = result.pointsEarned ?? 0;
             answer.maxPoints = q.points;
@@ -363,14 +416,37 @@ export class SubmissionService {
 
             autoGradedScore += result.pointsEarned ?? 0;
             autoGradedCount++;
-          } else {
-            // Manual grade required - reset maxPoints cho instructor
-            answer.maxPoints = q.points;
-            answer.gradedAt = undefined;
-            answersToUpdate.push(answer);
-            manualGradedCount++;
           }
+          continue;
         }
+
+        // Câu cần chấm tay
+        if (!answer) {
+          if (manual) {
+            throw new HttpException(
+              `manualScores: question ${q.id} has no answer to grade`,
+              HttpStatus.BAD_REQUEST,
+            );
+          }
+          continue;
+        }
+
+        answer.maxPoints = q.points;
+        if (manual) {
+          answer.pointsEarned = manual.score;
+          answer.gradedAt = new Date();
+          answer.gradingFeedback = manual.feedback;
+          manualGradedScore += manual.score;
+          manualGradedCount++;
+        } else if (answer.gradedAt && answer.pointsEarned != null) {
+          // Đã chấm tay ở lần gọi trước — giữ nguyên
+          manualGradedScore += Number(answer.pointsEarned);
+          manualGradedCount++;
+        } else {
+          answer.gradedAt = undefined;
+          pendingManualCount++;
+        }
+        answersToUpdate.push(answer);
       }
 
       // BULK save answers
@@ -382,13 +458,13 @@ export class SubmissionService {
         (sum, q) => sum + q.points,
         0,
       );
-      const totalScore = autoGradedScore; // manual chưa chấm
+      const totalScore = autoGradedScore + manualGradedScore;
       const passingScore = attempt.exam?.passingScore ?? 0;
       const percentageScore =
         maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
 
       // Determine if final grading (no manual pending)
-      const finalGrading = manualGradedCount === 0;
+      const finalGrading = pendingManualCount === 0;
 
       // Update attempt
       lockedAttempt.score = totalScore;
@@ -415,7 +491,7 @@ export class SubmissionService {
           passed: Boolean(saved.passed),
           breakdown: {
             autoGradedScore,
-            manualGradedScore: 0,
+            manualGradedScore,
             autoGradedCount,
             manualGradedCount,
           },
@@ -435,6 +511,7 @@ export class SubmissionService {
         passed: Boolean(saved.passed),
         autoGradedCount,
         manualGradedCount,
+        pendingManualCount,
         finalGrading,
       });
     });

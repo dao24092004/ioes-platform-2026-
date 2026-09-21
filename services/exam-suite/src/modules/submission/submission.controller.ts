@@ -1,13 +1,12 @@
 import {
   Body,
   Controller,
-  Get,
   Param,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiHeader,
   ApiOperation,
   ApiResponse as ApiDocResponse,
   ApiTags,
@@ -15,7 +14,9 @@ import {
 import {
   ApiResponse,
   CurrentUser,
+  JwtAuthGuard,
   Roles,
+  RolesGuard,
   UserId,
   UserPrincipalDto,
 } from '@ioes/common-node';
@@ -27,16 +28,13 @@ import { GradeExamDto } from '../exam/dto/grade-exam.dto';
  * Submission API (BA §10.2):
  * - POST /exams/:examId/submissions              - student submit attempt
  * - POST /exams/:examId/submissions/:attemptId/grade - instructor/admin trigger grade
+ *
+ * Auth: JwtAuthGuard gắn request.user/userId từ JWT, RolesGuard enforce @Roles.
  */
 @ApiTags('submission')
 @ApiBearerAuth('bearer')
-@ApiHeader({
-  name: 'X-Dev-User-Id',
-  description: 'Dev-only: UUID của user. Chỉ hoạt động khi DEV_AUTH_BYPASS=true.',
-  required: false,
-  example: '00000000-0000-4000-8000-000000000001',
-})
 @Controller('exams/:examId/submissions')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class SubmissionController {
   constructor(private readonly submissionService: SubmissionService) {}
 
@@ -62,7 +60,17 @@ export class SubmissionController {
   }
 
   @Post(':attemptId/grade')
-  @Roles('INSTRUCTOR', 'ADMIN')
+  @Roles('INSTRUCTOR', 'ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({
+    summary: 'Chấm attempt',
+    description:
+      'Auto-grade câu trắc nghiệm/đúng-sai/trả lời ngắn. `manualScores` (questionId → ' +
+      '{ score, feedback? }, score là số điểm đạt được trong khoảng 0..points của câu) ' +
+      'chấm tay các câu essay/coding. Attempt chỉ chuyển GRADED khi không còn câu chờ chấm tay.',
+  })
+  @ApiDocResponse({ status: 200, description: 'Kết quả chấm.' })
+  @ApiDocResponse({ status: 400, description: 'manualScores không hợp lệ hoặc attempt chưa nộp.' })
+  @ApiDocResponse({ status: 403, description: 'Không phải giảng viên phụ trách / admin.' })
   async grade(
     @Param('examId') examId: string,
     @Param('attemptId') attemptId: string,
@@ -75,15 +83,14 @@ export class SubmissionController {
     passed: boolean;
     autoGradedCount: number;
     manualGradedCount: number;
+    pendingManualCount: number;
     finalGrading: boolean;
   }>> {
-    // Note: manualScores từ body sẽ được dùng trong Phase 2 cho manual grading
-    void body; // Suppress unused warning
-    void examId; // examId chỉ dùng cho route
     return this.submissionService.gradeAttempt(
       attemptId,
       user.userId,
       user.role,
+      { examId, manualScores: body?.manualScores },
     );
   }
 }

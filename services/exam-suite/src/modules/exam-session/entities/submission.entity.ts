@@ -69,6 +69,6 @@ export class SubmissionEntity {
   createdAt!: Date;
 
   @OneToOne(() => ExamAttemptEntity, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'attemptId' })
+  @JoinColumn({ name: 'attempt_id' })
   attempt?: ExamAttemptEntity;
 }

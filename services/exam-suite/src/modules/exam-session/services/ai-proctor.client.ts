@@ -53,25 +53,14 @@ export interface IProctorClient {
 }
 
 /**
- * Mock client — dùng khi `DEV_MOCK_AI_PROCTOR=true` (mặc định khi dev local,
- * vì ai-suite chưa được build ở sprint này).
+ * Mock client — CHỈ dùng khi bật tường minh `DEV_MOCK_AI_PROCTOR=true`
+ * (xem shouldUseMockAiProctor() trong exam-session.module.ts, nơi log cảnh báo).
  *
  * Trả về: face OK, attention = 80 (cao, không vi phạm BR-011).
- * → student không bao giờ bị flag khi chạy dev.
+ * → student không bao giờ bị flag khi dùng mock.
  */
 @Injectable()
 export class MockProctorClient implements IProctorClient {
-  private readonly logger = new Logger(MockProctorClient.name);
-
-  onModuleInit() {
-    if (process.env.DEV_MOCK_AI_PROCTOR === 'true') {
-      this.logger.warn(
-        '[mock-ai-proctor] Using MOCK proctor. attentionScore=80, no violation. ' +
-          'Set DEV_MOCK_AI_PROCTOR=false để gọi real ai-suite.',
-      );
-    }
-  }
-
   async analyzeFrame(_req: FrameAnalysisRequest): Promise<FrameAnalysisResponse> {
     return {
       faceDetected: true,

@@ -8,7 +8,8 @@ import {
   ApiResponse,
   StructuredLogger,
 } from '@ioes/common-node';
-import { Exam } from './entities/exam.entity';
+import { Exam, ExamType } from './entities/exam.entity';
+import { isAdminRole } from '../../common/auth/roles';
 import { ExamAttempt, AttemptStatus } from './entities/exam-attempt.entity';
 import { Question } from '../question-bank/entities/question.entity';
 import { ExamRepository } from './repositories/exam.repository';
@@ -196,13 +197,34 @@ export class ExamService {
   }
 
   /**
-   * GET /exams/:id - lấy chi tiết exam (không bao gồm đáp án đúng).
+   * GET /exams/:id - lấy chi tiết exam.
+   *
+   * Không bao gồm đáp án: repository chỉ load cột của bảng `exams`, không
+   * join sections/questions/options.
+   *
+   * Phạm vi xem:
+   * - ADMIN/SUPER_ADMIN: mọi exam
+   * - INSTRUCTOR: exam do chính mình tạo
+   * - STUDENT: exam đang mở cho học viên. Bảng `exams` chưa có cột trạng thái
+   *   publish, nên dùng cùng tiêu chí với list(): exam practice chưa xoá.
+   *   (TODO: mở rộng khi có enrollment từ content-service.)
+   * Không có quyền → 404 để không lộ exam tồn tại.
    */
-  async getById(id: string): Promise<ApiResponse<Exam>> {
+  async getById(id: string, userId: string, role: string): Promise<ApiResponse<Exam>> {
     const exam = await this.examRepo.findById(id);
     if (!exam) throw new ExamNotFoundError(id);
+    if (!this.canViewExam(exam, userId, role)) throw new ExamNotFoundError(id);
     if (exam.deletedAt) throw new ExamDeletedError(id);
     return ApiResponse.success(exam);
+  }
+
+  private canViewExam(exam: Exam, userId: string, role: string): boolean {
+    if (isAdminRole(role)) return true;
+    if (role === 'INSTRUCTOR') return exam.instructorId === userId;
+    if (role === 'STUDENT') {
+      return exam.examType === ExamType.PRACTICE && !exam.deletedAt;
+    }
+    return false;
   }
 
   /**

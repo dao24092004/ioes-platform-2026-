@@ -134,6 +134,16 @@ describe('JwtAuthGuard - Security fixes', () => {
       expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedException);
     });
 
+    it('should_reject_When_refreshToken', () => {
+      JwtAuthGuard.configure({ secret: VALID_SECRET });
+
+      // Refresh token cùng chữ ký, kể cả khi có đủ sub/role, không được dùng như access token.
+      const token = jwt.sign({ sub: 'u1', role: 'STUDENT', type: 'refresh' }, VALID_SECRET);
+
+      const ctx = createMockContext(`Bearer ${token}`);
+      expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedException);
+    });
+
     it('should_injectUser_When_valid', () => {
       JwtAuthGuard.configure({ secret: VALID_SECRET });
 
