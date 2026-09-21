@@ -269,7 +269,13 @@ services:
   # ============================================
 
   minio:
-    image: minio/minio:latest
+    # quay.io chu KHONG phai Docker Hub, va tag ghim chu khong phai :latest.
+    # `docker pull minio/minio` tren Docker Hub hien tra "denied: requested
+    # access to the resource is denied" — MinIO da rut kho public ben do, ke ca
+    # voi tag RELEASE cu the. quay.io la registry chinh thuc con lai. Milvus
+    # standalone phu thuoc MinIO, nen doi dong nay ve Docker Hub la lam hong
+    # ca tang vector (RAG, goi y, lo trinh) tren may moi.
+    image: quay.io/minio/minio:RELEASE.2024-06-13T22-53-53Z
     container_name: ioes-minio
     restart: unless-stopped
     command: server /data --console-address ":9011"
@@ -295,7 +301,9 @@ services:
           memory: 1G
 
   minio-init:
-    image: minio/mc:latest
+    # Cung ly do voi service minio o tren: minio/mc tren Docker Hub cung bi tu
+    # choi. Giu registry quay.io.
+    image: quay.io/minio/mc:RELEASE.2024-06-12T14-34-03Z
     container_name: ioes-minio-init
     depends_on:
       minio:
