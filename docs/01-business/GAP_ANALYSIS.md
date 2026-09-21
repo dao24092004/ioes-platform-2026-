@@ -17,8 +17,8 @@
 | 1. Auth &amp; User              | 1   | 3   | 9   |
 | 2. Content                      | 2   | 2   | 4   |
 | 3. Exam                         | 2   | 5   | 4   |
-| 4. Proctoring                   | 0   | 5   | 4   |
-| 5. AI &amp; Learning Path       | 1   | 2   | 5   |
+| 4. Proctoring                   | 5   | 2   | 1   |
+| 5. AI &amp; Learning Path       | 4   | 1   | 3   |
 | 6. Blockchain                   | 0   | 0   | 6   |
 | 7. Analytics &amp; Notification | 2   | 6   | 6   |
 
@@ -26,13 +26,16 @@
 Tình trạng từng service:
 
 - **auth / content / analytics / notification** là service thật, chạy được.
-- **exam-suite** chạy được nhưng thiếu module phiên thi (xem lỗi #1).
-- **ai-suite** chỉ có `api-gateway` (NestJS) và `ml-worker` (FastAPI) là chạy được. `ocr-service` và `speech-service` chỉ có Dockerfile.
+- **exam-suite** chạy được; module phiên thi đã được nạp (lỗi #1 đã sửa) nên có lượt thi, WebSocket và giám sát. DB `ioes_exam` vẫn chưa có bảng nào.
+- **ai-suite**: `api-gateway` (NestJS, 9100) và `ml-worker` (FastAPI, 9101) chạy được và đã có code thật cho gợi ý khoá học (FR-AI-002), lộ trình Agentic RAG 5 agent (FR-AI-005), nạp bài học thật để sinh câu hỏi (FR-AI-004) và phát hiện mất tập trung bằng MediaPipe (FR-AI-006) — xem `docs/02-architecture/AI_FEATURES_CONTRACT.md`. Mới có unit test, chưa chạy đầu cuối với content-service/Milvus/Gemini thật. `ocr-service` và `speech-service` vẫn chỉ có Dockerfile.
 - **blockchain-suite** mới là khung, API trả dữ liệu giả.
 
 ---
 
 ## Lỗi cần sửa trước khi làm tính năng mới
+
+> **Cả 7 lỗi dưới đây đã sửa** (commit `78851f2` cho exam-suite, `dabb6ff` cho auth và web).
+> Bảng giữ lại để tra cứu nguyên nhân, không phải việc tồn đọng.
 
 
 | #   | Lỗi                                                           | Vị trí                                                                    | Hậu quả                                                                                                              |
@@ -121,14 +124,14 @@ Hiện không có luồng giám sát nào chạy đầu cuối: module phiên th
 
 | ID                   | Chức năng                             | TT  | Thực tế / bằng chứng                                                                                              |
 | -------------------- | ------------------------------------- | --- | ----------------------------------------------------------------------------------------------------------------- |
-| FR-PROC-001          | Chụp webcam mỗi 1 giây                | 🟡  | `useWebcam.ts` + `ProctoringPanel.tsx` gửi mỗi **5000 ms**, tới namespace không tồn tại                           |
-| FR-PROC-005 / BR-011 | Cảnh báo &lt;60, gắn cờ &lt;40        | 🟡  | `frame-processor.service.ts` có `ATTENTION_THRESHOLD = 60`; không có ngưỡng &lt;40 (chỉ gắn cờ khi &gt;3 vi phạm) |
-| FR-PROC-006          | FACE_NOT_DETECTED &gt;5 giây          | 🟡  | Báo ngay mỗi frame, không đếm thời gian                                                                           |
-| FR-PROC-008          | Báo cáo gian lận cho giảng viên       | 🟡  | `GET /exam-attempts/:id/proctoring-report` trả `violations: []`; vi phạm chỉ đếm trong Redis; không có UI         |
+| FR-PROC-001          | Chụp webcam mỗi 1 giây                | ✅  | Đã gửi **1000 ms** một khung (`ProctoringPanel.tsx`), khung thu nhỏ còn tối đa 640px để 1 khung/giây vẫn nhẹ hơn mức cũ. Module phiên thi đã được nạp nên namespace `/exam-session` có thật                           |
+| FR-PROC-005 / BR-011 | Cảnh báo &lt;60, gắn cờ &lt;40        | ✅  | `frame-processor.service.ts` có đủ hai ngưỡng: &lt;60 cảnh báo, &lt;40 gắn cờ lượt thi. Thêm khoảng lặng 15 giây mỗi đợt vi phạm, nếu không ở nhịp 1 giây chỉ cần nhìn xuống 4 giây là bị tự nộp bài |
+| FR-PROC-006          | FACE_NOT_DETECTED &gt;5 giây          | ✅  | Đếm đủ thời gian trước khi tính vi phạm (`FACE_NOT_DETECTED_DURATION_MS`)                                                                           |
+| FR-PROC-008          | Báo cáo gian lận cho giảng viên       | 🟡  | `GET /exam-attempts/:id/proctoring-report` đã trả vi phạm thật đọc từ Redis (chưa lưu bền vào DB); vẫn chưa có UI cho giảng viên         |
 | BR-010               | Bắt buộc giám sát khi thi &gt;30 phút | 🟡  | Có trong `start-exam.use-case.ts` nhưng luồng đang dùng (`ExamService.startExam`) không kiểm tra                  |
-| FR-PROC-002          | Face detection MediaPipe 468 điểm     | ❌   | Không có proctor service trong ai-suite; `MockProctorClient` luôn trả attention 80                                |
-| FR-PROC-003          | Ước lượng hướng nhìn                  | ❌   | Mock luôn trả `CENTER`                                                                                            |
-| FR-PROC-004          | CNN / CNN+LSTM                        | ❌   | Không có model, chỉ có cấu hình `model-path`                                                                      |
+| FR-PROC-002          | Face detection MediaPipe 468 điểm     | ✅   | ml-worker `services/proctor.py` dùng MediaPipe Face Landmarker (468 + 10 điểm mống mắt) trên CPU, ~12ms/khung     |
+| FR-PROC-003          | Ước lượng hướng nhìn                  | ✅   | Suy từ ma trận tư thế đầu + vị trí mống mắt, trả `CENTER/LEFT/RIGHT/UP/DOWN/OUT_OF_FRAME`                         |
+| FR-PROC-004          | CNN / CNN+LSTM                        | 🟡   | Có mô hình thị giác thật (MediaPipe) nhưng chỉ xét từng khung rời; chưa có LSTM ghép chuỗi khung theo thời gian    |
 | FR-PROC-007          | Quay màn hình                         | ❌   | Không có `getDisplayMedia` / `MediaRecorder`                                                                      |
 
 
@@ -137,14 +140,14 @@ Hiện không có luồng giám sát nào chạy đầu cuối: module phiên th
 
 | ID        | Chức năng                                  | TT  | Thực tế / bằng chứng                                                                                                                                                                   |
 | --------- | ------------------------------------------ | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| FR-AI-006 | Phát hiện mất tập trung                    | 🟡  | Mock (`ai-proctor.client.ts`); `HttpProctorClient` gọi service không tồn tại                                                                                                           |
-| FR-AI-004 | Sinh câu hỏi                               | 🟡  | `questions.controller.ts` → ml-worker `/v1/questions/generate` ↔ `AIQuestionPage.tsx`, `PracticeQuizPage.tsx`; dùng corpus tĩnh (`ml-worker/data/corpus*`), không lấy nội dung bài học |
-| FR-AI-002 | Gợi ý khoá học                             | ❌   | `RecommendationsPage.tsx` Coming soon; route `/api/recommendations/**` không có controller                                                                                             |
 | FR-AI-003 | AI chấm tự luận                            | ❌   | Không có code                                                                                                                                                                          |
-| FR-AI-005 | Lộ trình cá nhân hoá (Agentic RAG 5 agent) | ❌   | `LearningPathPage.tsx` Coming soon; chỉ có RAG một bước `services/rag.py`                                                                                                              |
 | FR-AI-007 | Speech-to-text ( Tạm thời bỏ)              | ❌   | `SpeechToTextPage.tsx` Coming soon; `ai-suite/speech-service` chỉ có Dockerfile + `pyproject.toml`                                                                                     |
 | FR-AI-008 | OCR ( Đạo )                                | ❌   | `OCRPage.tsx` Coming soon; `ai-suite/ocr-service` chỉ có Dockerfile + `pyproject.toml`                                                                                                 |
+| FR-AI-004 | Sinh câu hỏi từ nội dung bài học           | 🟡  | Đã chuyển sang học liệu thật: `POST /v1/ingest/content` (`api/ingest.py`, `services/ingest.py`, `services/content_client.py`) đọc khoá đã publish → chương → bài từ content-service, nạp Milvus kèm `courseId`/`lessonId`/`chapterId`/`source="content-service"`; `POST /v1/questions/generate` nhận thêm `courseId`/`lessonId` và trả `sourceLessonId`/`sourceCourseId`, không khớp học liệu thì 422. **Còn dở:** `LessonView` của content-service chỉ có `description`, nên mỗi bài chỉ nạp được đoạn mô tả — nội dung thật nằm sau `contentUrl` (video/PDF) chưa đọc được; bài không có description bị bỏ qua. Chưa chạy `/v1/ingest/content` lần nào với content-service thật (`CONTENT_SERVICE_TOKEN` chưa cấp) |
 | FR-AI-001 | Chatbot AI                                 | ✅   | `chat.controller.ts` → ml-worker `/v1/rag/query` ↔ `AIAssistantPage.tsx` (student, instructor)                                                                                         |
+| FR-AI-002 | Gợi ý khoá học                             | ✅   | ml-worker `POST /v1/recommendations/courses` (`api/recommendations.py`, `services/recommender.py` — embedding + luật, không gọi LLM) → ai-gateway `GET /recommendations/courses` (`recommendations.controller.ts`, ghép catalogue từ `content.client.ts`, cache 180s) ↔ `RecommendationsPage.tsx` gọi thật qua `recommendations.api.ts`. Test: `test_recommendations.py`, `recommendations.service.spec.ts`, `recommendations.api.test.ts`. **Chưa kiểm chứng:** mới chỉ chạy unit test, chưa gọi đầu cuối với content-service + Milvus thật |
+| FR-AI-005 | Lộ trình cá nhân hoá (Agentic RAG 5 agent) | ✅   | ml-worker `POST /v1/learning-path/generate` (`api/learning_path.py`, `services/learning_path/` (`orchestrator.py` + 5 agent `profiler.py`…`validator.py`) — 5 agent `profiler → gap_analyzer → curriculum_planner → resource_retriever → validator`, mỗi agent một dòng `agentTrace`; LLM hỏng trả 503 chứ không bịa lộ trình) → ai-gateway `POST /learning-path/generate`, `GET /learning-path/me`, `/me/history`, `/:id` (`learning-path.service.ts`, lưu bảng `learning_paths` ở DB `ioes_ai`) ↔ `LearningPathPage.tsx`. Test: `test_learning_path.py`, `learning-path.service.spec.ts`, `learning-path.api.test.ts`. **Chưa kiểm chứng:** cần `LLM_PROVIDER=gemini` + `GEMINI_API_KEY` (mặc định `.env.example` vẫn là `mock`) và phải áp `database/migrations/ai/V2__learning_paths.sql` vào `ioes_ai` — TypeORM chạy `synchronize: false` nên chưa áp là lỗi ngay lần ghi đầu |
+| FR-AI-006 | Phát hiện mất tập trung                    | ✅   | ml-worker `POST /internal/ai/proctor/analyze` (`api/proctor.py`, `services/proctor.py` — MediaPipe Face Landmarker 468/478 điểm trên CPU, điểm tập trung = đầu 0.40 + hướng nhìn 0.35 + mắt 0.25, `gazeDirection`, `violationType` `NO_FACE`/`MULTIPLE_FACES`/`OFF_SCREEN`, ảnh hỏng trả 400) ← exam-suite `HttpProctorClient` (`ai-proctor.client.ts`, `AI_PROCTOR_URL`, mock chỉ bật khi `DEV_MOCK_AI_PROCTOR=true`) ← `ProctoringPanel.tsx` gửi 1 khung/giây. Test: `test_proctor.py`, `ai-proctor.client.spec.ts`, `frame-processor.service.spec.ts`. **Chưa kiểm chứng:** chưa chạy với webcam thật; gói mô hình `face_landmarker.task` (~3,8MB) tải về lần gọi đầu nên lần phân tích đầu tiên chậm và cần mạng ra ngoài. **Còn thiếu:** UI báo cáo giám sát cho giảng viên (FR-PROC-008) vẫn chưa có |
 
 
 ## 6. Blockchain 
@@ -189,7 +192,7 @@ Hiện không có luồng giám sát nào chạy đầu cuối: module phiên th
 
 | Loại                             | Trang                                                                                                                                                                                                                                                                                                                                                               |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Coming soon                      | InstructorApproval, AuditLog, Security, Reviews, UserProfile, instructor Settings, 5 trang Tenant/Organization, Wallet, Blockchain, Heatmaps, Funnels, Discussions (3 vai trò), Copyright, ExamCreate, instructor Reports, Messages (instructor, student), Certificates, LearningPath, TokenWallet, SpeechToText, Recommendations, OCR, Checkout, VerifyCertificate |
+| Coming soon                      | InstructorApproval, AuditLog, Security, Reviews, UserProfile, instructor Settings, 5 trang Tenant/Organization, Wallet, Blockchain, Heatmaps, Funnels, Discussions (3 vai trò), Copyright, ExamCreate, instructor Reports, Messages (instructor, student), Certificates, TokenWallet, SpeechToText, OCR, Checkout, VerifyCertificate |
 | Giả thành công bằng `setTimeout` | ForgotPassword, VerifyEmail, OAuthCallback, BecomeInstructor                                                                                                                                                                                                                                                                                                        |
 | Chỉ state cục bộ                 | student Settings, admin SystemConfig                                                                                                                                                                                                                                                                                                                                |
 | Còn mock data                    | student Reports                                                                                                                                                                                                                                                                                                                                                     |
