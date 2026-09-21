@@ -73,6 +73,17 @@ class MLSettings(BaseServiceSettings):
     # cau tra loi ma khong bao loi. Do thuc te: 17 + 168 nhung tong la 736.
     rag_max_tokens: int = Field(default=1200, ge=256, le=8192)
 
+    # Dong bo nang chay o luong rieng — xem core/concurrency.py.
+    # 4 chu khong phai 40: mot luot sinh lo trinh giu luong ~96 giay, nen so
+    # nay la tran tuyet doi cua so luong nang dang chay. Dat bang threadpool
+    # mac dinh thi proctoring lai bi bo doi dung nhu truoc khi sua, chi cham
+    # hon mot nhip. Hang cho nam o tang coroutine nen khong ton luong.
+    llm_max_concurrency: int = Field(default=4, ge=1, le=64)
+    # Cho qua nguong nay thi tra 503 kem Retry-After. 30 giay vi ai-gateway
+    # thuong dat timeout 120 giay: bao qua tai som van con cho phia goi thu
+    # lai, con de ket noi chet o giay thu 120 thi khong noi len dieu gi.
+    llm_queue_timeout_seconds: float = Field(default=30.0, gt=0, le=600)
+
     # Service URLs (overrides BaseServiceSettings defaults)
     auth_service_url: str = "http://localhost:9000"
     content_service_url: str = "http://localhost:9001"

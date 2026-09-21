@@ -1,6 +1,7 @@
-"""Kiểm thử tầng nạp corpus.
+"""Kiểm thử tầng nạp học liệu.
 
-Không chạm Milvus và không gọi mạng — chỉ kiểm phần đọc file và cắt đoạn.
+Không chạm Milvus và không gọi mạng: phần corpus chỉ kiểm việc đọc file và cắt
+đoạn; phần content-service thay client và vectorstore bằng đối tượng giả.
 """
 
 from __future__ import annotations
@@ -8,9 +9,12 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from langchain_core.documents import Document
 
-from ml_worker.services import ingest
+from ml_worker.api import ingest as ingest_api
+from ml_worker.services import content_client, ingest
 
 
 @pytest.fixture
@@ -253,3 +257,292 @@ def test_chunks_carry_the_document_title() -> None:
 def test_strip_diacritics_handles_d_with_stroke() -> None:
     """Chữ đ không phải là d cộng dấu phụ nên NFD không tách được, phải xử riêng."""
     assert ingest.strip_diacritics("Đường dẫn tuyệt đối") == "Duong dan tuyet doi"
+
+
+# ===== Học liệu thật của content-service (FR-AI-004) =========================
+
+
+def _course(
+    *,
+    course_id: str = "course-1",
+    language: str = "vi",
+    description: str = "Thẻ HTML gồm thẻ mở, nội dung và thẻ đóng.",
+) -> content_client.Course:
+    lesson = content_client.Lesson(
+        lesson_id="lesson-1",
+        chapter_id="chapter-1",
+        title="Thẻ và thuộc tính",
+        description=description,
+    )
+    chapter = content_client.Chapter(
+        chapter_id="chapter-1",
+        title="Chương 1 — HTML",
+        description="Giới thiệu HTML",
+        lessons=[lesson],
+    )
+    return content_client.Course(
+        course_id=course_id,
+        title="Lập trình web cơ bản",
+        language=language,
+        chapters=[chapter],
+    )
+
+
+def test_lesson_document_carries_the_contract_metadata() -> None:
+    """Năm khoá bắt buộc của FR-AI-004, tên viết đúng như hợp đồng."""
+    course = _course()
+    chapter, lesson = course.lessons[0]
+
+    document = ingest.lesson_document(course, chapter, lesson)
+
+    assert document is not None
+    assert document.metadata["courseId"] == "course-1"
+    assert document.metadata["lessonId"] == "lesson-1"
+    assert document.metadata["chapterId"] == "chapter-1"
+    assert document.metadata["title"] == "Thẻ và thuộc tính"
+    assert document.metadata["source"] == "content-service"
+
+
+def test_lesson_document_keeps_the_lesson_text_and_its_context() -> None:
+    course = _course()
+    chapter, lesson = course.lessons[0]
+
+    document = ingest.lesson_document(course, chapter, lesson)
+
+    assert document is not None
+    assert "thẻ mở" in document.page_content
+    # Đoạn cắt từ giữa bài phải biết mình thuộc khoá nào, chương nào.
+    assert "Lập trình web cơ bản" in document.page_content
+    assert "Chương 1 — HTML" in document.page_content
+
+
+def test_lesson_without_text_is_skipped() -> None:
+    """Bài chỉ có video, không có description — không có chữ nào để ra đề."""
+    course = _course(description="   ")
+    chapter, lesson = course.lessons[0]
+
+    assert ingest.lesson_document(course, chapter, lesson) is None
+    assert ingest.lesson_documents([course]) == []
+
+
+def test_lesson_language_drives_the_diacritic_free_copy() -> None:
+    """Khoá tiếng Việt được nhân thêm bản không dấu, khoá tiếng Anh thì không."""
+    vietnamese = ingest.split(ingest.lesson_documents([_course(language="vi")]))
+    english = ingest.split(ingest.lesson_documents([_course(language="en")]))
+
+    assert [c for c in vietnamese if c.metadata["chunk_id"].endswith("~nodau")]
+    assert not [c for c in english if c.metadata["chunk_id"].endswith("~nodau")]
+
+
+def test_content_metadata_survives_splitting() -> None:
+    """Cắt đoạn xong mà mất courseId thì bộ lọc của /v1/questions/generate vô dụng."""
+    chunks = ingest.split(ingest.lesson_documents([_course()]))
+
+    assert chunks
+    assert all(c.metadata["courseId"] == "course-1" for c in chunks)
+    assert all(c.metadata["lessonId"] == "lesson-1" for c in chunks)
+    assert all(c.metadata["source"] == "content-service" for c in chunks)
+
+
+def test_corpus_chunks_carry_the_same_metadata_keys(corpus: Path) -> None:
+    """Milvus khoá lược đồ theo lô ghi đầu tiên.
+
+    Đoạn corpus thiếu courseId còn đoạn content-service thì có, nghĩa là lô nào
+    ghi sau cũng bị từ chối — tuỳ thứ tự chạy mà hỏng. Vì vậy hai nguồn phải
+    mang đúng một bộ khoá; phần id của corpus để rỗng.
+    """
+    corpus_chunk = ingest.split(ingest.load_corpus(corpus))[0]
+    content_chunk = ingest.split(ingest.lesson_documents([_course()]))[0]
+
+    assert set(corpus_chunk.metadata) == set(content_chunk.metadata)
+    assert corpus_chunk.metadata["courseId"] == ""
+    assert corpus_chunk.metadata["lessonId"] == ""
+    assert corpus_chunk.metadata["source"] == ingest.SOURCE_CORPUS
+
+
+def test_content_filter_expr_narrows_by_course() -> None:
+    both = 'source == "content-service" and courseId == "course-1"'
+
+    assert ingest.content_filter_expr() == 'source == "content-service"'
+    assert ingest.content_filter_expr("course-1") == both
+
+
+class _FakeContentStore(_FakeStore):
+    """Vectorstore giả, ghi lại cả lời gọi xoá."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.deleted: list[str] = []
+
+    def delete(self, expr: str | None = None, **_kwargs: object) -> None:
+        self.deleted.append(str(expr))
+
+
+def _stub_milvus(monkeypatch: pytest.MonkeyPatch, store: _FakeContentStore) -> list[str]:
+    calls: list[str] = []
+    monkeypatch.setattr(ingest.milvus, "collection_exists", lambda: True)
+    monkeypatch.setattr(ingest.milvus, "get_vectorstore", lambda: store)
+    monkeypatch.setattr(ingest.milvus, "count_rows", lambda: len(store.added))
+    monkeypatch.setattr(ingest.milvus, "drop_collection", lambda: calls.append("drop"))
+    return calls
+
+
+async def _one_course(course_id: str | None = None, **_kwargs: object) -> list:
+    return [_course()]
+
+
+async def test_ingest_content_writes_chunks_and_reports_counts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    store = _FakeContentStore()
+    _stub_milvus(monkeypatch, store)
+    monkeypatch.setattr(ingest.content_client, "fetch_published_courses", _one_course)
+
+    result = await ingest.ingest_content()
+
+    assert result["courses"] == 1
+    assert result["documents"] == 1
+    assert result["chunks"] == len(store.added)
+    assert result["source"] == "content-service"
+    assert store.added[0].metadata["lessonId"] == "lesson-1"
+
+
+async def test_ingest_content_deletes_only_its_own_rows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Nạp lại học liệu thật không được làm mất corpus tĩnh."""
+    store = _FakeContentStore()
+    dropped = _stub_milvus(monkeypatch, store)
+    monkeypatch.setattr(ingest.content_client, "fetch_published_courses", _one_course)
+
+    await ingest.ingest_content("course-1")
+
+    assert dropped == [], "không được xoá cả collection"
+    assert store.deleted == [ingest.content_filter_expr("course-1")]
+
+
+async def test_ingest_content_can_skip_the_purge(monkeypatch: pytest.MonkeyPatch) -> None:
+    store = _FakeContentStore()
+    _stub_milvus(monkeypatch, store)
+    monkeypatch.setattr(ingest.content_client, "fetch_published_courses", _one_course)
+
+    await ingest.ingest_content(replace=False)
+
+    assert store.deleted == []
+
+
+async def test_ingest_content_lets_the_service_failure_through(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """content-service chết thì báo lỗi, không báo đã nạp 0 tài liệu."""
+    store = _FakeContentStore()
+    _stub_milvus(monkeypatch, store)
+
+    async def explode(course_id: str | None = None, **_kwargs: object) -> list:
+        raise content_client.ContentServiceError("connection refused")
+
+    monkeypatch.setattr(ingest.content_client, "fetch_published_courses", explode)
+
+    with pytest.raises(content_client.ContentServiceError):
+        await ingest.ingest_content()
+
+    assert store.added == []
+
+
+# --- Route POST /v1/ingest/content --------------------------------------------
+
+
+def _result(course_id: str | None, courses: int = 1) -> dict:
+    return {
+        "source": "content-service",
+        "course_id": course_id,
+        "courses": courses,
+        "documents": 9 if courses else 0,
+        "chunks": 31 if courses else 0,
+        "collection": "course_embeddings",
+        "total_rows": 431 if courses else 0,
+    }
+
+
+@pytest.fixture
+def ingest_client() -> TestClient:
+    """App tối thiểu chỉ có router nạp học liệu.
+
+    Không dùng ``main.app``: việc đăng ký router nằm ngoài phạm vi module này.
+    """
+    app = FastAPI()
+    app.include_router(ingest_api.router)
+    return TestClient(app)
+
+
+def test_ingest_endpoint_reports_what_it_ingested(
+    ingest_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def fake_ingest(course_id: str | None = None, **_kwargs: object) -> dict:
+        return _result(course_id)
+
+    monkeypatch.setattr(ingest_api.ingest_service, "ingest_content", fake_ingest)
+
+    body = ingest_client.post("/v1/ingest/content", json={}).json()
+
+    assert body["documents"] == 9
+    assert body["chunks"] == 31
+    assert body["totalRows"] == 431
+
+
+def test_ingest_endpoint_passes_the_course_filter(
+    ingest_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    seen: list[str | None] = []
+
+    async def fake_ingest(course_id: str | None = None, **_kwargs: object) -> dict:
+        seen.append(course_id)
+        return _result(course_id)
+
+    monkeypatch.setattr(ingest_api.ingest_service, "ingest_content", fake_ingest)
+
+    response = ingest_client.post("/v1/ingest/content", json={"courseId": "course-1"})
+
+    assert response.status_code == 200
+    assert seen == ["course-1"]
+
+
+def test_ingest_endpoint_rejects_an_unknown_course(
+    ingest_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Xin nạp một khoá mà không khớp khoá nào là lỗi, không phải thành công rỗng."""
+
+    async def fake_ingest(course_id: str | None = None, **_kwargs: object) -> dict:
+        return _result(course_id, courses=0)
+
+    monkeypatch.setattr(ingest_api.ingest_service, "ingest_content", fake_ingest)
+
+    response = ingest_client.post("/v1/ingest/content", json={"courseId": "khong-co"})
+
+    assert response.status_code == 422
+    assert "khong-co" in response.json()["detail"]
+
+
+def test_ingest_endpoint_turns_a_dead_content_service_into_502(
+    ingest_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def explode(course_id: str | None = None, **_kwargs: object) -> dict:
+        raise content_client.ContentServiceError("Không gọi được content-service")
+
+    monkeypatch.setattr(ingest_api.ingest_service, "ingest_content", explode)
+
+    response = ingest_client.post("/v1/ingest/content", json={})
+
+    assert response.status_code == 502
+    assert "content-service" in response.json()["detail"]
+
+
+def test_ingest_endpoint_rejects_an_injection_shaped_course_id(
+    ingest_client: TestClient,
+) -> None:
+    """courseId đi thẳng vào biểu thức lọc Milvus, nên chỉ cho ký tự an toàn."""
+    hostile = 'x" or source != "'
+
+    response = ingest_client.post("/v1/ingest/content", json={"courseId": hostile})
+
+    assert response.status_code == 422

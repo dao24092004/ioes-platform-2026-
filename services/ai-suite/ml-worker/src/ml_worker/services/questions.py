@@ -28,6 +28,7 @@ docstring của ``_covers_topic`` và ``_verify``.
 
 from __future__ import annotations
 
+import re
 import time
 from typing import cast
 
@@ -35,6 +36,8 @@ from ioes_common import get_logger
 from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
 
+from ml_worker.core.config import get_settings
+from ml_worker.db import milvus
 from ml_worker.schemas.questions import (
     DraftQuestion,
     DraftQuestionList,
@@ -50,9 +53,25 @@ from ml_worker.services.llm import active_model_name, get_chat_model
 # Dùng lại tầng truy xuất của chuỗi hỏi đáp thay vì viết bản song song — cùng
 # corpus, cùng ngưỡng, cùng cách mở rộng truy vấn. Hai tên có gạch dưới là
 # nội bộ của gói ml_worker.services, không phơi ra ngoài service.
-from ml_worker.services.rag import _to_sources, retrieve
+from ml_worker.services.rag import _fuse, _to_sources, expand_query, retrieve
 
 logger = get_logger(__name__)
+
+
+class NoScopedMaterialError(RuntimeError):
+    """Lọc theo ``courseId``/``lessonId`` mà không khớp đoạn học liệu nào.
+
+    Khác hẳn "học liệu không bàn về chủ đề" (trả 200 kèm ``grounded=False``):
+    ở đây giảng viên chỉ đích danh một bài học, và trong Milvus không có chữ
+    nào của bài đó. Sinh đề từ tài liệu khác là phát đề sai bài, nên tầng route
+    đổi lỗi này thành 422.
+    """
+
+
+#: Trùng với ``_ID_PATTERN`` bên schema. Kiểm lại ở đây vì chuỗi này đi thẳng
+#: vào biểu thức lọc của Milvus, và ``generate`` còn được gọi từ script nội bộ
+#: chứ không riêng qua HTTP.
+_SAFE_ID = re.compile(r"^[A-Za-z0-9_-]+$")
 
 # Sinh câu hỏi phải lặp lại được: cùng học liệu, cùng tham số thì ra cùng bộ
 # câu. Ở mức mặc định 0,7 giảng viên bấm hai lần ra hai bộ khác nhau, không
@@ -78,9 +97,7 @@ _TYPE_RULES = {
         "phương án `Sai`, đúng một trong hai có `is_correct` bằng true. "
         "Để trống `answer_text`."
     ),
-    QuestionType.SHORT_ANSWER: (
-        "Để trống `options`. Đặt đáp án ngắn gọn vào `answer_text`."
-    ),
+    QuestionType.SHORT_ANSWER: ("Để trống `options`. Đặt đáp án ngắn gọn vào `answer_text`."),
     QuestionType.ESSAY: (
         "Để trống `options` và `answer_text`. Đặt tiêu chí chấm vào `explanation`."
     ),
@@ -108,9 +125,7 @@ _USER_PROMPT = """TÀI LIỆU:
 
 Soạn tối đa {count} câu hỏi.{extra}"""
 
-PROMPT = ChatPromptTemplate.from_messages(
-    [("system", _SYSTEM_PROMPT), ("human", _USER_PROMPT)]
-)
+PROMPT = ChatPromptTemplate.from_messages([("system", _SYSTEM_PROMPT), ("human", _USER_PROMPT)])
 
 _VERIFY_SYSTEM = """Bạn kiểm tra tính chính xác của câu hỏi kiểm tra.
 
@@ -180,6 +195,85 @@ def _covers_topic(topic: str, context: str) -> bool:
 
     verdict = str(getattr(message, "content", "")).strip().upper()
     return verdict.startswith(VERIFIED_MARKER)
+
+
+def scope_expr(course_id: str | None, lesson_id: str | None) -> str | None:
+    """Biểu thức lọc metadata cho Milvus, hoặc None khi không thu hẹp.
+
+    Tên trường đúng theo hợp đồng FR-AI-004: ``courseId``, ``lessonId`` — cùng
+    bộ khoá mà ``ingest.lesson_document`` ghi vào.
+    """
+    clauses: list[str] = []
+    for field_name, value in (("courseId", course_id), ("lessonId", lesson_id)):
+        if not value:
+            continue
+        if not _SAFE_ID.match(value):
+            raise ValueError(f"{field_name} chứa ký tự không hợp lệ: {value!r}")
+        clauses.append(f'{field_name} == "{value}"')
+    return " and ".join(clauses) if clauses else None
+
+
+def _retrieve_scoped(request: GenerateQuestionsRequest) -> list[tuple[Document, float]]:
+    """Truy xuất ngữ cảnh, thu hẹp về đúng khoá/bài nếu có yêu cầu.
+
+    Không thu hẹp thì gọi thẳng ``rag.retrieve`` — hành vi y hệt trước
+    FR-AI-004, kể cả phần mở rộng truy vấn và ngưỡng điểm.
+
+    Có thu hẹp thì **bỏ ngưỡng điểm**. Ngưỡng tồn tại để gạt tài liệu lạc khỏi
+    cả một corpus; khi đã khoá vào đúng một bài học thì phạm vi do bộ lọc quyết
+    định, và ngưỡng chỉ còn gây hại: một bài ngắn dễ tụt dưới 0,70 rồi biến
+    thành "không có học liệu" dù nội dung nằm sờ sờ ra đó. Cổng lọc lạc đề và
+    ba tầng chặn bịa phía sau vẫn đứng nguyên.
+
+    Không khớp gì thì ném ``NoScopedMaterialError`` — không lui về truy xuất
+    toàn corpus, vì đó chính là cách ra đề sai bài.
+    """
+    expr = scope_expr(request.course_id, request.lesson_id)
+    if expr is None:
+        return retrieve(request.topic, request.top_k)
+
+    settings = get_settings()
+    k = request.top_k or settings.rag_top_k
+
+    if not milvus.collection_exists():
+        raise NoScopedMaterialError(
+            f"Chưa nạp học liệu nào vào collection {settings.milvus_collection}. "
+            "Gọi POST /v1/ingest/content trước."
+        )
+
+    store = milvus.get_vectorstore()
+    queries = [request.topic, *expand_query(request.topic)]
+    pools = [store.similarity_search_with_score(q, k=k, expr=expr) for q in queries]
+    hits = _fuse(pools, limit=k * len(pools))
+
+    logger.info(
+        "question_scope_retrieved",
+        expr=expr,
+        queries=len(queries),
+        returned=len(hits),
+    )
+
+    if not hits:
+        raise NoScopedMaterialError(
+            "Không tìm thấy học liệu nào khớp "
+            + ", ".join(
+                part
+                for part in (
+                    f"courseId={request.course_id}" if request.course_id else "",
+                    f"lessonId={request.lesson_id}" if request.lesson_id else "",
+                )
+                if part
+            )
+            + ". Kiểm tra khoá/bài đã có nội dung và đã được nạp qua "
+            "POST /v1/ingest/content chưa."
+        )
+    return hits
+
+
+def _optional_id(value: object) -> str | None:
+    """Metadata Milvus dùng chuỗi rỗng thay cho NULL; API trả lại ``null``."""
+    text = str(value or "").strip()
+    return text or None
 
 
 def _format_context(documents: list[tuple[Document, float]]) -> str:
@@ -276,7 +370,9 @@ def generate(request: GenerateQuestionsRequest) -> GenerateQuestionsResponse:
         )
 
     # Tầng 1 — topic chỉ dùng để truy xuất, không đi tiếp vào lời nhắc sinh.
-    documents = retrieve(request.topic, request.top_k)
+    # Có courseId/lessonId thì ngữ cảnh khoá chặt vào đúng học liệu đó; không
+    # khớp gì thì NoScopedMaterialError bay lên thành 422, không bịa.
+    documents = _retrieve_scoped(request)
     if not documents:
         logger.info("question_generation_no_context", topic=request.topic)
         return _empty(grounded=False)
@@ -332,7 +428,8 @@ def generate(request: GenerateQuestionsRequest) -> GenerateQuestionsResponse:
         source = sources[draft.source_index - 1]
         # Toàn văn đoạn, không phải source.excerpt: excerpt đã cắt còn 280 ký
         # tự cho phần hiển thị, đối chiếu trên đó sẽ loại oan câu rút từ đuôi.
-        passage = documents[draft.source_index - 1][0].page_content
+        chunk = documents[draft.source_index - 1][0]
+        passage = chunk.page_content
 
         # Tầng 3 — đoạn văn có chống lưng đáp án không.
         if not _verify(draft, passage):
@@ -349,6 +446,11 @@ def generate(request: GenerateQuestionsRequest) -> GenerateQuestionsResponse:
                 answer_text=draft.answer_text,
                 explanation=draft.explanation,
                 source=source,
+                # Nguồn thật của câu hỏi. Đoạn lấy từ corpus tĩnh không có hai
+                # id này nên trả null — đó là tín hiệu "không truy ngược được
+                # về bài giảng nào", chứ không phải thiếu sót của API.
+                source_lesson_id=_optional_id(chunk.metadata.get("lessonId")),
+                source_course_id=_optional_id(chunk.metadata.get("courseId")),
             )
         )
 

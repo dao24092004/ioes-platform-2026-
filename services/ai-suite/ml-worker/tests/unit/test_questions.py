@@ -8,9 +8,12 @@ thay bằng hàm giả.
 from __future__ import annotations
 
 import pytest
+from fastapi.testclient import TestClient
 from langchain_core.documents import Document
 
+from ml_worker.api import questions as questions_api
 from ml_worker.core.config import get_settings
+from ml_worker.main import app
 from ml_worker.schemas.questions import (
     Difficulty,
     DraftQuestion,
@@ -388,3 +391,212 @@ def test_relevance_gate_lets_through_on_model_error(
     monkeypatch.setattr(questions, "get_chat_model", explode)
 
     assert questions._covers_topic("Box model", "ngu canh bat ky") is True
+
+
+# ===== FR-AI-004: ngữ cảnh khoá chặt vào học liệu thật ========================
+
+COURSE_ID = "course-1"
+LESSON_ID = "lesson-1"
+
+
+def _lesson_doc(index: int = 0) -> tuple[Document, float]:
+    """Đoạn đến từ content-service, mang đủ metadata của hợp đồng."""
+    return (
+        Document(
+            page_content="Box model gồm content, padding, border và margin.",
+            metadata={
+                "doc_id": f"lesson-{LESSON_ID}",
+                "title": "Box model",
+                "chunk_id": f"lesson-{LESSON_ID}#{index}",
+                "courseId": COURSE_ID,
+                "lessonId": LESSON_ID,
+                "chapterId": "chapter-1",
+                "source": "content-service",
+            },
+        ),
+        0.81,
+    )
+
+
+class _RecordingStore:
+    """Vectorstore giả, ghi lại biểu thức lọc đã nhận."""
+
+    def __init__(self, hits: list[tuple[Document, float]]) -> None:
+        self.hits = hits
+        self.expressions: list[str | None] = []
+        self.ks: list[int] = []
+
+    def similarity_search_with_score(
+        self, _query: str, k: int = 4, expr: str | None = None, **_kwargs: object
+    ) -> list[tuple[Document, float]]:
+        self.expressions.append(expr)
+        self.ks.append(k)
+        return list(self.hits)
+
+
+def _stub_store(
+    monkeypatch: pytest.MonkeyPatch, hits: list[tuple[Document, float]]
+) -> _RecordingStore:
+    store = _RecordingStore(hits)
+    monkeypatch.setattr(questions.milvus, "collection_exists", lambda: True)
+    monkeypatch.setattr(questions.milvus, "get_vectorstore", lambda: store)
+    monkeypatch.setattr(questions, "expand_query", lambda *_a, **_k: [])
+    return store
+
+
+# --- Biểu thức lọc -------------------------------------------------------------
+
+
+def test_scope_expr_uses_the_contract_field_names() -> None:
+    assert questions.scope_expr(COURSE_ID, None) == 'courseId == "course-1"'
+    assert questions.scope_expr(None, LESSON_ID) == 'lessonId == "lesson-1"'
+    assert (
+        questions.scope_expr(COURSE_ID, LESSON_ID)
+        == 'courseId == "course-1" and lessonId == "lesson-1"'
+    )
+
+
+def test_scope_expr_is_none_without_a_filter() -> None:
+    """Không thu hẹp thì không có biểu thức, và truy xuất chạy y như cũ."""
+    assert questions.scope_expr(None, None) is None
+
+
+def test_scope_expr_refuses_an_injection_attempt() -> None:
+    """Chuỗi id đi thẳng vào biểu thức Milvus nên không được chứa dấu nháy."""
+    with pytest.raises(ValueError):
+        questions.scope_expr('x" or source != "', None)
+
+
+# --- Bộ lọc phải tới được Milvus ------------------------------------------------
+
+
+def test_filter_reaches_milvus(monkeypatch: pytest.MonkeyPatch) -> None:
+    store = _stub_store(monkeypatch, [_lesson_doc()])
+    _stub_generation(monkeypatch, [_mcq()])
+
+    questions.generate(_request(courseId=COURSE_ID, lessonId=LESSON_ID))
+
+    assert store.expressions == ['courseId == "course-1" and lessonId == "lesson-1"']
+
+
+def test_unfiltered_request_keeps_the_old_retrieval_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Không có courseId/lessonId thì vẫn đi qua rag.retrieve, không đụng bộ lọc."""
+    calls: list[tuple] = []
+
+    def fake_retrieve(topic: str, top_k: object = None) -> list:
+        calls.append((topic, top_k))
+        return [_doc()]
+
+    monkeypatch.setattr(questions, "retrieve", fake_retrieve)
+
+    def explode() -> object:
+        raise AssertionError("khong duoc mo vectorstore khi khong loc")
+
+    monkeypatch.setattr(questions.milvus, "get_vectorstore", explode)
+    _stub_generation(monkeypatch, [_mcq()])
+
+    assert questions.generate(_request()).returned == 1
+    assert calls == [("Box model", None)]
+
+
+# --- Không khớp học liệu nào -> 422 --------------------------------------------
+
+
+def test_empty_filter_match_raises_instead_of_falling_back(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Lui về corpus khi bài học không có gì chính là ra đề sai bài."""
+    _stub_store(monkeypatch, [])
+
+    def explode(*_a: object, **_k: object) -> None:
+        raise AssertionError("khong duoc sinh de khi khong co hoc lieu")
+
+    monkeypatch.setattr(questions, "get_chat_model", explode)
+
+    with pytest.raises(questions.NoScopedMaterialError) as exc:
+        questions.generate(_request(lessonId=LESSON_ID))
+
+    assert LESSON_ID in str(exc.value)
+
+
+def test_missing_collection_raises_for_a_scoped_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(questions.milvus, "collection_exists", lambda: False)
+
+    with pytest.raises(questions.NoScopedMaterialError):
+        questions.generate(_request(courseId=COURSE_ID))
+
+
+def test_route_turns_an_empty_filter_match_into_422(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def explode(_payload: object) -> None:
+        raise questions.NoScopedMaterialError("Không tìm thấy học liệu nào khớp lessonId=x")
+
+    monkeypatch.setattr(questions_api.question_service, "generate", explode)
+
+    response = TestClient(app).post(
+        "/v1/questions/generate",
+        json={"topic": "Box model", "lessonId": "x"},
+    )
+
+    assert response.status_code == 422
+    assert "học liệu" in response.json()["detail"]
+
+
+def test_route_rejects_an_injection_shaped_lesson_id() -> None:
+    response = TestClient(app).post(
+        "/v1/questions/generate",
+        json={"topic": "Box model", "lessonId": 'x" or source != "'},
+    )
+
+    assert response.status_code == 422
+
+
+# --- Mỗi câu hỏi mang nguồn của nó ---------------------------------------------
+
+
+def test_questions_carry_their_source_ids(monkeypatch: pytest.MonkeyPatch) -> None:
+    _stub_store(monkeypatch, [_lesson_doc()])
+    _stub_generation(monkeypatch, [_mcq()])
+
+    result = questions.generate(_request(courseId=COURSE_ID))
+
+    assert result.questions[0].source_lesson_id == LESSON_ID
+    assert result.questions[0].source_course_id == COURSE_ID
+
+
+def test_corpus_questions_report_no_source_ids(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Câu rút từ corpus tĩnh không truy ngược được về bài giảng nào."""
+    monkeypatch.setattr(questions, "retrieve", lambda *_a, **_k: [_doc()])
+    _stub_generation(monkeypatch, [_mcq()])
+
+    result = questions.generate(_request())
+
+    assert result.questions[0].source_lesson_id is None
+    assert result.questions[0].source_course_id is None
+
+
+def test_source_ids_are_serialised_with_the_contract_names(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Hợp đồng chốt tên sourceLessonId/sourceCourseId, không đổi."""
+    _stub_store(monkeypatch, [_lesson_doc()])
+    _stub_generation(monkeypatch, [_mcq()])
+    result = questions.generate(_request(courseId=COURSE_ID))
+
+    monkeypatch.setattr(questions_api.question_service, "generate", lambda _p: result)
+    body = (
+        TestClient(app)
+        .post(
+            "/v1/questions/generate",
+            json={"topic": "Box model", "courseId": COURSE_ID},
+        )
+        .json()
+    )
+
+    assert body["questions"][0]["sourceLessonId"] == LESSON_ID
+    assert body["questions"][0]["sourceCourseId"] == COURSE_ID

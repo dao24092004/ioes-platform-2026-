@@ -10,9 +10,13 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from ml_worker.schemas.rag import RetrievedSource, TokenUsage
+
+#: Id của khoá/bài đi thẳng vào biểu thức lọc của Milvus, nên chỉ cho phép ký
+#: tự an toàn. UUID lọt hết; dấu nháy thì không — đó là đường tiêm biểu thức.
+_ID_PATTERN = r"^[A-Za-z0-9_-]+$"
 
 
 class QuestionType(StrEnum):
@@ -32,6 +36,15 @@ class Difficulty(StrEnum):
 
 
 class GenerateQuestionsRequest(BaseModel):
+    """Yêu cầu sinh câu hỏi.
+
+    ``courseId``/``lessonId`` (FR-AI-004) thu hẹp ngữ cảnh về đúng học liệu
+    thật đã nạp từ content-service. Bỏ trống cả hai thì hành vi y như cũ: truy
+    xuất trên toàn bộ collection, gồm cả corpus tĩnh.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
     topic: str = Field(min_length=2, max_length=200)
     question_type: QuestionType = QuestionType.MULTIPLE_CHOICE
     difficulty: Difficulty = Difficulty.MEDIUM
@@ -44,6 +57,29 @@ class GenerateQuestionsRequest(BaseModel):
     language: Literal["vi", "en"] = "vi"
     instructions: str | None = Field(default=None, max_length=1000)
     top_k: int | None = Field(default=None, ge=1, le=20)
+    course_id: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("courseId", "course_id"),
+        serialization_alias="courseId",
+        min_length=1,
+        max_length=64,
+        pattern=_ID_PATTERN,
+        description="Chỉ lấy ngữ cảnh từ học liệu của khoá này.",
+    )
+    lesson_id: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("lessonId", "lesson_id"),
+        serialization_alias="lessonId",
+        min_length=1,
+        max_length=64,
+        pattern=_ID_PATTERN,
+        description="Chỉ lấy ngữ cảnh từ đúng bài học này.",
+    )
+
+    @property
+    def is_scoped(self) -> bool:
+        """Có thu hẹp về học liệu thật không."""
+        return bool(self.course_id or self.lesson_id)
 
 
 class GeneratedOption(BaseModel):
@@ -73,7 +109,14 @@ class DraftQuestionList(BaseModel):
 
 
 class GeneratedQuestion(BaseModel):
-    """Câu hỏi đã qua đủ ba tầng kiểm, kèm đúng đoạn học liệu đã chống lưng."""
+    """Câu hỏi đã qua đủ ba tầng kiểm, kèm đúng đoạn học liệu đã chống lưng.
+
+    ``sourceLessonId``/``sourceCourseId`` (FR-AI-004) trỏ về bài học thật đã
+    sinh ra câu này. ``null`` nghĩa là câu rút từ corpus tĩnh cũ — giảng viên
+    nhìn vào đó để biết có truy ngược được về bài giảng hay không.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
 
     question_text: str
     question_type: QuestionType
@@ -82,6 +125,16 @@ class GeneratedQuestion(BaseModel):
     answer_text: str | None = None
     explanation: str
     source: RetrievedSource
+    source_lesson_id: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("sourceLessonId", "source_lesson_id"),
+        serialization_alias="sourceLessonId",
+    )
+    source_course_id: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("sourceCourseId", "source_course_id"),
+        serialization_alias="sourceCourseId",
+    )
 
 
 class GenerateQuestionsResponse(BaseModel):

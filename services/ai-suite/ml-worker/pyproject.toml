@@ -41,6 +41,17 @@ pymilvus = "^2.4.0"
 pypdf = "^6.16"
 python-docx = "^1.2"
 
+# Giam sat thi FR-AI-006: Face Mesh 478 landmark chay tren CPU.
+# License Apache-2.0, dat yeu cau PROJECT_RULES 7.1 (MIT/Apache/BSD).
+# Ghim trong nhanh 0.10.x: tu 1.0 tro di mediapipe doi numpy>=2, ma ca service
+# nay dang o numpy ^1.26 (torch, sentence-transformers). Khong dung 0.10.21 hay
+# cu hon du chung con `mediapipe.solutions.face_mesh`: cac ban do ghim
+# protobuf<5, trong khi pymilvus / opentelemetry-proto / googleapis-common-protos
+# deu doi protobuf>=5 — ha xuong la lam chet tang RAG.
+# KHONG them opencv-python-headless: mediapipe da keo opencv-contrib-python,
+# hai ban phan phoi cung chiem ten `cv2` se dam nhau. Giai ma anh dung Pillow.
+mediapipe = "^0.10.35"
+
 [tool.poetry.group.ml.dependencies]
 torch = "^2.2.0"
 transformers = "^4.39.0"
