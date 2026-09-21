@@ -11,6 +11,7 @@ import {
   ATTENTION_FLAG_THRESHOLD,
   ATTENTION_WARNING_THRESHOLD,
   FACE_NOT_DETECTED_DURATION_MS,
+  VIOLATION_COOLDOWN_SEC,
 } from './violation-counter.service';
 
 /**
@@ -38,7 +39,17 @@ export type AttentionSeverity = 'OK' | 'WARNING' | 'FLAG';
 export interface ProcessFrameResult {
   attentionScore: number;
   faceDetected: boolean;
+  /** Số khuôn mặt trong khung — > 1 là MULTIPLE_FACES (FR-PROC-005). */
+  faceCount: number;
+  /** Hướng nhìn ml-worker suy ra; hiển thị cho thí sinh chứ không tự sinh vi phạm. */
+  gazeDirection?: 'CENTER' | 'LEFT' | 'RIGHT' | 'UP' | 'DOWN' | 'OUT_OF_FRAME';
   attentionSeverity: AttentionSeverity;
+  /**
+   * false khi không gọi được ml-worker (exception 9e). Các số trong kết quả
+   * lúc đó là giá trị trống, KHÔNG phải kết luận "không thấy mặt" — gateway
+   * dùng cờ này để báo "đang mất kết nối giám thị" thay vì doạ thí sinh.
+   */
+  proctorAvailable: boolean;
   /**
    * Loại violation phát hiện trong frame này (nếu có).
    * `undefined` = không vi phạm.
@@ -53,9 +64,17 @@ export interface ProcessFrameResult {
    */
   shouldAutoSubmit: boolean;
   /**
-   * Số violation hiện tại (sau khi increment).
+   * Số violation hiện tại của attempt (kể cả khung này không vi phạm) — panel
+   * của thí sinh hiển thị "x/ngưỡng" liên tục nên cần số thật mọi lúc.
    */
   violationCount: number;
+  /** BR-013: ngưỡng đang áp dụng, để gateway khỏi hard-code lại. */
+  violationThreshold: number;
+  /**
+   * true khi khung này mở một đợt vi phạm mới (đã ghi vào Redis). false khi
+   * vi phạm vẫn đang trong khoảng lặng của đợt trước.
+   */
+  violationRecorded: boolean;
   /**
    * Attempt đã bị flag (attention < 40) — dùng cho report.
    */
@@ -91,15 +110,25 @@ export class FrameProcessorService {
   /** BR-013: violation count > threshold (mặc định 3) → auto-submit + flag. */
   private readonly violationThreshold: number;
 
+  /** Khoảng lặng giữa hai violation cùng loại (giây) — xem VIOLATION_COOLDOWN_SEC. */
+  private readonly cooldownSec: number;
+
   constructor(
     // Module bind PROCTOR_CLIENT = Symbol.for('PROCTOR_CLIENT'); string token cũ không resolve được.
     @Inject(PROCTOR_CLIENT) private readonly proctorClient: IProctorClient,
     private readonly counter: ViolationCounterService,
     @Optional() @Inject('VIOLATION_THRESHOLD') violationThreshold?: number,
     @Optional() @Inject('VIOLATION_TTL_SEC') ttlSec?: number,
+    @Optional() @Inject('VIOLATION_COOLDOWN_SEC') cooldownSec?: number,
   ) {
     this.violationThreshold = violationThreshold ?? 3;
     this.ttlSec = ttlSec ?? 1800;
+    this.cooldownSec = cooldownSec ?? VIOLATION_COOLDOWN_SEC;
+  }
+
+  /** BR-013 threshold đang áp dụng — gateway gửi kèm cho client hiển thị. */
+  get threshold(): number {
+    return this.violationThreshold;
   }
 
   /**
@@ -118,10 +147,14 @@ export class FrameProcessorService {
       return {
         attentionScore: 0,
         faceDetected: false,
+        faceCount: 0,
         attentionSeverity: 'OK',
+        proctorAvailable: false,
         violationType: undefined,
         shouldAutoSubmit: false,
-        violationCount: 0,
+        violationCount: await this.currentCount(req.attemptId),
+        violationThreshold: this.violationThreshold,
+        violationRecorded: false,
         attemptFlagged: false,
       };
     }
@@ -130,19 +163,38 @@ export class FrameProcessorService {
     const attentionSeverity = this.evaluateAttentionSeverity(analysis.attentionScore);
     const attemptFlagged = attentionSeverity === 'FLAG';
 
+    // ml-worker báo NO_FACE nhưng quên hạ `faceDetected` thì vẫn phải coi là
+    // không có mặt — hợp đồng cho phép cả hai cách diễn đạt.
+    const faceDetected = analysis.faceDetected && analysis.violationType !== 'NO_FACE';
+
     // FR-PROC-006: evaluate FACE_NOT_DETECTED duration
     const faceViolationResult = await this.evaluateFaceNotDetected(
       req.attemptId,
-      analysis.faceDetected,
+      faceDetected,
       analysis.faceCount,
     );
+
+    // FR-PROC-005: hơn một khuôn mặt trong khung → vi phạm ngay, không có 5
+    // giây ân hạn như FACE_NOT_DETECTED: có người thứ hai ngồi cạnh là sự kiện
+    // rõ ràng chứ không phải nhiễu nhận dạng.
+    const multipleFaces =
+      analysis.faceCount > 1 || analysis.violationType === 'MULTIPLE_FACES';
 
     // Determine violation type
     let violationType: ViolationType | undefined;
     let violationEvent: ViolationEvent | undefined;
 
-    // Priority: face violation > attention flag > attention warning
-    if (faceViolationResult.isViolation) {
+    // Ưu tiên: nhiều mặt > mất mặt > gắn cờ chú ý > cảnh báo chú ý.
+    // `OFF_SCREEN` của ml-worker KHÔNG tự thành vi phạm: liếc ra ngoài khung
+    // một nhịp là chuyện bình thường, và nó đã kéo `attentionScore` xuống rồi —
+    // tính thêm một lần nữa là phạt kép cùng một hành vi.
+    if (multipleFaces) {
+      violationType = 'MULTIPLE_FACES';
+      violationEvent = {
+        type: 'MULTIPLE_FACES',
+        startedAt: new Date().toISOString(),
+      };
+    } else if (faceViolationResult.isViolation) {
       violationType = 'FACE_NOT_DETECTED';
       violationEvent = {
         type: 'FACE_NOT_DETECTED',
@@ -166,35 +218,65 @@ export class FrameProcessorService {
 
     let violationCount = 0;
     let shouldAutoSubmit = false;
+    let violationRecorded = false;
 
     if (violationType && violationEvent) {
-      violationCount = await this.counter.recordViolation(
+      // Ở 1 Hz, cùng một hành vi sinh ra vi phạm mỗi giây. Chỉ ghi một lần cho
+      // mỗi đợt, nếu không ngưỡng BR-013 (>3) bị chạm sau 4 giây.
+      violationRecorded = await this.counter.tryStartViolationEpisode(
         req.attemptId,
-        violationEvent,
-        this.ttlSec,
-      );
-      shouldAutoSubmit = await this.counter.isOverThreshold(
-        req.attemptId,
-        this.violationThreshold,
+        violationType,
+        this.cooldownSec,
       );
 
-      this.logger.warn(
-        `[frame-processor] violation attempt=${req.attemptId} type=${violationType} ` +
-          `count=${violationCount} threshold=${this.violationThreshold} ` +
-          `shouldAutoSubmit=${shouldAutoSubmit} flagged=${attemptFlagged}`,
-      );
+      if (violationRecorded) {
+        violationCount = await this.counter.recordViolation(
+          req.attemptId,
+          violationEvent,
+          this.ttlSec,
+        );
+        shouldAutoSubmit = await this.counter.isOverThreshold(
+          req.attemptId,
+          this.violationThreshold,
+        );
+
+        this.logger.warn(
+          `[frame-processor] violation attempt=${req.attemptId} type=${violationType} ` +
+            `count=${violationCount} threshold=${this.violationThreshold} ` +
+            `shouldAutoSubmit=${shouldAutoSubmit} flagged=${attemptFlagged}`,
+        );
+      } else {
+        // Vẫn đang trong đợt cũ: báo trạng thái cho thí sinh nhưng không đếm thêm.
+        violationCount = await this.currentCount(req.attemptId);
+      }
+    } else {
+      violationCount = await this.currentCount(req.attemptId);
     }
 
     return {
       attentionScore: analysis.attentionScore,
-      faceDetected: analysis.faceDetected,
+      faceDetected,
+      faceCount: analysis.faceCount,
+      gazeDirection: analysis.gazeDirection,
       attentionSeverity,
+      proctorAvailable: true,
       violationType,
       violationEvent,
       shouldAutoSubmit,
       violationCount,
+      violationThreshold: this.violationThreshold,
+      violationRecorded,
       attemptFlagged,
     };
+  }
+
+  /** Số vi phạm đang lưu; lỗi Redis không được làm hỏng cả frame. */
+  private async currentCount(attemptId: string): Promise<number> {
+    try {
+      return (await this.counter.getCount(attemptId)) ?? 0;
+    } catch {
+      return 0;
+    }
   }
 
   /**

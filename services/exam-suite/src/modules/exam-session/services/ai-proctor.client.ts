@@ -53,6 +53,17 @@ export interface IProctorClient {
 }
 
 /**
+ * Cắt tiền tố data-URI (`data:image/jpeg;base64,`) nếu còn sót.
+ * Hợp đồng FR-AI-006 quy định `frameBase64` là base64 trần.
+ */
+export function stripDataUriPrefix(frame: string): string {
+  if (!frame) return frame;
+  const marker = ';base64,';
+  const at = frame.indexOf(marker);
+  return at === -1 ? frame : frame.slice(at + marker.length);
+}
+
+/**
  * Mock client — CHỈ dùng khi bật tường minh `DEV_MOCK_AI_PROCTOR=true`
  * (xem shouldUseMockAiProctor() trong exam-session.module.ts, nơi log cảnh báo).
  *
@@ -73,16 +84,16 @@ export class MockProctorClient implements IProctorClient {
 }
 
 /**
- * HTTP client — gọi sang ai-suite/proctor-service qua REST internal.
+ * HTTP client — gọi sang ml-worker qua REST nội bộ.
  *
- * Endpoint: POST {baseUrl}/internal/ai/proctor/analyze
- * Body: FrameAnalysisRequest (JSON)
- * Response: FrameAnalysisResponse
+ * Hợp đồng (docs/02-architecture/AI_FEATURES_CONTRACT.md §4 — FR-AI-006):
+ *   POST {baseUrl}/internal/ai/proctor/analyze
+ *   body     { attemptId, capturedAt: ISO-8601, frameBase64, sequenceId? }
+ *   response { faceDetected, faceCount, attentionScore, gazeDirection, violationType }
  *
- * Timeout mặc định: 3000ms (3s) — nhỏ hơn interval 1s của client capture.
- * Nếu ai-suite quá tải → trả null frame, không block WS.
- *
- * Phase sau (khi ai-suite build xong): không cần sửa code này, chỉ switch env.
+ * Timeout mặc định 3000ms — lớn hơn nhịp chụp 1s của client, nên khi ml-worker
+ * chậm thì các frame sau vẫn được gửi; FrameProcessorService nuốt lỗi và coi
+ * frame là "không vi phạm" chứ không chặn WebSocket.
  */
 @Injectable()
 export class HttpProctorClient implements IProctorClient {
@@ -99,11 +110,11 @@ export class HttpProctorClient implements IProctorClient {
 
     try {
       const response = await fetch(
-        `${this.baseUrl}/internal/ai/proctor/analyze`,
+        `${this.baseUrl.replace(/\/+$/, '')}/internal/ai/proctor/analyze`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(req),
+          body: JSON.stringify(this.toWirePayload(req)),
           signal: controller.signal,
         },
       );
@@ -114,7 +125,7 @@ export class HttpProctorClient implements IProctorClient {
         );
       }
 
-      return (await response.json()) as FrameAnalysisResponse;
+      return this.normalizeResponse(await response.json());
     } catch (err) {
       this.logger.error(
         `[http-proctor] call failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -123,5 +134,52 @@ export class HttpProctorClient implements IProctorClient {
     } finally {
       clearTimeout(timeout);
     }
+  }
+
+  /**
+   * Dựng body đúng hợp đồng thay vì `JSON.stringify(req)` thẳng:
+   *
+   * - `capturedAt` phải là chuỗi ISO-8601. Gateway có thể truyền `Date` hoặc
+   *   chuỗi có sẵn; `new Date(...)` hỏng thì rơi về thời điểm hiện tại chứ
+   *   không gửi `"Invalid Date"` cho ml-worker.
+   * - `frameBase64` phải là base64 trần. Client đã cắt tiền tố `data:image/...`
+   *   nhưng đây là ranh giới service nên cắt lại một lần nữa — gửi cả tiền tố
+   *   thì ml-worker decode ra rác và trả 400 cho mọi frame.
+   * - Bỏ hẳn `sequenceId` khi không có, không gửi `undefined`.
+   */
+  private toWirePayload(req: FrameAnalysisRequest): Record<string, unknown> {
+    const captured =
+      req.capturedAt instanceof Date ? req.capturedAt : new Date(req.capturedAt as unknown as string);
+    const capturedAt = Number.isNaN(captured.getTime())
+      ? new Date().toISOString()
+      : captured.toISOString();
+
+    const payload: Record<string, unknown> = {
+      attemptId: req.attemptId,
+      capturedAt,
+      frameBase64: stripDataUriPrefix(req.frameBase64),
+    };
+    if (typeof req.sequenceId === 'number') payload.sequenceId = req.sequenceId;
+    return payload;
+  }
+
+  /**
+   * ml-worker trả `violationType: null` khi không có vi phạm (JSON không có
+   * `undefined`). Giữ nguyên `null` thì `if (analysis.violationType)` vẫn sai
+   * nhưng so sánh kiểu lại không khớp union, nên chuẩn hoá về `undefined`.
+   * `attentionScore` cũng kẹp về 0–100 để một giá trị lạc không lọt qua ngưỡng
+   * BR-011.
+   */
+  private normalizeResponse(raw: unknown): FrameAnalysisResponse {
+    const body = (raw ?? {}) as Partial<FrameAnalysisResponse> & { violationType?: unknown };
+    const score = Number(body.attentionScore);
+
+    return {
+      faceDetected: Boolean(body.faceDetected),
+      faceCount: Number.isFinite(Number(body.faceCount)) ? Number(body.faceCount) : 0,
+      attentionScore: Number.isFinite(score) ? Math.min(100, Math.max(0, score)) : 0,
+      gazeDirection: (body.gazeDirection ?? undefined) as FrameAnalysisResponse['gazeDirection'],
+      violationType: (body.violationType ?? undefined) as FrameAnalysisResponse['violationType'],
+    };
   }
 }

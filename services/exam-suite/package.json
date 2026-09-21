@@ -6,7 +6,7 @@
   "scripts": {
     "build": "nest build",
     "dev": "node --require ts-node/register --require tsconfig-paths/register src/main.ts",
-    "start": "node -r tsconfig-paths/register dist/services/exam-suite/src/main.js",
+    "start": "node dist/services/exam-suite/src/main.js",
     "start:watch": "nodemon --watch src --ext ts --exec \"npm run build && npm start\"",
     "start:debug": "nest start --debug --watch",
     "test": "jest",

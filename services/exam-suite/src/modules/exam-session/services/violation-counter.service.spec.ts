@@ -18,6 +18,7 @@ describe('ViolationCounterService', () => {
     get: jest.Mock;
     expire: jest.Mock;
     del: jest.Mock;
+    set: jest.Mock;
   };
 
   beforeEach(() => {
@@ -26,6 +27,7 @@ describe('ViolationCounterService', () => {
       get: jest.fn(),
       expire: jest.fn(),
       del: jest.fn(),
+      set: jest.fn(),
     };
     service = new ViolationCounterService(redis as any);
   });
@@ -160,6 +162,57 @@ describe('ViolationCounterService', () => {
       const over = await service.isOverThreshold('attempt-1', 3);
 
       expect(over).toBe(false);
+    });
+  });
+
+  /**
+   * Khoảng lặng theo loại vi phạm — cần từ khi client gửi 1 khung/giây
+   * (FR-PROC-001): không có nó thì 4 giây cúi mặt đã vượt ngưỡng BR-013.
+   */
+  describe('tryStartViolationEpisode', () => {
+    it('should_returnTrue_When_noEpisodeInFlight', async () => {
+      redis.set.mockResolvedValue('OK');
+
+      const ok = await service.tryStartViolationEpisode('attempt-1', 'LOW_ATTENTION', 15);
+
+      expect(ok).toBe(true);
+      expect(redis.set).toHaveBeenCalledWith(
+        'ioes:exam:violation_cooldown:attempt-1:LOW_ATTENTION',
+        expect.any(String),
+        'EX',
+        15,
+        'NX',
+      );
+    });
+
+    it('should_returnFalse_When_cooldownKeyExists', async () => {
+      // SET NX trả null khi key đã tồn tại → vẫn là đợt cũ.
+      redis.set.mockResolvedValue(null);
+
+      const ok = await service.tryStartViolationEpisode('attempt-1', 'LOW_ATTENTION', 15);
+
+      expect(ok).toBe(false);
+    });
+
+    it('should_keepTypesIndependent_When_differentViolations', async () => {
+      redis.set.mockResolvedValue('OK');
+
+      await service.tryStartViolationEpisode('attempt-1', 'MULTIPLE_FACES', 15);
+
+      expect(redis.set).toHaveBeenCalledWith(
+        'ioes:exam:violation_cooldown:attempt-1:MULTIPLE_FACES',
+        expect.any(String),
+        'EX',
+        15,
+        'NX',
+      );
+    });
+
+    it('should_skipRedis_When_cooldownDisabled', async () => {
+      const ok = await service.tryStartViolationEpisode('attempt-1', 'LOW_ATTENTION', 0);
+
+      expect(ok).toBe(true);
+      expect(redis.set).not.toHaveBeenCalled();
     });
   });
 });

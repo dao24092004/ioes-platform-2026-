@@ -64,7 +64,10 @@ export class ExamService {
    * - Admin: tất cả exam chưa xoá mềm
    */
   async list(userId: string, role: string): Promise<ApiResponse<Exam[]>> {
-    if (role === 'ADMIN') {
+    // isAdminRole() chứ không phải `role === 'ADMIN'`: tài khoản seed
+    // admin@ioes.com mang role `super_admin`, nên so sánh chuỗi cứng làm
+    // super admin rơi xuống nhánh cuối và chỉ thấy exam practice như học viên.
+    if (isAdminRole(role)) {
       const exams = await this.examRepo.findAllForAdmin();
       return ApiResponse.success(exams);
     }
@@ -193,7 +196,8 @@ export class ExamService {
    * chính mình. Trả về undefined nghĩa là không giới hạn.
    */
   private gradingScope(role: string, userId: string): string | undefined {
-    return role === 'ADMIN' ? undefined : userId;
+    // Cùng lý do như list(): super_admin cũng là admin (xem ADMIN_ROLES).
+    return isAdminRole(role) ? undefined : userId;
   }
 
   /**

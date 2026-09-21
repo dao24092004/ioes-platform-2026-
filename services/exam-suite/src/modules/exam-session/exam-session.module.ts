@@ -18,7 +18,10 @@ import { ContentServiceHttpClient } from '../../common/content-service.client';
 import { MockContentServiceClient } from '../../common/mock-content-service.client';
 import { wsConfig, redisConfig, appConfig } from '../../config/app.config';
 import { FrameProcessorService } from './services/frame-processor.service';
-import { ViolationCounterService } from './services/violation-counter.service';
+import {
+  ViolationCounterService,
+  VIOLATION_COOLDOWN_SEC,
+} from './services/violation-counter.service';
 import {
   PROCTOR_CLIENT,
   MockProctorClient,
@@ -129,6 +132,15 @@ const useCaseProviders: Provider[] = [
     {
       provide: 'VIOLATION_THRESHOLD',
       useValue: parseInt(process.env.VIOLATION_THRESHOLD ?? '3', 10),
+    },
+    {
+      // Khoảng lặng giữa hai vi phạm cùng loại. Cần thiết từ khi client gửi
+      // khung mỗi giây (FR-PROC-001) — xem VIOLATION_COOLDOWN_SEC.
+      provide: 'VIOLATION_COOLDOWN_SEC',
+      useValue: parseInt(
+        process.env.VIOLATION_COOLDOWN_SEC ?? String(VIOLATION_COOLDOWN_SEC),
+        10,
+      ),
     },
     {
       provide: PROCTOR_CLIENT,

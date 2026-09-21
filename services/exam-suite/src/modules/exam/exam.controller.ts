@@ -62,13 +62,13 @@ export class ExamController {
    * lỗi exam-not-found.
    */
   @Get('admin/overview')
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'SUPER_ADMIN')
   async adminOverview(): Promise<ApiResponse<AdminExamRow[]>> {
     return this.examService.adminOverview();
   }
 
   @Get('admin/stats')
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'SUPER_ADMIN')
   async adminStats(): Promise<ApiResponse<AdminExamStats>> {
     return this.examService.adminStats();
   }
@@ -78,7 +78,7 @@ export class ExamController {
    * Phạm vi do service quyết định từ role, không nhận từ query param.
    */
   @Get('grading/queue')
-  @Roles('INSTRUCTOR', 'ADMIN')
+  @Roles('INSTRUCTOR', 'ADMIN', 'SUPER_ADMIN')
   async gradingQueue(
     @CurrentUser() user: UserPrincipalDto,
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
@@ -87,7 +87,7 @@ export class ExamController {
   }
 
   @Get('grading/stats')
-  @Roles('INSTRUCTOR', 'ADMIN')
+  @Roles('INSTRUCTOR', 'ADMIN', 'SUPER_ADMIN')
   async gradingStats(
     @CurrentUser() user: UserPrincipalDto,
   ): Promise<ApiResponse<GradingQueueStats>> {

@@ -1,4 +1,4 @@
-import { Module, OnApplicationBootstrap } from '@nestjs/common';
+import { Logger, Module, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HttpModule } from '@nestjs/axios';
@@ -55,6 +55,8 @@ import { SnakeCaseNamingStrategy } from './config/snake-case.naming-strategy';
   providers: [EurekaClient],
 })
 export class AppModule implements OnApplicationBootstrap {
+  private readonly logger = new Logger(AppModule.name);
+
   constructor(
     private readonly dgraphSync: DgraphSyncConsumer,
   ) {}
@@ -62,6 +64,21 @@ export class AppModule implements OnApplicationBootstrap {
   async onApplicationBootstrap(): Promise<void> {
     // Start Kafka consumer after all modules ready
     // OutboxWorker tự động start trong onModuleInit
-    await this.dgraphSync.start();
+    //
+    // KHÔNG để lỗi kết nối Kafka giết cả tiến trình: `start()` ném
+    // KafkaJSNonRetriableError sau 5 lần thử, lỗi đó thoát ra khỏi
+    // onApplicationBootstrap() nên `app.listen()` không bao giờ chạy xong và
+    // main.ts rơi vào `process.exit(1)` — toàn bộ REST API chết theo một
+    // broker không chạy. Kafka ở đây chỉ dùng để đồng bộ question sang Dgraph
+    // (nền, bất đồng bộ); KafkaProducer vốn đã tự xử lý theo đúng cách này
+    // ("Initial connect failed (will retry on first send)").
+    try {
+      await this.dgraphSync.start();
+    } catch (err) {
+      this.logger.warn(
+        `Kafka consumer không khởi động được — đồng bộ Dgraph sẽ không chạy. ` +
+          `REST API vẫn phục vụ bình thường. Lý do: ${(err as Error).message}`,
+      );
+    }
   }
 }

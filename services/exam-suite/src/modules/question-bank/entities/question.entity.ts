@@ -54,6 +54,23 @@ export class Question {
   @Column({ type: 'text', array: true, nullable: true })
   tags?: string[];
 
+  /**
+   * Section của đề thi mà câu hỏi thuộc về (`exam_sections.id`, do
+   * V1__init_schema.sql tạo). Đây là đường DUY NHẤT nối question với exam:
+   * ExamRepository.findQuestionsByExamIdInTx() nối
+   * `exam_sections s ON s.id = q.sectionId` rồi lọc `s.exam_id = :examId`.
+   *
+   * Thiếu khai báo này thì TypeORM không có gì để ánh xạ `q.sectionId` trong
+   * điều kiện join, để nguyên chuỗi đó vào SQL, và PostgreSQL hạ về chữ
+   * thường → `column q.sectionid does not exist`, làm POST /exams/:id/start
+   * luôn trả 500.
+   *
+   * Nullable: câu hỏi của question-bank (ngân hàng câu hỏi dùng chung, tạo
+   * qua POST /question-bank/questions) không thuộc đề nào.
+   */
+  @Column({ type: 'uuid', nullable: true })
+  sectionId?: string;
+
   @Column({ type: 'uuid' })
   topicId!: string;
 

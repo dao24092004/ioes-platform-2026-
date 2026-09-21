@@ -246,7 +246,12 @@ export class AttemptRepository {
     const qb = this.repo
       .createQueryBuilder('a')
       .where('a.status = :submitted', { submitted: AttemptStatus.SUBMITTED })
-      .orderBy('a.submitted_at', 'ASC')
+      // PHẢI là tên thuộc tính entity (`submittedAt`), không phải tên cột.
+      // orderBy() tra cứu qua metadata: `a.submitted_at` không khớp thuộc tính
+      // nào nên TypeORM đọc `.databaseName` của undefined → toàn bộ endpoint
+      // GET /exams/grading/queue trả 500. SnakeCaseNamingStrategy lo phần dịch
+      // sang `submitted_at` trong SQL.
+      .orderBy('a.submittedAt', 'ASC')
       .take(limit);
 
     if (instructorId) {

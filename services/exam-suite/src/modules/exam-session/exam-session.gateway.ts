@@ -23,6 +23,20 @@ import { ViolationCounterService } from './services/violation-counter.service';
 import { verifyAccessToken } from '../../common/auth/jwt-auth.config';
 
 /**
+ * Khung hình client gửi lên (`proctoring:frame`).
+ *
+ * `frameBase64` là base64 trần — web đã cắt tiền tố `data:image/jpeg;base64,`
+ * trước khi gửi, và HttpProctorClient cắt lại lần nữa ở ranh giới service.
+ */
+export interface ProctoringFramePayload {
+  attemptId: string;
+  frameBase64: string;
+  capturedAt?: string;
+  /** Số thứ tự khung trong phiên — ml-worker dùng để ghép chuỗi thời gian. */
+  sequenceId?: number;
+}
+
+/**
  * WebSocket Gateway cho Student khi đang thi (UC_008).
  *
  * Namespace: `/exam-session`
@@ -38,6 +52,11 @@ import { verifyAccessToken } from '../../common/auth/jwt-auth.config';
  * - `exam:timer` — timer push mỗi 1 giây (server authoritative)
  * - `exam:answer:saved` — xác nhận save
  * - `exam:auto-submitted` — bị auto-submit
+ * - `proctoring:status` — trạng thái giám thị mỗi khung (điểm chú ý, có mặt
+ *   hay không, hướng nhìn, số vi phạm/ngưỡng)
+ * - `proctoring:violation` — mở một đợt vi phạm mới
+ * - `proctoring:flagged` — attempt bị gắn cờ (BR-011, attention < 40)
+ * - `proctoring:auto-submitted` — vượt ngưỡng BR-013, đã nộp tự động
  * - `exam:error` — lỗi
  *
  * Auth: JWT qua handshake (`auth.token`, `?token=` hoặc header `Authorization: Bearer`).
@@ -237,23 +256,26 @@ export class ExamSessionGateway
    * Server:
    * 1. Validate attemptId
    * 2. Gọi FrameProcessorService.processFrame()
-   * 3. BR-011 + FR-PROC-006: evaluate violations
-   * 4. Nếu có violation → emit `proctoring:violation` cho Student
-   * 5. Nếu attemptFlagged (attention < 40) → emit `proctoring:flagged`
+   * 3. Luôn emit `proctoring:status` — thí sinh thấy đúng thứ giám thị thấy
+   * 4. Mở đợt vi phạm mới → emit `proctoring:violation`
+   * 5. Nếu attemptFlagged (attention < 40) → emit `proctoring:flagged` (1 lần/socket)
    * 6. Nếu count > threshold → trigger autoSubmit + emit `proctoring:auto-submitted`
    *
+   * FR-PROC-005: faceCount > 1 → MULTIPLE_FACES
    * FR-PROC-006: FACE_NOT_DETECTED > 5s → violation
    * BR-011: attention < 60 → warning; < 40 → flag
    * BR-013: violation count > 3 → auto-submit
    *
-   * Exception 9e (mất kết nối ai-suite): processFrame trả no-violation, không emit.
+   * Exception 9e (mất kết nối ml-worker): processFrame trả no-violation và
+   * `proctorAvailable: false`; vẫn emit status với `available: false` để giao
+   * diện báo "đang mất kết nối giám thị" thay vì im lặng.
    *
-   * Payload: { attemptId, frameBase64, capturedAt? }
+   * Payload: { attemptId, frameBase64, capturedAt?, sequenceId? }
    */
   @SubscribeMessage('proctoring:frame')
   async onProctoringFrame(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { attemptId: string; frameBase64: string; capturedAt?: string },
+    @MessageBody() payload: ProctoringFramePayload,
   ) {
     return this.handleFrame(client, payload);
   }
@@ -263,7 +285,7 @@ export class ExamSessionGateway
    */
   async handleFrame(
     client: Socket,
-    payload: { attemptId: string; frameBase64: string; capturedAt?: string },
+    payload: ProctoringFramePayload,
   ): Promise<{ success: boolean }> {
     if (!payload?.attemptId || !isUuid(payload.attemptId)) {
       client.emit('proctoring:error', {
@@ -278,24 +300,50 @@ export class ExamSessionGateway
         attemptId: payload.attemptId,
         capturedAt: payload.capturedAt ? new Date(payload.capturedAt) : new Date(),
         frameBase64: payload.frameBase64,
+        sequenceId: payload.sequenceId,
       });
 
-      // Emit violation event to Student
-      if (result.violationType) {
+      // Trạng thái liên tục cho thí sinh (FR-PROC-001/005/006/008): mỗi khung
+      // một lần, kể cả khung sạch. Không có nó thì màn hình chỉ sáng lên khi
+      // đã vi phạm — thí sinh không biết máy đang "thấy" mình thế nào và không
+      // có cơ hội tự chỉnh lại tư thế trước khi bị tính lỗi.
+      client.emit('proctoring:status', {
+        attemptId: payload.attemptId,
+        available: result.proctorAvailable,
+        attentionScore: result.attentionScore,
+        attentionSeverity: result.attentionSeverity,
+        faceDetected: result.faceDetected,
+        faceCount: result.faceCount,
+        gazeDirection: result.gazeDirection ?? null,
+        violationCount: result.violationCount,
+        threshold: result.violationThreshold,
+        activeViolation: result.violationType ?? null,
+        flagged: result.attemptFlagged,
+        observedAt: new Date().toISOString(),
+      });
+
+      // Emit violation event to Student — chỉ khi mở đợt vi phạm mới. Ở 1 Hz,
+      // bắn mỗi khung sẽ là ~60 sự kiện/phút cho cùng một hành vi.
+      if (result.violationType && result.violationRecorded) {
         client.emit('proctoring:violation', {
           type: result.violationType,
           attentionScore: result.attentionScore,
           attentionSeverity: result.attentionSeverity,
           faceDetected: result.faceDetected,
+          faceCount: result.faceCount,
+          gazeDirection: result.gazeDirection ?? null,
           violationCount: result.violationCount,
-          threshold: 3,
+          threshold: result.violationThreshold,
           violationEvent: result.violationEvent,
           occurredAt: new Date().toISOString(),
         });
       }
 
-      // BR-011: attention < 40 → flag attempt, emit warning to Student
-      if (result.attemptFlagged) {
+      // BR-011: attention < 40 → flag attempt, emit warning to Student.
+      // Chỉ một lần cho mỗi socket: ở 1 Hz, điều kiện này đúng liên tục và sẽ
+      // ghi DB mỗi giây nếu không chặn.
+      if (result.attemptFlagged && !(client.data as any).proctoringFlagged) {
+        (client.data as any).proctoringFlagged = true;
         client.emit('proctoring:flagged', {
           attemptId: payload.attemptId,
           attentionScore: result.attentionScore,
