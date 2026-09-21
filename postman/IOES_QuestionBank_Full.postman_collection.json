@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "IOES - Question Bank API (Full)",
-    "description": "Postman collection đầy đủ cho Question Bank module.\n\n## Features Tested\n- CRUD Questions (MCQ, True/False, Coding, Short Answer, Essay)\n- Topic Tree & Practice Path\n- Similar Questions (Vector similarity)\n- Bulk Import (CSV/Excel)\n- Image Upload (Presigned URL)\n- Admin Operations (Resync, Storage Health)\n- Dgraph Sync (CQRS Pattern)\n\n## Setup\n1. Set `GATEWAY_URL` = http://localhost:8080 (hoặc 9005 nếu test trực tiếp)\n2. Login và set `TOKEN`\n3. Chạy test theo thứ tự",
+    "name": "IOES - Question Bank API (Full) - via Gateway",
+    "description": "Postman collection đầy đủ cho Question Bank module - TẤT CẢ gọi qua API Gateway.\n\n## Architecture\n- **Gateway**: http://localhost:8080 (Spring Cloud Gateway)\n- **Auth Service**: port 9000 (JWT issuance)\n- **Content Service**: port 9001 (Topics CRUD)\n- **Exam Suite**: port 9005 (Questions, Question Bank)\n\n## Security (ADR-008)\n- Tất cả request phải có JWT token trong header `Authorization: Bearer <token>`\n- Token lấy từ `/api/auth/login` (auth-service qua gateway)\n- Gateway validate JWT bằng `common-jwt` trước khi forward\n\n## Features Tested\n- CRUD Questions (MCQ, True/False, Coding, Short Answer, Essay)\n- Topic Tree & Practice Path (content-service)\n- Similar Questions (Vector similarity - Dgraph)\n- Bulk Import (CSV/Excel)\n- Image Upload (Presigned URL - MinIO)\n- Admin Operations (Resync, Storage Health)\n- Dgraph Sync (CQRS Pattern)\n\n## Setup\n1. Set `GATEWAY_URL` = http://localhost:8080\n2. Chạy `00.2 Login - Instructor` để lấy TOKEN\n3. Chạy test theo thứ tự\n\n## Notes\n- Gateway routes được định nghĩa trong `api-gateway/application.yml`\n- Content Service: `/api/v1/topics/**` → content-service:9001\n- Question Bank: `/api/question-bank/**` → exam-suite:9005\n- Auth: `/api/auth/**` → auth-service:9000",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -63,41 +63,36 @@
   },
   "item": [
     {
-      "name": "00 - Setup",
+      "name": "00 - Setup & Health",
       "item": [
         {
-          "name": "00.1 Login - Student",
+          "name": "00.1 Gateway Health",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "var jsonData = pm.response.json();",
-                  "if (jsonData.data && jsonData.data.accessToken) {",
-                  "    pm.collectionVariables.set('TOKEN', jsonData.data.accessToken);",
-                  "}",
-                  "pm.test('Login successful', function () {",
+                  "pm.test('Gateway is UP', function () {",
                   "  pm.response.to.have.status(200);",
-                  "  pm.expect(jsonData.data.accessToken).to.be.a('string');",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.status).to.eql('UP');",
                   "});"
                 ]
               }
             }
           ],
           "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"email\": \"student@ioes.com\",\n    \"password\": \"Test@123\"\n}"
+            "auth": {
+              "type": "noauth"
             },
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{GATEWAY_URL}}/api/auth/login",
+              "raw": "{{GATEWAY_URL}}/actuator/health",
               "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "auth", "login"]
-            }
+              "path": ["actuator", "health"]
+            },
+            "description": "Check Gateway health - NO authentication required"
           }
         },
         {
@@ -110,58 +105,79 @@
                   "var jsonData = pm.response.json();",
                   "if (jsonData.data && jsonData.data.accessToken) {",
                   "    pm.collectionVariables.set('TOKEN', jsonData.data.accessToken);",
+                  "    console.log('✅ Token saved:', jsonData.data.accessToken.substring(0, 20) + '...');",
                   "}",
                   "pm.test('Login successful', function () {",
                   "  pm.response.to.have.status(200);",
+                  "  pm.expect(jsonData.success).to.be.true;",
+                  "  pm.expect(jsonData.data.accessToken).to.be.a('string');",
+                  "  pm.expect(jsonData.data.user.role).to.be.oneOf(['instructor', 'admin']);",
                   "});"
                 ]
               }
             }
           ],
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
               { "key": "Content-Type", "value": "application/json" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"instructor@ioes.com\",\n    \"password\": \"Test@123\"\n}"
+              "raw": "{\n  \"email\": \"instructor@ioes.com\",\n  \"password\": \"Test@123\"\n}"
             },
             "url": {
               "raw": "{{GATEWAY_URL}}/api/auth/login",
               "host": ["{{GATEWAY_URL}}"],
               "path": ["api", "auth", "login"]
-            }
+            },
+            "description": "Login as instructor to get JWT token.\nRoute: /api/auth/** → auth-service:9000"
           }
         },
         {
-          "name": "00.3 Gateway Health",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/actuator/health",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["actuator", "health"]
+          "name": "00.3 Login - Student (for error cases)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Student login successful', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(jsonData.data.user.role).to.eql('student');",
+                  "});"
+                ]
+              }
             }
-          }
-        },
-        {
-          "name": "00.4 Readiness Check (Dgraph + DB)",
+          ],
           "request": {
-            "method": "GET",
-            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@ioes.com\",\n  \"password\": \"Test@123\"\n}"
+            },
             "url": {
-              "raw": "{{GATEWAY_URL}}/health/ready",
+              "raw": "{{GATEWAY_URL}}/api/auth/login",
               "host": ["{{GATEWAY_URL}}"],
-              "path": ["health", "ready"]
-            }
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login as student (for testing 403 errors)"
           }
         }
-      ]
+      ],
+      "description": "Setup: Login và health checks"
     },
     {
-      "name": "01 - Topics",
+      "name": "01 - Topics (Content Service)",
       "item": [
         {
           "name": "01.1 List All Topics (Tree)",
@@ -170,11 +186,10 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Topics retrieved', function () {",
+                  "pm.test('Topics retrieved via Gateway', function () {",
                   "  pm.response.to.have.status(200);",
-                  "  var json = pm.response.json();",
-                  "  pm.expect(json.success).to.be.true;",
-                  "  pm.expect(json.data).to.be.an('array');",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.be.an('array');",
                   "});"
                 ]
               }
@@ -186,21 +201,25 @@
               { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
             ],
             "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/topics",
+              "raw": "{{GATEWAY_URL}}/api/v1/topics",
               "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "topics"]
-            }
+              "path": ["api", "v1", "topics"]
+            },
+            "description": "GET all topics tree.\nRoute: /api/v1/topics/** → content-service:9001\nAuth: STUDENT, INSTRUCTOR, ADMIN"
           }
         },
         {
-          "name": "01.2 Get Topic by ID",
+          "name": "01.2 Get Topic By ID",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Topic retrieved', function () {",
+                  "pm.test('Topic retrieved by ID', function () {",
                   "  pm.response.to.have.status(200);",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.id).to.be.a('string');",
+                  "  pm.expect(jsonData.name).to.be.a('string');",
                   "});"
                 ]
               }
@@ -212,24 +231,24 @@
               { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
             ],
             "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/topics/{{TOPIC_ID}}",
+              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{TOPIC_ID}}",
               "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "topics", "{{TOPIC_ID}}"]
-            }
+              "path": ["api", "v1", "topics", "{{TOPIC_ID}}"]
+            },
+            "description": "GET single topic by ID"
           }
         },
         {
-          "name": "01.3 Get Practice Path for Topic",
+          "name": "01.3 Get Topic Children",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Practice path retrieved', function () {",
+                  "pm.test('Children retrieved', function () {",
                   "  pm.response.to.have.status(200);",
-                  "  var json = pm.response.json();",
-                  "  pm.expect(json.data).to.have.property('topic');",
-                  "  pm.expect(json.data).to.have.property('questions');",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.be.an('array');",
                   "});"
                 ]
               }
@@ -241,39 +260,150 @@
               { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
             ],
             "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/topics/{{TOPIC_ID}}/practice",
+              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{TOPIC_ID}}/children",
               "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "topics", "{{TOPIC_ID}}", "practice"]
+              "path": ["api", "v1", "topics", "{{TOPIC_ID}}", "children"]
             }
           }
         },
         {
-          "name": "01.4 List Skills",
+          "name": "01.4 Create Root Topic",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Skills retrieved', function () {",
-                  "  pm.response.to.have.status(200);",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.id) {",
+                  "    pm.collectionVariables.set('NEW_TOPIC_ID', jsonData.id);",
+                  "    console.log('✅ Created topic ID:', jsonData.id);",
+                  "}",
+                  "pm.test('Root topic created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  pm.expect(jsonData.id).to.be.a('string');",
+                  "  pm.expect(jsonData.level).to.eql(0);",
                   "});"
                 ]
               }
             }
           ],
           "request": {
-            "method": "GET",
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Java Fundamentals\",\n  \"description\": \"Basic Java programming concepts\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/v1/topics",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "v1", "topics"]
+            },
+            "description": "Create root topic (level 0).\nAuth: INSTRUCTOR, ADMIN"
+          }
+        },
+        {
+          "name": "01.5 Create Child Topic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.id) {",
+                  "    pm.collectionVariables.set('CHILD_TOPIC_ID', jsonData.id);",
+                  "}",
+                  "pm.test('Child topic created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  pm.expect(jsonData.parentTopicId).to.be.a('string');",
+                  "  pm.expect(jsonData.level).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Java OOP\",\n  \"description\": \"Object-Oriented Programming in Java\",\n  \"parentTopicId\": \"{{NEW_TOPIC_ID}}\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/v1/topics",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "v1", "topics"]
+            }
+          }
+        },
+        {
+          "name": "01.6 Update Topic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Topic updated', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.name).to.include('Advanced');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Java Core Advanced\",\n  \"description\": \"Updated description for Java core\"\n}"
+            },
+            "url": {
+              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{NEW_TOPIC_ID}}",
+              "host": ["{{GATEWAY_URL}}"],
+              "path": ["api", "v1", "topics", "{{NEW_TOPIC_ID}}"]
+            }
+          }
+        },
+        {
+          "name": "01.7 Soft Delete Topic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Topic soft-deleted', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([204, 200]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
             "header": [
               { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
             ],
             "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/skills",
+              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{CHILD_TOPIC_ID}}",
               "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "skills"]
-            }
+              "path": ["api", "v1", "topics", "{{CHILD_TOPIC_ID}}"]
+            },
+            "description": "Soft delete topic.\nAuth: ADMIN only"
           }
         }
-      ]
+      ],
+      "description": "Topic CRUD - routed to content-service:9001 via Gateway"
     },
     {
       "name": "02 - Questions (READ - Dgraph)",
@@ -285,11 +415,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Search results', function () {",
+                  "pm.test('Search results via Gateway', function () {",
                   "  pm.response.to.have.status(200);",
                   "  var json = pm.response.json();",
                   "  pm.expect(json.data).to.have.property('items');",
                   "  pm.expect(json.data).to.have.property('total');",
+                  "  pm.expect(json.data.items).to.be.an('array');",
                   "});"
                 ]
               }
@@ -306,10 +437,10 @@
               "path": ["api", "question-bank", "questions", "search"],
               "query": [
                 { "key": "q", "value": "algebra", "description": "Full-text search" },
-                { "key": "limit", "value": "10" },
-                { "key": "offset", "value": "0" }
+                { "key": "limit", "value": "10" }
               ]
-            }
+            },
+            "description": "Search questions with full-text.\nRoute: /api/question-bank/** → exam-suite:9005 (StripPrefix=1)"
           }
         },
         {
@@ -319,7 +450,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Filter by difficulty', function () {",
+                  "pm.test('Filter by difficulty works', function () {",
                   "  pm.response.to.have.status(200);",
                   "});"
                 ]
@@ -349,7 +480,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Filter by type', function () {",
+                  "pm.test('Filter by type works', function () {",
                   "  pm.response.to.have.status(200);",
                   "});"
                 ]
@@ -379,7 +510,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Filter by topic', function () {",
+                  "pm.test('Filter by topic works', function () {",
                   "  pm.response.to.have.status(200);",
                   "});"
                 ]
@@ -403,38 +534,7 @@
           }
         },
         {
-          "name": "02.5 Search - Filter by Tags",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Filter by tags', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/search?tags=math&tags=algebra&limit=5",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions", "search"],
-              "query": [
-                { "key": "tags", "value": "math" },
-                { "key": "tags", "value": "algebra" },
-                { "key": "limit", "value": "5" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "02.6 Get Question by ID",
+          "name": "02.5 Get Question by ID",
           "event": [
             {
               "listen": "test",
@@ -465,7 +565,7 @@
           }
         },
         {
-          "name": "02.7 Get Similar Questions",
+          "name": "02.6 Get Similar Questions (Vector Search)",
           "event": [
             {
               "listen": "test",
@@ -492,68 +592,12 @@
               "query": [
                 { "key": "limit", "value": "5" }
               ]
-            }
-          }
-        },
-        {
-          "name": "02.8 Get Question Prerequisites",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Prerequisites retrieved', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/{{QUESTION_ID}}/prerequisites",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}", "prerequisites"]
-            }
-          }
-        },
-        {
-          "name": "02.9 Search - Combined Filters",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Combined filters work', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/search?difficulty=medium&questionType=multiple_choice&topicId={{TOPIC_ID}}&limit=10",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions", "search"],
-              "query": [
-                { "key": "difficulty", "value": "medium" },
-                { "key": "questionType", "value": "multiple_choice" },
-                { "key": "topicId", "value": "{{TOPIC_ID}}" },
-                { "key": "limit", "value": "10" }
-              ]
-            }
+            },
+            "description": "Get similar questions using vector similarity (Dgraph)"
           }
         }
-      ]
+      ],
+      "description": "READ operations - Dgraph (CQRS read side)"
     },
     {
       "name": "03 - Questions (WRITE - PostgreSQL)",
@@ -568,8 +612,9 @@
                   "var jsonData = pm.response.json();",
                   "if (jsonData.data && jsonData.data.id) {",
                   "    pm.collectionVariables.set('QUESTION_ID', jsonData.data.id);",
+                  "    console.log('✅ Created question ID:', jsonData.data.id);",
                   "}",
-                  "pm.test('MCQ created', function () {",
+                  "pm.test('MCQ created via Gateway', function () {",
                   "  pm.response.to.have.status(201);",
                   "  pm.expect(jsonData.success).to.be.true;",
                   "  pm.expect(jsonData.data.id).to.be.a('string');",
@@ -592,42 +637,12 @@
               "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
               "host": ["{{GATEWAY_URL}}"],
               "path": ["api", "question-bank", "questions"]
-            }
-          }
-        },
-        {
-          "name": "03.2 Create True/False Question",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('T/F created', function () {",
-                  "  pm.response.to.have.status(201);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"questionText\": \"The sky is blue.\",\n  \"questionType\": \"true_false\",\n  \"difficulty\": \"very_easy\",\n  \"points\": 5,\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"options\": [\n    { \"optionText\": \"True\", \"isCorrect\": true },\n    { \"optionText\": \"False\", \"isCorrect\": false }\n  ]\n}"
             },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions"]
-            }
+            "description": "Create MCQ question.\nWRITE to PostgreSQL → sync to Dgraph via Kafka"
           }
         },
         {
-          "name": "03.3 Create Coding Question",
+          "name": "03.2 Create Coding Question",
           "event": [
             {
               "listen": "test",
@@ -658,162 +673,7 @@
           }
         },
         {
-          "name": "03.4 Create Short Answer Question",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Short answer created', function () {",
-                  "  pm.response.to.have.status(201);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"questionText\": \"What is the capital of Vietnam?\",\n  \"questionType\": \"short_answer\",\n  \"difficulty\": \"very_easy\",\n  \"points\": 10,\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"acceptedAnswers\": [\"Hanoi\", \"hanoi\", \"Hà Nội\", \"hà nội\"]\n}"
-            },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions"]
-            }
-          }
-        },
-        {
-          "name": "03.5 Create Essay Question",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Essay created', function () {",
-                  "  pm.response.to.have.status(201);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"questionText\": \"Explain the theory of evolution.\",\n  \"questionType\": \"essay\",\n  \"difficulty\": \"hard\",\n  \"points\": 50,\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"estimatedTimeSeconds\": 1800,\n  \"rubric\": \"Answer should include: natural selection, variation, inheritance\"\n}"
-            },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions"]
-            }
-          }
-        },
-        {
-          "name": "03.6 Create Question with Prerequisites",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Question with prerequisites created', function () {",
-                  "  pm.response.to.have.status(201);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"questionText\": \"Solve x^2 - 5x + 6 = 0\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"medium\",\n  \"points\": 15,\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"prerequisiteQuestionIds\": [\"{{PREREQUISITE_Q_ID}}\"],\n  \"options\": [\n    { \"optionText\": \"x = 1, 2\", \"isCorrect\": false, \"sortOrder\": 1 },\n    { \"optionText\": \"x = 2, 3\", \"isCorrect\": true, \"sortOrder\": 2 },\n    { \"optionText\": \"x = 3, 4\", \"isCorrect\": false, \"sortOrder\": 3 },\n    { \"optionText\": \"x = -2, -3\", \"isCorrect\": false, \"sortOrder\": 4 }\n  ]\n}"
-            },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions"]
-            }
-          }
-        },
-        {
-          "name": "03.7 Create Question with Skills",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Question with skills created', function () {",
-                  "  pm.response.to.have.status(201);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"questionText\": \"Calculate the derivative of f(x) = x^2\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"medium\",\n  \"points\": 15,\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"skillIds\": [\"{{SKILL_ID}}\"],\n  \"options\": [\n    { \"optionText\": \"x\", \"isCorrect\": false, \"sortOrder\": 1 },\n    { \"optionText\": \"2x\", \"isCorrect\": true, \"sortOrder\": 2 },\n    { \"optionText\": \"x^2\", \"isCorrect\": false, \"sortOrder\": 3 }\n  ]\n}"
-            },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions"]
-            }
-          }
-        },
-        {
-          "name": "03.8 Create - Duplicate (should fail)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Duplicate rejected', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([409, 400]);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"questionText\": \"What is 2 + 2?\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"easy\",\n  \"points\": 10,\n  \"topicId\": \"{{TOPIC_ID}}\",\n  \"options\": [\n    { \"optionText\": \"3\", \"isCorrect\": false },\n    { \"optionText\": \"4\", \"isCorrect\": true }\n  ]\n}"
-            },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions"]
-            }
-          }
-        },
-        {
-          "name": "03.9 Update Question",
+          "name": "03.3 Update Question",
           "event": [
             {
               "listen": "test",
@@ -833,7 +693,7 @@
             "header": [
               { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
               { "key": "Content-Type", "value": "application/json" },
-              { "key": "If-Match", "value": "1", "description": "Optimistic locking" }
+              { "key": "If-Match", "value": "1", "description": "Optimistic locking version" }
             ],
             "body": {
               "mode": "raw",
@@ -843,43 +703,12 @@
               "raw": "{{GATEWAY_URL}}/api/question-bank/questions/{{QUESTION_ID}}",
               "host": ["{{GATEWAY_URL}}"],
               "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}"]
-            }
-          }
-        },
-        {
-          "name": "03.10 Update - Wrong Version (should fail)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Version conflict', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([409, 412]);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "If-Match", "value": "999", "description": "Wrong version" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"points\": 20\n}"
             },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions/{{QUESTION_ID}}",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}"]
-            }
+            "description": "Update with optimistic locking (If-Match header)"
           }
         },
         {
-          "name": "03.11 Publish Question",
+          "name": "03.4 Publish Question",
           "event": [
             {
               "listen": "test",
@@ -907,7 +736,7 @@
           }
         },
         {
-          "name": "03.12 Soft Delete Question",
+          "name": "03.5 Soft Delete Question",
           "event": [
             {
               "listen": "test",
@@ -932,7 +761,8 @@
             }
           }
         }
-      ]
+      ],
+      "description": "WRITE operations - PostgreSQL (CQRS write side)"
     },
     {
       "name": "04 - Bulk Import",
@@ -947,6 +777,7 @@
                   "var jsonData = pm.response.json();",
                   "if (jsonData.data && jsonData.data.jobId) {",
                   "    pm.collectionVariables.set('BULK_JOB_ID', jsonData.data.jobId);",
+                  "    console.log('✅ Bulk job ID:', jsonData.data.jobId);",
                   "}",
                   "pm.test('Import started', function () {",
                   "  pm.response.to.have.status(202);",
@@ -975,7 +806,8 @@
               "raw": "{{GATEWAY_URL}}/api/question-bank/bulk-import",
               "host": ["{{GATEWAY_URL}}"],
               "path": ["api", "question-bank", "bulk-import"]
-            }
+            },
+            "description": "Bulk import questions from CSV/Excel.\nMax 50MB, 5000 rows."
           }
         },
         {
@@ -985,7 +817,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Bulk job status', function () {",
+                  "pm.test('Bulk job status retrieved', function () {",
                   "  pm.response.to.have.status(200);",
                   "  var json = pm.response.json();",
                   "  pm.expect(json.data).to.have.property('status');",
@@ -1006,37 +838,12 @@
               "path": ["api", "question-bank", "bulk-import", "{{BULK_JOB_ID}}"]
             }
           }
-        },
-        {
-          "name": "04.3 Get Bulk Import Errors",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Bulk errors retrieved', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/bulk-import/{{BULK_JOB_ID}}/errors",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "bulk-import", "{{BULK_JOB_ID}}", "errors"]
-            }
-          }
         }
-      ]
+      ],
+      "description": "Bulk import CSV/Excel files"
     },
     {
-      "name": "05 - Image Upload",
+      "name": "05 - Image Upload (MinIO)",
       "item": [
         {
           "name": "05.1 Get Presigned Upload URL",
@@ -1069,7 +876,8 @@
               "raw": "{{GATEWAY_URL}}/api/question-bank/questions/{{QUESTION_ID}}/images/upload-url",
               "host": ["{{GATEWAY_URL}}"],
               "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}", "images", "upload-url"]
-            }
+            },
+            "description": "Get presigned URL for direct upload to MinIO"
           }
         },
         {
@@ -1102,34 +910,9 @@
               "path": ["api", "question-bank", "questions", "{{QUESTION_ID}}", "images", "confirm"]
             }
           }
-        },
-        {
-          "name": "05.3 Delete Image",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Image deleted', function () {",
-                  "  pm.response.to.have.status(204);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/images/ioes-questions/questions/{{QUESTION_ID}}/diagram.png",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "images", "ioes-questions", "questions", "{{QUESTION_ID}}", "diagram.png"]
-            }
-          }
         }
-      ]
+      ],
+      "description": "Image upload via presigned URL (MinIO S3)"
     },
     {
       "name": "06 - Admin Operations",
@@ -1154,45 +937,19 @@
               { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
             ],
             "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/admin/resync?limit=100&reason=Postman%20test",
+              "raw": "{{GATEWAY_URL}}/api/question-bank/admin/resync?limit=100&reason=Manual%20resync%20via%20Postman",
               "host": ["{{GATEWAY_URL}}"],
               "path": ["api", "question-bank", "admin", "resync"],
               "query": [
-                { "key": "since", "value": "" },
                 { "key": "limit", "value": "100" },
-                { "key": "reason", "value": "Postman test" }
+                { "key": "reason", "value": "Manual resync via Postman" }
               ]
-            }
+            },
+            "description": "Force resync PostgreSQL → Dgraph.\nAuth: ADMIN only"
           }
         },
         {
-          "name": "06.2 Resync Single Question",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Single resync done', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/admin/resync/{{QUESTION_ID}}",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "admin", "resync", "{{QUESTION_ID}}"]
-            }
-          }
-        },
-        {
-          "name": "06.3 Storage Health Check",
+          "name": "06.2 Storage Health Check",
           "event": [
             {
               "listen": "test",
@@ -1216,62 +973,12 @@
               "raw": "{{GATEWAY_URL}}/api/question-bank/admin/storage/health",
               "host": ["{{GATEWAY_URL}}"],
               "path": ["api", "question-bank", "admin", "storage", "health"]
-            }
-          }
-        },
-        {
-          "name": "06.4 Get Sync Status",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Sync status retrieved', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/admin/sync/status",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "admin", "sync", "status"]
-            }
-          }
-        },
-        {
-          "name": "06.5 Get Dgraph Schema",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Schema retrieved', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/admin/schema",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "admin", "schema"]
-            }
+            },
+            "description": "Check MinIO storage health"
           }
         }
-      ]
+      ],
+      "description": "Admin operations - ADMIN role only"
     },
     {
       "name": "07 - Error Cases",
@@ -1284,55 +991,28 @@
               "script": {
                 "exec": [
                   "pm.test('401 without token', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "  pm.expect(pm.response.code).to.be.oneOf([401]);",
                   "});"
                 ]
               }
             }
           ],
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{GATEWAY_URL}}/api/question-bank/questions/search",
               "host": ["{{GATEWAY_URL}}"],
               "path": ["api", "question-bank", "questions", "search"]
-            }
-          }
-        },
-        {
-          "name": "07.2 Forbidden - Student Creating Question",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('403 for student creating', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([403]);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"questionText\": \"Test\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"easy\",\n  \"points\": 10,\n  \"topicId\": \"{{TOPIC_ID}}\"\n}"
             },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions"]
-            }
+            "description": "Test 401 when no JWT token provided.\nGateway should reject before forwarding."
           }
         },
         {
-          "name": "07.3 Not Found - Invalid Question ID",
+          "name": "07.2 Not Found - Invalid Question ID",
           "event": [
             {
               "listen": "test",
@@ -1358,13 +1038,13 @@
           }
         },
         {
-          "name": "07.4 Validation Error - Missing Fields",
+          "name": "07.3 Validation Error - Missing Fields",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('400 for validation', function () {",
+                  "pm.test('400 for validation error', function () {",
                   "  pm.response.to.have.status(400);",
                   "});"
                 ]
@@ -1379,38 +1059,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"questionText\": \"Test\"\n}"
-            },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions"]
-            }
-          }
-        },
-        {
-          "name": "07.5 Rate Limited",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('429 when rate limited', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([429]);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"questionText\": \"Test\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"easy\",\n  \"points\": 10,\n  \"topicId\": \"{{TOPIC_ID}}\"\n}"
+              "raw": "{\n  \"questionText\": \"Missing required fields\"\n}"
             },
             "url": {
               "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
@@ -1419,385 +1068,8 @@
             }
           }
         }
-      ]
-    },
-    {
-      "name": "08 - Topic Management (ADR-012)",
-      "description": "Topic CRUD moved to content-service (port 9001, via Gateway).\n\nRoutes:\n- {{GATEWAY_URL}}/api/v1/topics/*  -> content-service:9001\n\nRoles:\n- GET: STUDENT, INSTRUCTOR, ADMIN\n- POST/PATCH: INSTRUCTOR, ADMIN\n- DELETE: ADMIN",
-      "item": [
-        {
-          "name": "08.1 List All Topics (Tree)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('List topics successful', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "  var jsonData = pm.response.json();",
-                  "  pm.expect(jsonData).to.be.an('array');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/v1/topics",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "v1", "topics"]
-            }
-          }
-        },
-        {
-          "name": "08.2 Get Topic By ID",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Get topic by id successful', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "  var jsonData = pm.response.json();",
-                  "  pm.expect(jsonData.id).to.be.a('string');",
-                  "  pm.expect(jsonData.name).to.be.a('string');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{TOPIC_ID}}",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "v1", "topics", "{{TOPIC_ID}}"]
-            }
-          }
-        },
-        {
-          "name": "08.3 Get Topic Children",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Get children successful', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "  var jsonData = pm.response.json();",
-                  "  pm.expect(jsonData).to.be.an('array');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{TOPIC_ID}}/children",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "v1", "topics", "{{TOPIC_ID}}", "children"]
-            }
-          }
-        },
-        {
-          "name": "08.4 Check Topic Exists",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Topic existence check successful', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "  var jsonData = pm.response.json();",
-                  "  pm.expect(jsonData.exists).to.be.a('boolean');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{TOPIC_ID}}/exists",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "v1", "topics", "{{TOPIC_ID}}", "exists"]
-            }
-          }
-        },
-        {
-          "name": "08.5 Create Root Topic",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "if (jsonData.id) {",
-                  "    pm.collectionVariables.set('TOPIC_ID', jsonData.id);",
-                  "    pm.collectionVariables.set('NEW_TOPIC_ID', jsonData.id);",
-                  "}",
-                  "pm.test('Topic created', function () {",
-                  "  pm.response.to.have.status(201);",
-                  "  pm.expect(jsonData.id).to.be.a('string');",
-                  "  pm.expect(jsonData.slug).to.include('java');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "X-Correlation-Id", "value": "postman-create-topic-{{$randomUUID}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Java Fundamentals\",\n  \"description\": \"Basic Java programming concepts\"\n}"
-            },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/v1/topics",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "v1", "topics"]
-            }
-          }
-        },
-        {
-          "name": "08.6 Create Child Topic",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "if (jsonData.id) {",
-                  "    pm.collectionVariables.set('CHILD_TOPIC_ID', jsonData.id);",
-                  "}",
-                  "pm.test('Child topic created', function () {",
-                  "  pm.response.to.have.status(201);",
-                  "  pm.expect(jsonData.parentTopicId).to.be.a('string');",
-                  "  pm.expect(jsonData.level).to.eql(1);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "X-Correlation-Id", "value": "postman-create-child-topic-{{$randomUUID}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Java OOP\",\n  \"description\": \"Object-Oriented Programming in Java\",\n  \"parentTopicId\": \"{{NEW_TOPIC_ID}}\"\n}"
-            },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/v1/topics",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "v1", "topics"]
-            }
-          }
-        },
-        {
-          "name": "08.7 Update Topic",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Topic updated', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "  var jsonData = pm.response.json();",
-                  "  pm.expect(jsonData.name).to.eql('Java Core Advanced');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Java Core Advanced\",\n  \"description\": \"Updated description for Java core\"\n}"
-            },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{NEW_TOPIC_ID}}",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "v1", "topics", "{{NEW_TOPIC_ID}}"]
-            }
-          }
-        },
-        {
-          "name": "08.8 Soft Delete Topic (Child)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Topic soft-deleted', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([204, 200]);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/v1/topics/{{CHILD_TOPIC_ID}}",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "v1", "topics", "{{CHILD_TOPIC_ID}}"]
-            }
-          }
-        },
-        {
-          "name": "08.9 Create Question With Valid TopicId",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "if (jsonData.data && jsonData.data.id) {",
-                  "    pm.collectionVariables.set('QUESTION_ID', jsonData.data.id);",
-                  "}",
-                  "pm.test('Question created with valid topicId', function () {",
-                  "  pm.response.to.have.status(201);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"questionText\": \"What is a class in Java?\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"easy\",\n  \"points\": 10,\n  \"options\": [\n    { \"text\": \"A blueprint for objects\", \"isCorrect\": true },\n    { \"text\": \"A type of variable\", \"isCorrect\": false },\n    { \"text\": \"A function\", \"isCorrect\": false },\n    { \"text\": \"A package\", \"isCorrect\": false }\n  ],\n  \"topicId\": \"{{NEW_TOPIC_ID}}\"\n}"
-            },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions"]
-            }
-          }
-        },
-        {
-          "name": "08.10 Error - Create Question With Invalid TopicId",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Should fail with invalid topicId', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"questionText\": \"Invalid topic test\",\n  \"questionType\": \"multiple_choice\",\n  \"difficulty\": \"easy\",\n  \"points\": 10,\n  \"topicId\": \"00000000-0000-4000-8000-000000000999\"\n}"
-            },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/question-bank/questions",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "question-bank", "questions"]
-            }
-          }
-        },
-        {
-          "name": "08.11 Error - Create Topic Without Name (Validation)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Validation error', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([400]);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"description\": \"Missing name field\"\n}"
-            },
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/v1/topics",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "v1", "topics"]
-            }
-          }
-        },
-        {
-          "name": "08.12 Error - Get Non-existent Topic",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Topic not found', function () {",
-                  "  pm.expect(pm.response.code).to.be.oneOf([404]);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
-            ],
-            "url": {
-              "raw": "{{GATEWAY_URL}}/api/v1/topics/00000000-0000-4000-8000-000000000999",
-              "host": ["{{GATEWAY_URL}}"],
-              "path": ["api", "v1", "topics", "00000000-0000-4000-8000-000000000999"]
-            }
-          }
-        }
-      ]
+      ],
+      "description": "Error test cases (401, 403, 404, 400)"
     }
   ]
 }

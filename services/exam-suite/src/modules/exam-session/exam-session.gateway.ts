@@ -13,6 +13,7 @@ import {
 import { Namespace, Socket } from 'socket.io';
 import { validate as isUuid } from 'uuid';
 import { ExamSessionService } from './exam-session.service';
+import { ExamSessionRepository } from './exam-session.repository';
 import { AnswerSaveRequestDto } from './dto/answer-save.dto';
 import { AnswerBulkSaveRequestDto } from './dto/reconnect.dto';
 import { ExamJoinRequestDto } from './dto/reconnect.dto';
@@ -64,6 +65,7 @@ export class ExamSessionGateway
 
   constructor(
     private readonly examSessionService: ExamSessionService,
+    private readonly repository: ExamSessionRepository,
     private readonly sessionCache: SessionCacheService,
     private readonly frameProcessor: FrameProcessorService,
     private readonly violationCounter: ViolationCounterService,
@@ -227,22 +229,26 @@ export class ExamSessionGateway
     }
   }
 
-  // ========== Proctoring: frame intake (UC_008 bước 9-12) ==========
-
   /**
-   * Client capture khung hình webcam mỗi 1 giây, gửi qua WS đến server.
+   * Proctoring: frame intake (UC_008 bước 9-12).
+   *
+   * Client capture webcam mỗi 1 giây, gửi qua WS đến server.
    *
    * Server:
    * 1. Validate attemptId
-   * 2. Gọi FrameProcessorService.processFrame() (gọi ai-suite evaluate)
-   * 3. Nếu có violation → emit `proctoring:violation` cho Student
-   * 4. Nếu count > threshold → trigger autoSubmit + emit `proctoring:auto-submitted`
+   * 2. Gọi FrameProcessorService.processFrame()
+   * 3. BR-011 + FR-PROC-006: evaluate violations
+   * 4. Nếu có violation → emit `proctoring:violation` cho Student
+   * 5. Nếu attemptFlagged (attention < 40) → emit `proctoring:flagged`
+   * 6. Nếu count > threshold → trigger autoSubmit + emit `proctoring:auto-submitted`
+   *
+   * FR-PROC-006: FACE_NOT_DETECTED > 5s → violation
+   * BR-011: attention < 60 → warning; < 40 → flag
+   * BR-013: violation count > 3 → auto-submit
    *
    * Exception 9e (mất kết nối ai-suite): processFrame trả no-violation, không emit.
-   * Exception 5e (mất WS): handleDisconnect ở trên đã handle timer.
    *
    * Payload: { attemptId, frameBase64, capturedAt? }
-   * Client capture với `canvas.toDataURL('image/jpeg', 0.5)` → 1 frame ~30KB.
    */
   @SubscribeMessage('proctoring:frame')
   async onProctoringFrame(
@@ -274,30 +280,51 @@ export class ExamSessionGateway
         frameBase64: payload.frameBase64,
       });
 
+      // Emit violation event to Student
       if (result.violationType) {
         client.emit('proctoring:violation', {
           type: result.violationType,
           attentionScore: result.attentionScore,
+          attentionSeverity: result.attentionSeverity,
           faceDetected: result.faceDetected,
           violationCount: result.violationCount,
           threshold: 3,
+          violationEvent: result.violationEvent,
           occurredAt: new Date().toISOString(),
         });
       }
 
+      // BR-011: attention < 40 → flag attempt, emit warning to Student
+      if (result.attemptFlagged) {
+        client.emit('proctoring:flagged', {
+          attemptId: payload.attemptId,
+          attentionScore: result.attentionScore,
+          message: 'Mức chú ý quá thấp — bài thi sẽ bị đánh dấu để giảng viên xem xét',
+          occurredAt: new Date().toISOString(),
+        });
+        // Ghi flag vào DB
+        await this.repository.updateAttemptFlag(
+          payload.attemptId,
+          true,
+          `LOW_ATTENTION_FLAG: attention=${result.attentionScore}`,
+        );
+        this.logger.warn(
+          `[ws] attempt flagged attempt=${payload.attemptId} attention=${result.attentionScore}`,
+        );
+      }
+
+      // BR-013: violation count > 3 → auto-submit + flag
       if (result.shouldAutoSubmit) {
-        // BR-013: violation count > 3 → auto-submit + flag
         this.logger.warn(
           `[ws] auto-submit triggered attempt=${payload.attemptId} count=${result.violationCount}`,
         );
 
-        // Clear timer + counter trước khi submit (tránh race với cron auto-submit TIMEOUT)
         const interval = this.timerIntervals.get(client.id);
         if (interval) {
           clearInterval(interval);
           this.timerIntervals.delete(client.id);
         }
-        await this.violationCounter.clear(payload.attemptId);
+        await this.violationCounter.clearAll(payload.attemptId);
 
         try {
           const submitted = await this.examSessionService.autoSubmit(
@@ -314,7 +341,9 @@ export class ExamSessionGateway
           });
         } catch (err) {
           this.logger.error(
-            `[ws] auto-submit failed attempt=${payload.attemptId}: ${err instanceof Error ? err.message : String(err)}`,
+            `[ws] auto-submit failed attempt=${payload.attemptId}: ${
+              err instanceof Error ? err.message : String(err)
+            }`,
           );
           client.emit('proctoring:error', {
             code: 'AUTO_SUBMIT_FAILED',

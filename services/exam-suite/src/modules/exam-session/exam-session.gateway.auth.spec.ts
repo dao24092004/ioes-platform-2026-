@@ -47,7 +47,7 @@ describe('ExamSessionGateway - handshake JWT verification', () => {
   };
 
   beforeEach(() => {
-    gateway = new ExamSessionGateway({} as any, {} as any, {} as any, {} as any);
+    gateway = new ExamSessionGateway({} as any, {} as any, {} as any, {} as any, {} as any);
   });
 
   it('should_attachUser_When_validHs384AccessToken', async () => {

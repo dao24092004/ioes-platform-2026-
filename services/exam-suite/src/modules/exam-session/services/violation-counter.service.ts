@@ -1,25 +1,36 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
 
+/**
+ * ViolationEvent — một sự kiện vi phạm ghi lại trong Redis.
+ */
+export interface ViolationEvent {
+  type: string;
+  startedAt: string;   // ISO timestamp
+  endedAt?: string;     // ISO timestamp, undefined = ongoing
+  durationMs?: number;  // computed when event ends
+}
+
+/** BR-011 attention thresholds (hardcoded, configurable via env). */
+export const ATTENTION_WARNING_THRESHOLD = 60;  // < 60 → warning only
+export const ATTENTION_FLAG_THRESHOLD = 40;     // < 40 → flag attempt
+
+/** FR-PROC-006: FACE_NOT_DETECTED > 5s → violation. */
+export const FACE_NOT_DETECTED_DURATION_MS = 5000;
+
 export const REDIS_CLIENT = 'REDIS_CLIENT';
 
 /**
- * ViolationCounterService — đếm số violation trong 1 phiên thi (BR-013).
- *
- * Lưu trong Redis dưới key `ioes:exam:violations:{attemptId}`.
- * Counter là monotonically increasing (chỉ tăng, không giảm).
- * Clear khi attempt submit xong.
+ * ViolationCounterService — đếm số violation và ghi lại từng sự kiện vi phạm trong 1 phiên thi.
  *
  * BR-013: violation count > threshold (mặc định 3) → trigger auto-submit + flag.
+ * BR-011: attention < 60 → LOW_ATTENTION; attention < 40 → flag attempt luôn.
+ * FR-PROC-006: FACE_NOT_DETECTED liên tục > 5s → violation.
  *
- * Phase 1: chỉ dùng đếm số lượng. Phase 2 (sau) có thể lưu thêm
- * `{ type: 'LOW_ATTENTION', durationMs: 12000 }` để Instructor xem chi tiết.
- *
- * Race condition với submit:
- * - submit có distributed lock `lock:attempt:{id}:submit` (đã có ở SubmitExamUseCase)
- * - increment chỉ INCR Redis key — không ghi DB
- * - Khi submit thắng → clear key này
- * - Nếu tăng sau khi submit xong (giành race) → key đã clear, count = 1, không đủ trigger
+ * Redis keys:
+ * - `ioes:exam:violations:{attemptId}` — counter
+ * - `ioes:exam:violation_events:{attemptId}` — JSON array của ViolationEvent
+ * - `ioes:exam:face_not_detected_start:{attemptId}` — timestamp bắt đầu face-not-detected
  */
 @Injectable()
 export class ViolationCounterService {
@@ -28,9 +39,19 @@ export class ViolationCounterService {
 
   constructor(@Inject(REDIS_CLIENT) private readonly redis: Redis) {}
 
-  private key(attemptId: string): string {
+  private counterKey(attemptId: string): string {
     return `${this.keyPrefix}violations:${attemptId}`;
   }
+
+  private eventsKey(attemptId: string): string {
+    return `${this.keyPrefix}violation_events:${attemptId}`;
+  }
+
+  private faceNotDetectedStartKey(attemptId: string): string {
+    return `${this.keyPrefix}face_not_detected_start:${attemptId}`;
+  }
+
+  // ========== Counter ==========
 
   /**
    * Tăng counter lên 1, set TTL nếu key mới.
@@ -38,20 +59,16 @@ export class ViolationCounterService {
    * @returns counter value mới (sau khi incr).
    */
   async increment(attemptId: string, ttlSec: number): Promise<number> {
-    const k = this.key(attemptId);
+    const k = this.counterKey(attemptId);
     const count = await this.redis.incr(k);
-    // EXPIRE chỉ set nếu key mới — tránh reset TTL mỗi lần (giữ đúng window deadline)
     if (count === 1) {
       await this.redis.expire(k, ttlSec);
     }
     return count;
   }
 
-  /**
-   * Lấy counter hiện tại. Trả 0 nếu key không tồn tại.
-   */
   async getCount(attemptId: string): Promise<number> {
-    const raw = await this.redis.get(this.key(attemptId));
+    const raw = await this.redis.get(this.counterKey(attemptId));
     return raw ? Number(raw) : 0;
   }
 
@@ -63,10 +80,71 @@ export class ViolationCounterService {
     return count > threshold;
   }
 
+  // ========== Violation events ==========
+
   /**
-   * Xoá counter (sau khi submit xong).
+   * Ghi một sự kiện vi phạm vào Redis list.
+   * @returns total violation count sau khi thêm
    */
+  async recordViolation(attemptId: string, event: ViolationEvent, ttlSec: number): Promise<number> {
+    const k = this.eventsKey(attemptId);
+    await this.redis.rpush(k, JSON.stringify(event));
+    if (ttlSec > 0) {
+      await this.redis.expire(k, ttlSec);
+    }
+    return this.increment(attemptId, ttlSec);
+  }
+
+  /**
+   * Lấy tất cả sự kiện vi phạm của một attempt.
+   * Dùng cho GET /proctoring-report (FR-PROC-008).
+   */
+  async getEvents(attemptId: string): Promise<ViolationEvent[]> {
+    const raw = await this.redis.lrange(this.eventsKey(attemptId), 0, -1);
+    return raw.map((s) => JSON.parse(s) as ViolationEvent);
+  }
+
+  // ========== FACE_NOT_DETECTED tracking (FR-PROC-006) ==========
+
+  /**
+   * Ghi lại thời điểm bắt đầu face-not-detected.
+   * FR-PROC-006: đếm 5 giây trước khi coi là violation.
+   */
+  async startFaceNotDetected(attemptId: string, ttlSec: number): Promise<void> {
+    const k = this.faceNotDetectedStartKey(attemptId);
+    await this.redis.set(k, Date.now().toString(), 'EX', ttlSec);
+  }
+
+  /**
+   * Xoá tracking face-not-detected (khi face được phát hiện lại).
+   */
+  async clearFaceNotDetected(attemptId: string): Promise<void> {
+    await this.redis.del(this.faceNotDetectedStartKey(attemptId));
+  }
+
+  /**
+   * Kiểm tra xem face-not-detected đã kéo dài > 5s chưa.
+   * @returns durationMs nếu đang face-not-detected, null nếu face OK
+   */
+  async getFaceNotDetectedDurationMs(attemptId: string): Promise<number | null> {
+    const raw = await this.redis.get(this.faceNotDetectedStartKey(attemptId));
+    if (!raw) return null;
+    return Date.now() - Number(raw);
+  }
+
+  // ========== Clear ==========
+
+  /** Xoá tất cả violation data của attempt (sau khi submit xong). */
+  async clearAll(attemptId: string): Promise<void> {
+    await this.redis.del(
+      this.counterKey(attemptId),
+      this.eventsKey(attemptId),
+      this.faceNotDetectedStartKey(attemptId),
+    );
+  }
+
+  /** Xoá counter (sau khi submit xong). */
   async clear(attemptId: string): Promise<void> {
-    await this.redis.del(this.key(attemptId));
+    await this.redis.del(this.counterKey(attemptId));
   }
 }

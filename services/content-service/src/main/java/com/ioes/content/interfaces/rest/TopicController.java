@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/topics")
+@RequestMapping("/api/v1/topics")
 @RequiredArgsConstructor
 @Slf4j
 public class TopicController {

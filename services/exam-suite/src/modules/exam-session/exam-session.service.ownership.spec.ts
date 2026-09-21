@@ -37,6 +37,8 @@ describe('ExamSessionService - instructor ownership (UC_009)', () => {
       repository as any,
       {} as any,
       {} as any,
+      // violationCounter: getProctoringReport đọc violations từ Redis.
+      { getEvents: jest.fn().mockResolvedValue([]), getCount: jest.fn().mockResolvedValue(0) } as any,
       {} as any,
       {} as any,
       {} as any,
