@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { ButtonHTMLAttributes, forwardRef, ReactNode, ElementType } from 'react';
 
 interface ButtonProps<E extends ElementType = 'button'> {

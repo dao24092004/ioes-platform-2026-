@@ -1,4 +1,3 @@
-import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { questionBankApi } from './question-bank.api';
 import type { SearchParams, CreateQuestionDto } from '@/types/question-bank';
@@ -11,7 +10,9 @@ vi.mock('@/config/api.config', () => ({
     patch: vi.fn(),
     delete: vi.fn(),
   },
-  unwrap: vi.fn((promise) => promise.then((res) => res.data.data)),
+  unwrap: vi.fn((promise: Promise<{ data: { data: unknown } }>) =>
+    promise.then((res) => res.data.data),
+  ),
   ApiEnvelope: {},
 }));
 

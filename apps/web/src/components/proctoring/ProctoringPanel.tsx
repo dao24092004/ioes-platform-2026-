@@ -1,11 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useWebcam } from '@/hooks/useWebcam';
+import { useWebcam, CAPTURE_MAX_WIDTH } from '@/hooks/useWebcam';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { logger } from '@/utils/logger';
 
-/** Nhịp gửi khung hình. Server đếm vi phạm theo khung, không theo giây. */
-const FRAME_INTERVAL_MS = 5000;
+/**
+ * Nhịp gửi khung hình — FR-PROC-001 yêu cầu 1 giây.
+ *
+ * Trước đây là 5000ms vì khung chụp ở độ phân giải gốc của webcam. Ở đó 1 Hz
+ * quá đắt: `getUserMedia({width: 640, height: 480})` chỉ là ràng buộc *ideal*,
+ * webcam 1080p vẫn trả 1920x1080, và JPEG q0.6 của ảnh đó rơi vào khoảng
+ * 120–160 KB → base64 (+33%) ~160–210 KB mỗi khung → ~1,3–1,7 Mbit/s tải lên
+ * cho mỗi thí sinh, nhân với cả phòng thi.
+ *
+ * Nên `useWebcam.captureFrame` thu nhỏ về tối đa 640px ngang (q0.6) trước khi
+ * mã hoá: khung 640x480 rơi vào khoảng 18–25 KB → base64 ~24–33 KB → ~0,2–0,27
+ * Mbit/s ở 1 Hz. Tức 1 khung/giây sau khi thu nhỏ còn *rẻ hơn* 1 khung/5 giây
+ * ở độ phân giải gốc (~0,26–0,34 Mbit/s), trong khi nhịp lấy mẫu nhanh gấp 5.
+ * MediaPipe Face Mesh hạ ảnh xuống cỡ ~192px trước khi chạy nên 640px không
+ * làm mất độ chính xác nào.
+ */
+const FRAME_INTERVAL_MS = 1000;
 
 export interface ProctoringViolation {
   type: string;
@@ -14,6 +29,26 @@ export interface ProctoringViolation {
   violationCount: number;
   threshold: number;
   occurredAt: string;
+  faceCount?: number;
+  gazeDirection?: string | null;
+  attentionSeverity?: 'OK' | 'WARNING' | 'FLAG';
+}
+
+/** `proctoring:status` — gateway gửi mỗi khung, kể cả khung sạch. */
+export interface ProctoringStatus {
+  attemptId: string;
+  /** false khi exam-suite không gọi được ml-worker; các số bên dưới vô nghĩa. */
+  available: boolean;
+  attentionScore: number;
+  attentionSeverity: 'OK' | 'WARNING' | 'FLAG';
+  faceDetected: boolean;
+  faceCount: number;
+  gazeDirection: string | null;
+  violationCount: number;
+  threshold: number;
+  activeViolation: string | null;
+  flagged: boolean;
+  observedAt: string;
 }
 
 interface ProctoringPanelProps {
@@ -23,13 +58,33 @@ interface ProctoringPanelProps {
   onAutoSubmitted?: (payload: { attemptId: string; submissionId: string }) => void;
 }
 
+/** Hướng nhìn → câu mô tả. Giữ giọng trung tính, không buộc tội. */
+/**
+ * Nhãn hướng nhìn: khoá i18n + bản tiếng Việt làm fallback, để bản tiếng Anh
+ * không hiện tiếng Việt như trước.
+ */
+const GAZE_LABELS: Record<string, { key: string; fallback: string }> = {
+  CENTER: { key: 'student.examTaking.gazeCenter', fallback: 'Nhìn vào màn hình' },
+  LEFT: { key: 'student.examTaking.gazeLeft', fallback: 'Đang nhìn sang trái' },
+  RIGHT: { key: 'student.examTaking.gazeRight', fallback: 'Đang nhìn sang phải' },
+  UP: { key: 'student.examTaking.gazeUp', fallback: 'Đang nhìn lên' },
+  DOWN: { key: 'student.examTaking.gazeDown', fallback: 'Đang nhìn xuống' },
+  OUT_OF_FRAME: {
+    key: 'student.examTaking.gazeOutOfFrame',
+    fallback: 'Không xác định được hướng nhìn',
+  },
+};
+
 /**
  * Khung camera giám thị: mở webcam, đẩy khung hình lên `/exam-session` và
- * hiển thị vi phạm mà server trả về.
+ * hiển thị đúng những gì server thấy.
  *
  * Việc chấm điểm chú ý nằm hoàn toàn ở server (`FrameProcessorService`), phía
- * client chỉ chụp và gửi — đặt logic phát hiện ở trình duyệt thì thí sinh sửa
- * được.
+ * client chỉ chụp, gửi và hiển thị — đặt logic phát hiện ở trình duyệt thì thí
+ * sinh sửa được.
+ *
+ * Phần trạng thái cố tình nói giảm: điểm chú ý và số vi phạm hiện liên tục để
+ * thí sinh tự chỉnh tư thế *trước* khi bị tính lỗi, chứ không phải để doạ.
  */
 const ProctoringPanel: React.FC<ProctoringPanelProps> = ({
   attemptId,
@@ -44,6 +99,8 @@ const ProctoringPanel: React.FC<ProctoringPanelProps> = ({
   });
 
   const [lastViolation, setLastViolation] = useState<ProctoringViolation | null>(null);
+  const [proctorStatus, setProctorStatus] = useState<ProctoringStatus | null>(null);
+  const [flaggedNote, setFlaggedNote] = useState<string | null>(null);
   const [framesSent, setFramesSent] = useState(0);
 
   // Giữ callback trong ref để interval không phải dựng lại mỗi lần cha render.
@@ -54,6 +111,9 @@ const ProctoringPanel: React.FC<ProctoringPanelProps> = ({
     onAutoSubmittedRef.current = onAutoSubmitted;
   }, [onViolation, onAutoSubmitted]);
 
+  // Số thứ tự khung, gửi kèm để ml-worker ghép được chuỗi thời gian.
+  const sequenceRef = useRef(0);
+
   // Vào phòng của attempt trước khi gửi khung, nếu không server không biết
   // khung thuộc lượt thi nào.
   useEffect(() => {
@@ -62,9 +122,25 @@ const ProctoringPanel: React.FC<ProctoringPanelProps> = ({
   }, [attemptId, isConnected, emit]);
 
   useEffect(() => {
+    const offStatus = on<ProctoringStatus>('proctoring:status', (payload) => {
+      setProctorStatus(payload);
+    });
+
     const offViolation = on<ProctoringViolation>('proctoring:violation', (payload) => {
       setLastViolation(payload);
       onViolationRef.current?.(payload);
+    });
+
+    // BR-011 mức nặng: server đã gắn cờ lượt thi. Gắn cờ không huỷ bài, nên
+    // nói đúng hệ quả — giảng viên sẽ xem lại — thay vì báo động đỏ.
+    const offFlagged = on<{ message?: string }>('proctoring:flagged', (payload) => {
+      setFlaggedNote(
+        payload?.message ??
+          t(
+            'student.examTaking.proctoringFlagged',
+            'Mức tập trung xuống thấp — lượt thi được đánh dấu để giảng viên xem lại',
+          ),
+      );
     });
 
     const offAutoSubmit = on<{ attemptId: string; submissionId: string }>(
@@ -80,7 +156,9 @@ const ProctoringPanel: React.FC<ProctoringPanelProps> = ({
     });
 
     return () => {
+      offStatus();
       offViolation();
+      offFlagged();
       offAutoSubmit();
       offError();
     };
@@ -90,7 +168,7 @@ const ProctoringPanel: React.FC<ProctoringPanelProps> = ({
     if (!attemptId || !isConnected || !isStreaming) return;
 
     const id = window.setInterval(() => {
-      const frame = captureFrame();
+      const frame = captureFrame({ maxWidth: CAPTURE_MAX_WIDTH, quality: 0.6 });
       if (!frame) return;
       // Bỏ tiền tố `data:image/jpeg;base64,`; server chỉ nhận phần base64.
       const base64 = frame.slice(frame.indexOf(',') + 1);
@@ -98,8 +176,12 @@ const ProctoringPanel: React.FC<ProctoringPanelProps> = ({
         attemptId,
         frameBase64: base64,
         capturedAt: new Date().toISOString(),
+        sequenceId: sequenceRef.current + 1,
       });
-      if (sent) setFramesSent((n) => n + 1);
+      if (sent) {
+        sequenceRef.current += 1;
+        setFramesSent((n) => n + 1);
+      }
     }, FRAME_INTERVAL_MS);
 
     return () => window.clearInterval(id);
@@ -110,6 +192,48 @@ const ProctoringPanel: React.FC<ProctoringPanelProps> = ({
     : isConnected
       ? t('student.examTaking.cameraRecording')
       : t('student.examTaking.proctoringOffline', 'Mất kết nối giám thị');
+
+  // Chỉ tin các con số khi ml-worker thực sự trả lời. Mất kết nối bộ phân
+  // tích mà vẫn vẽ "0% — không thấy mặt" là doạ nhầm thí sinh.
+  const live = attemptId && proctorStatus?.available ? proctorStatus : null;
+
+  // BR-011: < 60 nhắc nhở, < 40 gắn cờ. Màu bám đúng hai mốc đó.
+  const severity = live?.attentionSeverity ?? 'OK';
+  const scoreTone =
+    severity === 'FLAG'
+      ? 'text-rose-600 dark:text-rose-400'
+      : severity === 'WARNING'
+        ? 'text-amber-600 dark:text-amber-400'
+        : 'text-emerald-600 dark:text-emerald-400';
+  const scoreBar =
+    severity === 'FLAG' ? 'bg-rose-500' : severity === 'WARNING' ? 'bg-amber-500' : 'bg-emerald-500';
+
+  // Một câu duy nhất mô tả camera đang thấy gì. Trường hợp nhiều người trong
+  // khung nói thẳng vì đó là điều thí sinh phải sửa ngay; còn lại giữ giọng
+  // bình thường.
+  const faceMessage = !live
+    ? t('student.examTaking.proctorWaiting', 'Đang chờ bộ phân tích giám thị...')
+    : live.faceCount > 1
+      ? t(
+          'student.examTaking.multipleFaces',
+          'Có nhiều hơn một người trong khung hình — chỉ thí sinh được ngồi trước camera',
+        )
+      : !live.faceDetected
+        ? t(
+            'student.examTaking.faceNotDetected',
+            'Chưa thấy khuôn mặt — mời bạn ngồi vào giữa khung hình',
+          )
+        : t('student.examTaking.faceDetected', 'Đã nhận diện khuôn mặt');
+
+  // Chỉ tô hổ phách khi thí sinh thật sự cần chỉnh lại gì đó. Lúc đang chờ bộ
+  // phân tích thì không có gì để sửa, nên giữ màu trung tính.
+  const faceNeedsAttention = Boolean(live && (!live.faceDetected || live.faceCount > 1));
+  const faceTone = faceNeedsAttention
+    ? 'text-amber-700 dark:text-amber-400'
+    : 'text-slate-500 dark:text-slate-400';
+
+  const violationCount = live?.violationCount ?? lastViolation?.violationCount ?? 0;
+  const threshold = live?.threshold ?? lastViolation?.threshold ?? 0;
 
   return (
     <div className="p-5">
@@ -150,12 +274,80 @@ const ProctoringPanel: React.FC<ProctoringPanelProps> = ({
         )}
       </div>
 
+      {attemptId && (
+        <div
+          className="mt-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
+          data-testid="proctoring-status"
+        >
+          <div className="flex items-baseline justify-between">
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              {t('student.examTaking.attentionScore', 'Mức tập trung')}
+            </span>
+            <span className={`text-sm font-semibold tabular-nums ${scoreTone}`}>
+              {live ? `${Math.round(live.attentionScore)}%` : '—'}
+            </span>
+          </div>
+
+          <div className="mt-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${scoreBar}`}
+              style={{ width: live ? `${Math.min(100, Math.max(0, live.attentionScore))}%` : '0%' }}
+            />
+          </div>
+
+          <p className={`mt-2 text-[11px] ${faceTone}`}>{faceMessage}</p>
+
+          {live?.faceDetected && live.gazeDirection && (
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              {GAZE_LABELS[live.gazeDirection]
+                ? t(GAZE_LABELS[live.gazeDirection].key, GAZE_LABELS[live.gazeDirection].fallback)
+                : live.gazeDirection}
+            </p>
+          )}
+
+          {threshold > 0 && (
+            <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+              {t('student.examTaking.violationCount', 'Ghi nhận')}{' '}
+              <span className="font-semibold tabular-nums">
+                {violationCount}/{threshold}
+              </span>{' '}
+              {t('student.examTaking.violationAutoSubmit', 'lần; vượt ngưỡng sẽ tự động nộp bài')}
+            </p>
+          )}
+
+          {flaggedNote && (
+            <p className="mt-2 text-[11px] text-rose-700 dark:text-rose-400" data-testid="proctoring-flagged">
+              {flaggedNote}
+            </p>
+          )}
+        </div>
+      )}
+
       {lastViolation && (
-        <div className="mt-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-          <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+        <div
+          className={`mt-3 p-3 rounded-xl border ${
+            lastViolation.attentionSeverity === 'FLAG'
+              ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800'
+              : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+          }`}
+          role="status"
+        >
+          <p
+            className={`text-xs font-semibold ${
+              lastViolation.attentionSeverity === 'FLAG'
+                ? 'text-rose-800 dark:text-rose-300'
+                : 'text-amber-800 dark:text-amber-300'
+            }`}
+          >
             {t('student.examTaking.violationDetected', 'Phát hiện vi phạm')}: {lastViolation.type}
           </p>
-          <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+          <p
+            className={`text-xs mt-0.5 ${
+              lastViolation.attentionSeverity === 'FLAG'
+                ? 'text-rose-700 dark:text-rose-400'
+                : 'text-amber-700 dark:text-amber-400'
+            }`}
+          >
             {lastViolation.violationCount}/{lastViolation.threshold} —{' '}
             {t('student.examTaking.violationWarning', 'vượt ngưỡng sẽ bị nộp bài tự động')}
           </p>

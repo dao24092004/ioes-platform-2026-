@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { QuestionSearch, QuestionCard, QuestionForm } from '@/components/question-bank';
 import { questionBankApi } from '@/services/api/question-bank.api';
 import type {
-  Question,
   SearchParams,
   SearchResult,
   CreateQuestionDto,
@@ -12,13 +10,11 @@ import type {
 } from '@/types/question-bank';
 
 export const QuestionBankPage: React.FC = () => {
-  const navigate = useNavigate();
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Load topics on mount
@@ -30,13 +26,9 @@ export const QuestionBankPage: React.FC = () => {
     try {
       const data = await questionBankApi.listTopics();
       setTopics(data);
-      // Extract unique skills from all topics
-      const allSkills: Skill[] = [];
-      data.forEach((topic) => {
-        // Note: Skills would come from questions in real implementation
-        // For now, we'll use a placeholder
-      });
-      setSkills(allSkills);
+      // The list-topics endpoint does not return skills yet, so the question
+      // form starts with an empty skill list until a skills endpoint exists.
+      setSkills([]);
     } catch (err) {
       console.error('Failed to load topics:', err);
       setError('Failed to load topics');
@@ -167,7 +159,6 @@ export const QuestionBankPage: React.FC = () => {
                       <QuestionCard
                         key={question.uid}
                         question={question}
-                        onClick={() => setSelectedQuestion(question)}
                         showActions
                         onEdit={() => {
                           // Navigate to edit page or open modal
@@ -205,3 +196,5 @@ export const QuestionBankPage: React.FC = () => {
     </div>
   );
 };
+
+export default QuestionBankPage;

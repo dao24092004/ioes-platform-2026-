@@ -1,0 +1,48 @@
+{
+  "title": "Course recommendations",
+  "subtitle": "Courses picked from what you are learning, plus what is popular on the platform",
+  "actions": {
+    "refresh": "Refresh suggestions",
+    "refreshing": "Refreshing...",
+    "retry": "Try again",
+    "browseCatalog": "Browse all courses",
+    "viewDetail": "View details"
+  },
+  "loading": "Finding courses that fit you...",
+  "error": {
+    "title": "Could not load recommendations",
+    "description": "The recommendation service did not respond. Nothing is being shown.",
+    "detail": "Details: {{message}}"
+  },
+  "empty": {
+    "title": "No recommendations yet",
+    "description": "The service returned no courses. You can browse the catalog yourself."
+  },
+  "meta": {
+    "count_one": "{{count}} recommended course",
+    "count_other": "{{count}} recommended courses",
+    "generatedAt": "Updated at {{time}}",
+    "strategy": "Method: {{strategy}}"
+  },
+  "card": {
+    "reasonLabel": "Why this is suggested",
+    "match": "{{percent}}% match",
+    "free": "Free",
+    "duration": "{{hours}}h",
+    "uncategorized": "Uncategorized"
+  },
+  "level": {
+    "1": "Beginner",
+    "2": "Elementary",
+    "3": "Intermediate",
+    "4": "Advanced",
+    "5": "Expert"
+  },
+  "reasonCode": {
+    "SAME_CATEGORY": "Same topic",
+    "SIMILAR_CONTENT": "Similar content",
+    "NEXT_LEVEL": "Next step",
+    "POPULAR": "Popular",
+    "NEW": "New"
+  }
+}

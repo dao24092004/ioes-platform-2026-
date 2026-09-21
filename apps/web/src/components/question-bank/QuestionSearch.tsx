@@ -77,10 +77,14 @@ export const QuestionSearch: React.FC<QuestionSearchProps> = ({ onSearch, isLoad
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-900/50 rounded-lg">
           {/* Difficulty Filter */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label
+              htmlFor="question-search-difficulty"
+              className="block text-sm font-medium text-slate-300 mb-2"
+            >
               Difficulty
             </label>
             <select
+              id="question-search-difficulty"
               value={difficulty}
               onChange={(e) => setDifficulty(e.target.value as Difficulty | '')}
               className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100 focus:outline-none focus:border-sky-500"
@@ -96,10 +100,14 @@ export const QuestionSearch: React.FC<QuestionSearchProps> = ({ onSearch, isLoad
 
           {/* Question Type Filter */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label
+              htmlFor="question-search-type"
+              className="block text-sm font-medium text-slate-300 mb-2"
+            >
               Question Type
             </label>
             <select
+              id="question-search-type"
               value={questionType}
               onChange={(e) => setQuestionType(e.target.value as QuestionType | '')}
               className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100 focus:outline-none focus:border-sky-500"

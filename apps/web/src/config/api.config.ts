@@ -26,9 +26,30 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Ngân sách mặc định, đặt theo lời gọi chậm nhất đi qua client này: lượt chat
+ * gọi mô hình ngôn ngữ (ai-gateway cho ml-worker `ML_WORKER_TIMEOUT_MS` = 60s).
+ *
+ * Đây là trần, không phải mức hợp lý cho mọi endpoint: một lượt đọc nhanh mà
+ * dùng 120s thì backend hỏng cũng phải quay 120s mới báo lỗi, nhân đôi nếu
+ * React Query thử lại. Vì vậy các lời gọi không đụng LLM phải tự truyền
+ * `timeout` riêng (xem `FAST_READ_TIMEOUT_MS`), và lời gọi chậm hơn 120s phải
+ * tự nâng lên (xem `LEARNING_PATH_GENERATE_TIMEOUT_MS`).
+ */
+export const DEFAULT_TIMEOUT_MS = 120_000;
+
+/**
+ * Cho endpoint đọc nhanh: truy vấn Postgres hoặc embedding có sẵn, không gọi
+ * LLM. Chọn 15s chứ không phải 3–5s vì ai-gateway còn ghép dữ liệu từ
+ * content-service với ngân sách `CONTENT_SERVICE_TIMEOUT_MS` = 10s — cắt sớm
+ * hơn máy chủ là tự tạo ra cảnh "web báo lỗi trong khi máy chủ vẫn đang chạy
+ * và sắp trả kết quả", đúng thứ lỗi ta đang sửa.
+ */
+export const FAST_READ_TIMEOUT_MS = 15_000;
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: env.apiBaseUrl,
-  timeout: 120_000, // lượt chat gọi mô hình ngôn ngữ, chậm hơn hẳn request thường
+  timeout: DEFAULT_TIMEOUT_MS,
   headers: { 'Content-Type': 'application/json' },
 });
 
