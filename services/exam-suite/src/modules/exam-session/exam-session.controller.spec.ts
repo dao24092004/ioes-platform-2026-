@@ -66,7 +66,7 @@ describe('ExamSessionController - UC_009 Instructor', () => {
 
       const result = await controller.listActiveAttempts('exam-1', INSTRUCTOR);
 
-      expect(service.listActiveAttempts).toHaveBeenCalledWith('exam-1', INSTRUCTOR.userId);
+      expect(service.listActiveAttempts).toHaveBeenCalledWith('exam-1', { userId: INSTRUCTOR.userId, role: 'INSTRUCTOR' });
       expect(result.success).toBe(true);
       expect((result.data as any[]).length).toBe(1);
     });
@@ -103,7 +103,7 @@ describe('ExamSessionController - UC_009 Instructor', () => {
 
       const result = await controller.getProctoringReport('a1', INSTRUCTOR);
 
-      expect(service.getProctoringReport).toHaveBeenCalledWith('a1', INSTRUCTOR.userId);
+      expect(service.getProctoringReport).toHaveBeenCalledWith('a1', { userId: INSTRUCTOR.userId, role: 'INSTRUCTOR' });
       expect(result.success).toBe(true);
       expect((result.data as any).flag).toBe(true);
       expect((result.data as any).violations.length).toBe(2);

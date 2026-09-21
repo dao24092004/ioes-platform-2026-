@@ -4,11 +4,28 @@ import i18n from 'i18next';
 
 import viCommon from '@/locales/vi/common.json';
 import enCommon from '@/locales/en/common.json';
+import viQuestionBank from '@/locales/vi/questionBank.json';
+import enQuestionBank from '@/locales/en/questionBank.json';
+import viRecommendations from '@/locales/vi/recommendations.json';
+import enRecommendations from '@/locales/en/recommendations.json';
+import viLearningPath from '@/locales/vi/learningPath.json';
+import enLearningPath from '@/locales/en/learningPath.json';
 
-
+// Trang lớn dùng namespace riêng để tránh common.json phình ra và tránh xung đột
+// khi nhiều người sửa cùng lúc: useTranslation('recommendations').
 const resources = {
-  vi: { common: viCommon },
-  en: { common: enCommon },
+  vi: {
+    common: viCommon,
+    questionBank: viQuestionBank,
+    recommendations: viRecommendations,
+    learningPath: viLearningPath,
+  },
+  en: {
+    common: enCommon,
+    questionBank: enQuestionBank,
+    recommendations: enRecommendations,
+    learningPath: enLearningPath,
+  },
 };
 
 i18n
@@ -18,7 +35,7 @@ i18n
     lng: 'vi',
     fallbackLng: 'en',
     supportedLngs: ['en', 'vi'],
-    ns: ['common'],
+    ns: ['common', 'questionBank', 'recommendations', 'learningPath'],
     defaultNS: 'common',
     interpolation: {
       escapeValue: false,

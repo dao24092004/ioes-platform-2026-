@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExamSessionService } from './exam-session.service';
 import { ExamSessionRepository } from './exam-session.repository';
+import { ExamRepository } from '../exam/repositories/exam.repository';
 import { SessionCacheService } from './session-cache.service';
 import { KafkaPublisherService } from '../../common/kafka-publisher.service';
 import { ViolationCounterService } from './services/violation-counter.service';
@@ -41,6 +42,7 @@ describe('ExamSessionService — Kafka event publishing', () => {
       providers: [
         ExamSessionService,
         { provide: ExamSessionRepository, useValue: {} },
+        { provide: ExamRepository, useValue: { findById: jest.fn() } },
         {
           provide: SessionCacheService,
           useValue: { acquireSubmitLock: jest.fn(), releaseSubmitLock: jest.fn() },

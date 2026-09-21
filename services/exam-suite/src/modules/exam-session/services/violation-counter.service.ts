@@ -18,6 +18,17 @@ export const ATTENTION_FLAG_THRESHOLD = 40;     // < 40 → flag attempt
 /** FR-PROC-006: FACE_NOT_DETECTED > 5s → violation. */
 export const FACE_NOT_DETECTED_DURATION_MS = 5000;
 
+/**
+ * Khoảng lặng giữa hai violation *cùng loại* của một attempt (giây).
+ *
+ * FR-PROC-001 nâng nhịp gửi khung lên 1 Hz. Không có khoảng lặng này thì một
+ * lần cúi xuống nhìn giấy nháp 4 giây đã sinh 4 violation LOW_ATTENTION liên
+ * tiếp và vượt ngưỡng BR-013 (>3) — bài thi bị nộp tự động. Đếm theo "đợt"
+ * thay vì theo khung: mỗi loại vi phạm chỉ tính một lần trong 15 giây, nên
+ * ngưỡng 3 tương ứng với khoảng 45 giây vi phạm liên tục.
+ */
+export const VIOLATION_COOLDOWN_SEC = 15;
+
 export const REDIS_CLIENT = 'REDIS_CLIENT';
 
 /**
@@ -49,6 +60,35 @@ export class ViolationCounterService {
 
   private faceNotDetectedStartKey(attemptId: string): string {
     return `${this.keyPrefix}face_not_detected_start:${attemptId}`;
+  }
+
+  private cooldownKey(attemptId: string, type: string): string {
+    return `${this.keyPrefix}violation_cooldown:${attemptId}:${type}`;
+  }
+
+  /**
+   * Mở một "đợt" vi phạm mới cho `type`, hoặc từ chối nếu đợt trước còn trong
+   * khoảng lặng.
+   *
+   * Dùng `SET NX EX` để chốt nguyên tử — hai khung tới gần như cùng lúc thì
+   * chỉ một khung mở được đợt.
+   *
+   * @returns true nếu đây là đợt mới (caller được phép ghi violation).
+   */
+  async tryStartViolationEpisode(
+    attemptId: string,
+    type: string,
+    cooldownSec: number = VIOLATION_COOLDOWN_SEC,
+  ): Promise<boolean> {
+    if (cooldownSec <= 0) return true;
+    const res = await this.redis.set(
+      this.cooldownKey(attemptId, type),
+      Date.now().toString(),
+      'EX',
+      cooldownSec,
+      'NX',
+    );
+    return res === 'OK';
   }
 
   // ========== Counter ==========

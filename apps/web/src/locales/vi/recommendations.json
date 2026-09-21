@@ -1,0 +1,48 @@
+{
+  "title": "Gợi ý khoá học",
+  "subtitle": "Khoá học chọn theo nội dung bạn đang học và khoá phổ biến trên nền tảng",
+  "actions": {
+    "refresh": "Làm mới gợi ý",
+    "refreshing": "Đang làm mới...",
+    "retry": "Thử lại",
+    "browseCatalog": "Xem tất cả khoá học",
+    "viewDetail": "Xem chi tiết"
+  },
+  "loading": "Đang tìm khoá học phù hợp với bạn...",
+  "error": {
+    "title": "Chưa lấy được gợi ý",
+    "description": "Máy chủ gợi ý không phản hồi. Chưa có dữ liệu nào để hiển thị.",
+    "detail": "Chi tiết: {{message}}"
+  },
+  "empty": {
+    "title": "Chưa có gợi ý nào",
+    "description": "Hệ thống chưa trả về khoá học nào. Bạn có thể tự tìm trong danh mục khoá học."
+  },
+  "meta": {
+    "count_one": "{{count}} khoá được gợi ý",
+    "count_other": "{{count}} khoá được gợi ý",
+    "generatedAt": "Cập nhật lúc {{time}}",
+    "strategy": "Cách chọn: {{strategy}}"
+  },
+  "card": {
+    "reasonLabel": "Vì sao gợi ý cho bạn",
+    "match": "Phù hợp {{percent}}%",
+    "free": "Miễn phí",
+    "duration": "{{hours}} giờ",
+    "uncategorized": "Chưa phân loại"
+  },
+  "level": {
+    "1": "Người mới",
+    "2": "Cơ bản",
+    "3": "Trung bình",
+    "4": "Nâng cao",
+    "5": "Chuyên gia"
+  },
+  "reasonCode": {
+    "SAME_CATEGORY": "Cùng chủ đề",
+    "SIMILAR_CONTENT": "Nội dung tương tự",
+    "NEXT_LEVEL": "Bước tiếp theo",
+    "POPULAR": "Phổ biến",
+    "NEW": "Mới ra mắt"
+  }
+}

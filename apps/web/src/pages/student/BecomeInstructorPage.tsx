@@ -66,7 +66,10 @@ const BecomeInstructorPage: React.FC = () => {
     if (file) setCvFile(file);
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  // NOTE: there is no instructor-application API yet, so submitting is simulated
+  // locally (short delay, then mark the application as pending). Replace the
+  // setTimeout with the real call once that endpoint exists.
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setTimeout(() => {

@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { logger } from '@/utils/logger';
 
+/**
+ * Bề ngang tối đa của khung gửi đi. `getUserMedia` coi `width/height` là
+ * *ideal*, không phải *exact*: webcam 1080p vẫn trả về 1920x1080 dù ta xin
+ * 640x480, nên khung chụp theo `video.videoWidth` to gấp ~9 lần diện tích cần
+ * thiết. MediaPipe Face Mesh hạ ảnh xuống cỡ ~192px trước khi chạy nên 640px
+ * đã thừa cho việc phát hiện.
+ */
+export const CAPTURE_MAX_WIDTH = 640;
+
 export type WebcamStatus = 'idle' | 'requesting' | 'streaming' | 'denied' | 'unavailable';
 
 export interface UseWebcamOptions {
@@ -83,26 +92,40 @@ export function useWebcam({ enabled = true, width = 640, height = 480 }: UseWebc
   }, [enabled, width, height, stop]);
 
   /**
-   * Chụp một khung hình dạng data URL JPEG.
+   * Chụp một khung hình dạng data URL JPEG, đã thu nhỏ về `maxWidth`.
    *
    * Chất lượng 0.6 là cố ý: khung gửi liên tục qua WebSocket, PNG hoặc JPEG
    * chất lượng cao làm phình payload mà không giúp gì cho việc phát hiện.
+   * Thu nhỏ cũng vậy — xem ghi chú nhịp gửi trong `ProctoringPanel.tsx`.
    */
-  const captureFrame = useCallback((quality = 0.6): string | null => {
-    const video = videoRef.current;
-    if (!video || status !== 'streaming' || video.readyState < 2) return null;
+  const captureFrame = useCallback(
+    ({ quality = 0.6, maxWidth = CAPTURE_MAX_WIDTH }: { quality?: number; maxWidth?: number } = {}):
+      | string
+      | null => {
+      const video = videoRef.current;
+      if (!video || status !== 'streaming' || video.readyState < 2) return null;
 
-    const canvas = canvasRef.current ?? document.createElement('canvas');
-    canvasRef.current = canvas;
-    canvas.width = video.videoWidth || width;
-    canvas.height = video.videoHeight || height;
+      const sourceWidth = video.videoWidth || width;
+      const sourceHeight = video.videoHeight || height;
+      if (!sourceWidth || !sourceHeight) return null;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
+      // Chỉ thu nhỏ, không bao giờ phóng to: phóng to chỉ làm payload to ra
+      // mà không thêm thông tin nào cho bộ phân tích.
+      const scale = Math.min(1, maxWidth / sourceWidth);
 
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL('image/jpeg', quality);
-  }, [status, width, height]);
+      const canvas = canvasRef.current ?? document.createElement('canvas');
+      canvasRef.current = canvas;
+      canvas.width = Math.round(sourceWidth * scale);
+      canvas.height = Math.round(sourceHeight * scale);
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/jpeg', quality);
+    },
+    [status, width, height],
+  );
 
   return {
     videoRef,

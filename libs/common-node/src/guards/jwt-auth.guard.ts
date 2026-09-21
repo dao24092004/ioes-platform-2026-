@@ -125,6 +125,11 @@ export class JwtAuthGuard implements CanActivate, OnModuleInit {
       if (!payload.sub || !payload.role || !payload.type) {
         throw new UnauthorizedException('Invalid token payload');
       }
+      // Refresh token cùng chữ ký và còn hạn 7 ngày; nhận nó ở đây thì lộ refresh
+      // token là gọi được API như access token.
+      if (payload.type !== 'access') {
+        throw new UnauthorizedException('Invalid token type');
+      }
 
       // Normalize role sang UPPERCASE để khớp với @Roles('STUDENT', 'INSTRUCTOR', 'ADMIN')
       payload.role = payload.role.toUpperCase();

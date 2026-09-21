@@ -1,12 +1,25 @@
-"""Nạp corpus học liệu vào Milvus.
+"""Nạp học liệu vào Milvus.
 
-Đọc Markdown, PDF và DOCX trong ``data/corpus*/``, cắt thành đoạn, nhúng, rồi
-ghi vào vectorstore. Markdown lấy ``title``/``doc_id`` từ frontmatter; PDF và
-DOCX lấy tiêu đề từ metadata của chính file, ``doc_id`` từ tên file — xem
-``services/document_loaders.py`` để biết vì sao DOCX cho kết quả tốt hơn PDF.
+Hai nguồn, cùng một collection:
 
-Nạp lại luôn xoá collection cũ trước. Ghi đè lên collection đang có sẽ nhân đôi
-dữ liệu vì mỗi lần chạy sinh khoá mới, khiến kết quả truy xuất bị trùng lặp.
+``ingest()``          corpus tĩnh trong ``data/corpus*/`` — Markdown, PDF, DOCX.
+                      Markdown lấy ``title``/``doc_id`` từ frontmatter; PDF và
+                      DOCX lấy tiêu đề từ metadata của chính file, ``doc_id`` từ
+                      tên file — xem ``services/document_loaders.py`` để biết vì
+                      sao DOCX cho kết quả tốt hơn PDF.
+``ingest_content()``  bài học thật của content-service (FR-AI-004), gắn kèm
+                      ``courseId``/``lessonId``/``chapterId`` để tầng sinh câu
+                      hỏi lọc đúng khoá, đúng bài.
+
+Nạp lại corpus luôn xoá collection cũ trước. Ghi đè lên collection đang có sẽ
+nhân đôi dữ liệu vì mỗi lần chạy sinh khoá mới, khiến kết quả truy xuất bị trùng
+lặp. Nạp học liệu thật thì KHÔNG xoá cả collection — nó chỉ xoá đúng phần
+``source == "content-service"`` (và đúng ``courseId`` nếu có thu hẹp), vì corpus
+tĩnh vẫn phải còn nguyên.
+
+Mọi đoạn — dù đến từ nguồn nào — mang cùng một bộ khoá metadata. Milvus có lược
+đồ cố định: LangChain dựng cột từ metadata của lô ghi đầu tiên, nên lô sau thiếu
+hoặc thừa khoá sẽ bị từ chối. Xem ``_normalise_metadata``.
 """
 
 from __future__ import annotations
@@ -19,11 +32,28 @@ from ioes_common import get_logger
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+from ml_worker.core.concurrency import run_heavy
 from ml_worker.core.config import get_settings
 from ml_worker.db import milvus
-from ml_worker.services import document_loaders
+from ml_worker.services import content_client, document_loaders
+from ml_worker.services.content_client import ContentServiceError  # noqa: F401 - tái phơi
 
 logger = get_logger(__name__)
+
+#: Giá trị ``source`` của học liệu tĩnh. Đối trọng của
+#: ``content_client.SOURCE_NAME``.
+SOURCE_CORPUS = "corpus"
+
+#: Khoá metadata mà mọi đoạn phải có, kèm giá trị mặc định. Đoạn của corpus cũ
+#: để chuỗi rỗng ở ba trường id — Milvus không có NULL cho VARCHAR, và chuỗi
+#: rỗng cũng chính là thứ ``questions`` dịch ngược thành ``null`` khi trả về.
+_METADATA_DEFAULTS: dict[str, str] = {
+    "lang": "en",
+    "source": SOURCE_CORPUS,
+    "courseId": "",
+    "lessonId": "",
+    "chapterId": "",
+}
 
 # Thư mục corpus nằm ở gốc service: src/ml_worker/services/ingest.py -> lên 4 cấp
 _DATA_DIR = Path(__file__).resolve().parents[3] / "data"
@@ -222,8 +252,24 @@ def split(documents: list[Document]) -> list[Document]:
         stripped.append(Document(page_content=without, metadata=meta))
     chunks.extend(stripped)
 
+    for chunk in chunks:
+        _normalise_metadata(chunk)
+
     logger.info("corpus_split", chunks=len(chunks), khong_dau=len(stripped))
     return chunks
+
+
+def _normalise_metadata(chunk: Document) -> None:
+    """Điền đủ bộ khoá metadata cho một đoạn.
+
+    Milvus không có lược đồ động ở đây: LangChain suy ra các cột từ lô ghi đầu
+    tiên rồi khoá lại. Nếu đoạn của corpus không có ``courseId`` còn đoạn của
+    content-service thì có, lô nào ghi sau cũng hỏng — tuỳ thứ tự chạy mà lỗi,
+    nên phải đồng bộ ngay từ tầng cắt đoạn.
+    """
+    for key, default in _METADATA_DEFAULTS.items():
+        value = chunk.metadata.get(key)
+        chunk.metadata[key] = default if value is None else str(value)
 
 
 def ingest(corpus_dir: Path | None = None, *, reset: bool = True) -> dict[str, int | str]:
@@ -246,6 +292,153 @@ def ingest(corpus_dir: Path | None = None, *, reset: bool = True) -> dict[str, i
         total_rows=total,
     )
     return {
+        "documents": len(documents),
+        "chunks": len(chunks),
+        "collection": settings.milvus_collection,
+        "total_rows": total,
+    }
+
+
+# ==== Học liệu thật của content-service (FR-AI-004) ==========================
+
+#: Ngăn giữa tên khoá và tên chương ở dòng ngữ cảnh đầu mỗi bài.
+_CONTEXT_SEPARATOR = " › "
+
+
+def lesson_document(
+    course: content_client.Course,
+    chapter: content_client.Chapter,
+    lesson: content_client.Lesson,
+) -> Document | None:
+    """Một bài học thành Document, hoặc None nếu bài không có chữ nào.
+
+    ``LessonView`` của content-service chỉ mang ``description`` làm phần văn
+    bản; ``contentUrl`` trỏ tới video hoặc file, không đọc được ở đây. Bài
+    không có description thì không có căn cứ để ra đề, nạp vào chỉ tổ chiếm chỗ
+    trong kết quả truy xuất — bỏ qua, giống cách xử PDF quét ảnh.
+
+    Dòng đầu ghi ``Khoá › Chương`` để đoạn cắt từ giữa bài vẫn biết mình thuộc
+    đâu; ``split`` còn gắn thêm tiêu đề bài lên trên nữa.
+    """
+    body = lesson.description.strip()
+    if not body:
+        logger.warning(
+            "lesson_without_text",
+            course_id=course.course_id,
+            lesson_id=lesson.lesson_id,
+        )
+        return None
+
+    context = _CONTEXT_SEPARATOR.join(p for p in (course.title, chapter.title) if p)
+    return Document(
+        page_content=f"{context}\n\n{body}" if context else body,
+        metadata={
+            # doc_id/chunk_id giữ nguyên quy ước của corpus để phần trích dẫn
+            # và RRF dùng chung một khoá.
+            "doc_id": f"lesson-{lesson.lesson_id}",
+            "title": lesson.title or chapter.title or course.title,
+            "lang": course.language,
+            "courseId": course.course_id,
+            "lessonId": lesson.lesson_id,
+            "chapterId": lesson.chapter_id or chapter.chapter_id,
+            "source": content_client.SOURCE_NAME,
+        },
+    )
+
+
+def lesson_documents(courses: list[content_client.Course]) -> list[Document]:
+    """Toàn bộ bài học của các khoá, đã bỏ những bài rỗng."""
+    documents: list[Document] = []
+    for course in courses:
+        for chapter, lesson in course.lessons:
+            document = lesson_document(course, chapter, lesson)
+            if document is not None:
+                documents.append(document)
+    logger.info("content_documents_built", courses=len(courses), documents=len(documents))
+    return documents
+
+
+def content_filter_expr(course_id: str | None = None) -> str:
+    """Biểu thức Milvus chọn đúng phần học liệu đến từ content-service."""
+    expr = f'source == "{content_client.SOURCE_NAME}"'
+    if course_id:
+        expr += f' and courseId == "{course_id}"'
+    return expr
+
+
+def _purge_content(course_id: str | None) -> None:
+    """Xoá phần học liệu thật đã nạp lần trước.
+
+    Chỉ xoá đúng ``source == "content-service"`` (và đúng khoá nếu có thu hẹp).
+    Không đụng corpus tĩnh, và không xoá cả collection như ``ingest()`` — nạp
+    lại một khoá không được làm mất 88 tài liệu MDN.
+    """
+    if not milvus.collection_exists():
+        return
+    try:
+        milvus.get_vectorstore().delete(expr=content_filter_expr(course_id))
+    except Exception as exc:  # noqa: BLE001 - chưa có gì để xoá cũng không sao
+        logger.warning("content_purge_failed", course_id=course_id, error=str(exc))
+
+
+async def ingest_content(
+    course_id: str | None = None,
+    *,
+    replace: bool = True,
+) -> dict[str, int | str | None]:
+    """Nạp bài học thật của content-service vào Milvus.
+
+    ``course_id`` thu hẹp về đúng một khoá (phải đang ``published``). Bỏ trống
+    thì đi hết danh mục khoá đã xuất bản.
+
+    content-service chết thì ``ContentServiceError`` bay lên nguyên vẹn — tầng
+    route đổi thành 502. Không bao giờ báo "đã nạp 0 tài liệu" thay cho lỗi.
+    """
+    courses = await content_client.fetch_published_courses(course_id)
+    # Tải khoá học là I/O bất đồng bộ thật (httpx.AsyncClient) nên chạy thẳng
+    # trên vòng lặp. Phần còn lại thì không: cắt đoạn, nhúng và ghi Milvus đều
+    # đồng bộ và nặng — một khoá vài chục bài là hàng chục giây. Đẩy cả cụm
+    # sang luồng khác, nếu không thì suốt lúc nạp học liệu, /health và
+    # /internal/ai/proctor/analyze không trả lời được. Xem core/concurrency.py.
+    return await run_heavy(_persist_content, courses, course_id, replace)
+
+
+def _persist_content(
+    courses: list[content_client.Course],
+    course_id: str | None,
+    replace: bool,
+) -> dict[str, int | str | None]:
+    """Phần đồng bộ của ``ingest_content``: cắt đoạn, xoá bản cũ, ghi Milvus.
+
+    Tách hẳn thành hàm đồng bộ thay vì rải ``run_in_threadpool`` lên từng lời
+    gọi: bốn bước này phải chạy liền mạch (xoá xong mới được ghi), mà nhảy qua
+    lại giữa luồng và vòng lặp bốn lần thì vừa chậm hơn vừa mở ra khoảng trống
+    cho một lượt nạp khác chen vào giữa.
+    """
+    settings = get_settings()
+    documents = lesson_documents(courses)
+
+    chunks = split(documents) if documents else []
+
+    if replace:
+        _purge_content(course_id)
+
+    if chunks:
+        milvus.get_vectorstore().add_documents(chunks)
+
+    total = milvus.count_rows()
+    logger.info(
+        "content_ingested",
+        course_id=course_id,
+        courses=len(courses),
+        documents=len(documents),
+        chunks=len(chunks),
+        total_rows=total,
+    )
+    return {
+        "source": content_client.SOURCE_NAME,
+        "course_id": course_id,
+        "courses": len(courses),
         "documents": len(documents),
         "chunks": len(chunks),
         "collection": settings.milvus_collection,

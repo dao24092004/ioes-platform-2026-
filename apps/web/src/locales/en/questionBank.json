@@ -1,0 +1,165 @@
+{
+  "questionBank": {
+    "title": "Question Bank",
+    "subtitle": "Manage and organize exam questions with AI-powered search",
+    "search": {
+      "placeholder": "Search questions by text, topic, or skill...",
+      "advanced": "Advanced filters",
+      "hideAdvanced": "Hide filters",
+      "button": "Search",
+      "searching": "Searching...",
+      "reset": "Reset filters"
+    },
+    "filters": {
+      "difficulty": "Difficulty",
+      "difficultyPlaceholder": "Select difficulty",
+      "questionType": "Question type",
+      "questionTypePlaceholder": "Select type",
+      "topic": "Topic",
+      "topicPlaceholder": "Select topic"
+    },
+    "difficulty": {
+      "very_easy": "Very Easy",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "very_hard": "Very Hard"
+    },
+    "questionType": {
+      "multiple_choice": "Multiple Choice",
+      "multiple_select": "Multiple Select",
+      "true_false": "True/False",
+      "short_answer": "Short Answer",
+      "essay": "Essay",
+      "coding": "Coding"
+    },
+    "actions": {
+      "create": "Create Question",
+      "edit": "Edit",
+      "delete": "Delete",
+      "preview": "Preview",
+      "addToExam": "Add to Exam"
+    },
+    "card": {
+      "points": "{{points}} pts",
+      "published": "Published",
+      "draft": "Draft",
+      "options": "{{count}} options",
+      "moreOptions": "+{{count}} more options"
+    },
+    "form": {
+      "title": "Question Details",
+      "createTitle": "Create New Question",
+      "editTitle": "Edit Question",
+      "questionText": "Question text",
+      "questionTextPlaceholder": "Enter your question here...",
+      "questionType": "Question type",
+      "difficulty": "Difficulty",
+      "points": "Points",
+      "topic": "Topic",
+      "topicPlaceholder": "Select or search topic",
+      "skills": "Skills",
+      "skillsPlaceholder": "Select skills (press Enter)",
+      "explanation": "Explanation",
+      "explanationPlaceholder": "Provide explanation for the correct answer...",
+      "options": "Answer options",
+      "addOption": "Add option",
+      "optionText": "Option {{number}}",
+      "optionTextPlaceholder": "Enter option text",
+      "isCorrect": "Correct answer",
+      "shortAnswer": "Expected answer",
+      "shortAnswerPlaceholder": "Enter expected short answer...",
+      "essayGuideline": "Essay guideline",
+      "essayGuidelinePlaceholder": "Provide grading criteria for essay...",
+      "codingLanguage": "Programming language",
+      "codeTemplate": "Code template",
+      "codeTemplatePlaceholder": "// Starter code for students",
+      "testCases": "Test cases",
+      "addTestCase": "Add test case",
+      "testCaseInput": "Input",
+      "testCaseExpectedOutput": "Expected output",
+      "removeTestCase": "Remove",
+      "image": "Question image (optional)",
+      "imageUpload": "Upload image",
+      "imageFormats": "PNG, JPG up to 5MB",
+      "cancel": "Cancel",
+      "save": "Save Question",
+      "saving": "Saving...",
+      "create": "Create Question",
+      "creating": "Creating..."
+    },
+    "empty": {
+      "title": "No questions found",
+      "description": "Try adjusting your search or filters, or create a new question.",
+      "action": "Create your first question"
+    },
+    "delete": {
+      "confirm": "Delete this question?",
+      "confirmDesc": "This action cannot be undone. The question will be permanently deleted.",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
+    "stats": {
+      "total": "Total Questions",
+      "byDifficulty": "By Difficulty",
+      "byType": "By Type",
+      "recentlyAdded": "Recently Added"
+    },
+    "practice": {
+      "title": "Practice Questions",
+      "subtitle": "Improve your knowledge with adaptive questions",
+      "selectTopic": "Select a topic to practice",
+      "topicPlaceholder": "Choose topic",
+      "startPractice": "Start Practice",
+      "currentQuestion": "Question {{current}} of {{total}}",
+      "submit": "Submit Answer",
+      "submitting": "Submitting...",
+      "next": "Next Question",
+      "finish": "Finish Practice",
+      "feedback": {
+        "correct": "Correct!",
+        "incorrect": "Incorrect",
+        "explanation": "Explanation"
+      },
+      "results": {
+        "title": "Practice Results",
+        "score": "Your Score",
+        "correct": "Correct",
+        "incorrect": "Incorrect",
+        "total": "Total Questions",
+        "tryAgain": "Try Again",
+        "backToTopics": "Back to Topics"
+      },
+      "knowledgeGraph": {
+        "title": "Knowledge Path",
+        "current": "Current",
+        "prerequisites": "Prerequisites",
+        "next": "Next Topics",
+        "completed": "Completed",
+        "locked": "Locked"
+      }
+    },
+    "validation": {
+      "questionTextRequired": "Question text is required",
+      "questionTypeRequired": "Question type is required",
+      "difficultyRequired": "Difficulty is required",
+      "pointsRequired": "Points are required",
+      "pointsMin": "Points must be at least 1",
+      "topicRequired": "Topic is required",
+      "optionsMin": "At least 2 options required",
+      "correctAnswerRequired": "Mark at least one correct answer",
+      "shortAnswerRequired": "Expected answer is required",
+      "essayGuidelineRequired": "Essay guideline is required",
+      "codingLanguageRequired": "Programming language is required",
+      "testCasesMin": "At least 1 test case required"
+    },
+    "toast": {
+      "createSuccess": "Question created successfully",
+      "updateSuccess": "Question updated successfully",
+      "deleteSuccess": "Question deleted successfully",
+      "createError": "Failed to create question",
+      "updateError": "Failed to update question",
+      "deleteError": "Failed to delete question"
+    }
+  }
+}

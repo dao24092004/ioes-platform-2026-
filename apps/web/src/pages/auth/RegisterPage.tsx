@@ -56,8 +56,9 @@ export default function RegisterPage() {
 
     try {
       await authApi.register({ email, password, fullName });
-      // Đăng ký xong chưa có phiên — backend gửi email xác thực trước.
-      navigate('/auth/verify-email', { state: { email, fullName } });
+      // Đăng ký không trả phiên và chưa có luồng xác thực email (trang verify-email
+      // chỉ giả lập), nên đưa thẳng về đăng nhập với email điền sẵn.
+      navigate('/auth/login', { state: { registeredEmail: email } });
     } catch (err) {
       setError(
         err instanceof ApiError

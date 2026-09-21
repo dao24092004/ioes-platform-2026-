@@ -1586,7 +1586,26 @@
       "rule1": "Always look at the screen during the exam",
       "rule2": "Ensure adequate room lighting",
       "rule3": "Do not leave the exam tab",
-      "rule4": "Do not communicate with others"
+      "rule4": "Do not communicate with others",
+      "attentionScore": "Attention level",
+      "faceDetected": "Face detected",
+      "faceNotDetected": "No face detected — please sit in the centre of the frame",
+      "multipleFaces": "More than one person is in frame — only the candidate may sit in front of the camera",
+      "proctorWaiting": "Waiting for the proctoring analyser...",
+      "violationCount": "Recorded",
+      "violationAutoSubmit": "time(s); going over the limit submits your exam automatically",
+      "violationDetected": "Violation detected",
+      "violationWarning": "going over the limit submits your exam automatically",
+      "proctoringIdle": "Not in an attempt yet — the camera preview is local only",
+      "proctoringOffline": "Proctoring connection lost",
+      "cameraRequesting": "Requesting camera permission...",
+      "gazeCenter": "Looking at the screen",
+      "gazeLeft": "Looking left",
+      "gazeRight": "Looking right",
+      "gazeUp": "Looking up",
+      "gazeDown": "Looking down",
+      "gazeOutOfFrame": "Gaze direction unclear",
+      "proctoringFlagged": "Attention dropped — this attempt is flagged for instructor review"
     },
     "results": {
       "title": "Exam Results",
@@ -1995,19 +2014,50 @@
     "reports": {
       "title": "Learning Reports",
       "subtitle": "Analyze your progress and results",
-      "tabs": {
-        "study": "Study time",
-        "exam": "Exams",
-        "achievement": "Achievements",
-        "engagement": "Engagement"
+      "stats": {
+        "enrolled": "Courses enrolled",
+        "completed": "Courses completed",
+        "avgScore": "Average exam score",
+        "passRate": "Pass rate"
       },
-      "range": {
-        "7d": "7 days",
-        "30d": "30 days",
-        "90d": "90 days",
-        "ytd": "Year-to-date"
+      "courseProgress": {
+        "title": "Course progress",
+        "avg": "Average {{value}}%",
+        "empty": "You have not enrolled in any course yet.",
+        "browse": "Browse courses",
+        "lastAccessed": "Last accessed: {{date}}",
+        "enrolledAt": "Enrolled: {{date}}",
+        "completed": "Completed"
       },
-      "export": "Export report"
+      "examScores": {
+        "title": "Recent exam scores",
+        "recent": "Last {{n}} attempts",
+        "empty": "You have not submitted any exam yet.",
+        "browse": "View exams",
+        "noGraded": "Your submitted exams are awaiting grading.",
+        "taken": "Submitted",
+        "passed": "Passed",
+        "best": "Best score"
+      },
+      "recentCourse": {
+        "title": "Recent course",
+        "empty": "No courses yet.",
+        "progress": "{{value}}% complete"
+      },
+      "recentExam": {
+        "title": "Recent exam",
+        "empty": "No exams yet.",
+        "pending": "Awaiting grading"
+      },
+      "streak": {
+        "title": "Study streak",
+        "days": "days",
+        "longest": "Record: {{n}} days"
+      },
+      "studyTime": {
+        "title": "Study time",
+        "empty": "No daily study-time data yet — the platform does not record this metric."
+      }
     }
   },
   "instructor": {

@@ -37,9 +37,12 @@ describe('FrameProcessorService', () => {
       startFaceNotDetected: jest.fn(),
       clearFaceNotDetected: jest.fn(),
       getFaceNotDetectedDurationMs: jest.fn(),
+      // Mặc định mở được đợt mới; test nào cần khoảng lặng thì ghi đè false.
+      tryStartViolationEpisode: jest.fn().mockResolvedValue(true),
     } as any;
+    counter.getCount.mockResolvedValue(0);
 
-    service = new FrameProcessorService(proctorClient, counter, 3, 1800);
+    service = new FrameProcessorService(proctorClient, counter, 3, 1800, 15);
   });
 
   describe('processFrame', () => {
@@ -247,6 +250,154 @@ describe('FrameProcessorService', () => {
 
       expect(result.attentionScore).toBe(55);
       expect(result.faceDetected).toBe(true);
+    });
+
+    // FR-PROC-005: người thứ hai trong khung là sự kiện rõ ràng, không cần ân hạn.
+    it('should_returnMultipleFacesViolation_When_moreThanOneFace', async () => {
+      proctorClient.analyzeFrame.mockResolvedValue({
+        faceDetected: true,
+        faceCount: 2,
+        attentionScore: 80,
+      });
+      counter.recordViolation.mockResolvedValue(1);
+      counter.isOverThreshold.mockResolvedValue(false);
+
+      const result = await service.processFrame({
+        attemptId: 'attempt-1',
+        capturedAt: new Date(),
+        frameBase64: 'mock',
+      });
+
+      expect(result.violationType).toBe('MULTIPLE_FACES');
+      expect(result.faceCount).toBe(2);
+      expect(counter.recordViolation).toHaveBeenCalledWith(
+        'attempt-1',
+        expect.objectContaining({ type: 'MULTIPLE_FACES' }),
+        1800,
+      );
+    });
+
+    it('should_returnMultipleFacesViolation_When_analyzerSaysSo', async () => {
+      // ml-worker có thể báo bằng violationType thay vì faceCount.
+      proctorClient.analyzeFrame.mockResolvedValue({
+        faceDetected: true,
+        faceCount: 1,
+        attentionScore: 80,
+        violationType: 'MULTIPLE_FACES',
+      });
+      counter.recordViolation.mockResolvedValue(1);
+      counter.isOverThreshold.mockResolvedValue(false);
+
+      const result = await service.processFrame({
+        attemptId: 'attempt-1',
+        capturedAt: new Date(),
+        frameBase64: 'mock',
+      });
+
+      expect(result.violationType).toBe('MULTIPLE_FACES');
+    });
+
+    it('should_treatNoFaceViolationType_AsFaceMissing', async () => {
+      proctorClient.analyzeFrame.mockResolvedValue({
+        faceDetected: true,
+        faceCount: 1,
+        attentionScore: 80,
+        violationType: 'NO_FACE',
+      });
+      counter.getFaceNotDetectedDurationMs.mockResolvedValue(null);
+
+      const result = await service.processFrame({
+        attemptId: 'attempt-1',
+        capturedAt: new Date(),
+        frameBase64: 'mock',
+      });
+
+      expect(result.faceDetected).toBe(false);
+      expect(counter.startFaceNotDetected).toHaveBeenCalledWith('attempt-1', 1800);
+    });
+
+    it('should_notCountViolation_When_offScreenOnly', async () => {
+      // Liếc ra ngoài khung đã bị trừ vào attentionScore rồi; tính thêm một
+      // violation nữa là phạt kép cùng một hành vi.
+      proctorClient.analyzeFrame.mockResolvedValue({
+        faceDetected: true,
+        faceCount: 1,
+        attentionScore: 70,
+        gazeDirection: 'OUT_OF_FRAME',
+        violationType: 'OFF_SCREEN',
+      });
+
+      const result = await service.processFrame({
+        attemptId: 'attempt-1',
+        capturedAt: new Date(),
+        frameBase64: 'mock',
+      });
+
+      expect(result.violationType).toBeUndefined();
+      expect(result.gazeDirection).toBe('OUT_OF_FRAME');
+      expect(counter.recordViolation).not.toHaveBeenCalled();
+    });
+
+    // Ở 1 Hz (FR-PROC-001) cùng một hành vi sinh vi phạm mỗi giây; không có
+    // khoảng lặng thì ngưỡng BR-013 (>3) bị chạm sau 4 giây.
+    it('should_notRecordViolation_When_sameEpisodeStillInCooldown', async () => {
+      proctorClient.analyzeFrame.mockResolvedValue({
+        faceDetected: true,
+        faceCount: 1,
+        attentionScore: 45,
+      });
+      counter.tryStartViolationEpisode.mockResolvedValue(false);
+      counter.getCount.mockResolvedValue(1);
+
+      const result = await service.processFrame({
+        attemptId: 'attempt-1',
+        capturedAt: new Date(),
+        frameBase64: 'mock',
+      });
+
+      expect(result.violationType).toBe('LOW_ATTENTION');
+      expect(result.violationRecorded).toBe(false);
+      expect(result.violationCount).toBe(1);
+      expect(result.shouldAutoSubmit).toBe(false);
+      expect(counter.recordViolation).not.toHaveBeenCalled();
+    });
+
+    it('should_reportCurrentCountAndThreshold_When_frameIsClean', async () => {
+      // Panel của thí sinh hiện "x/ngưỡng" liên tục nên khung sạch cũng phải
+      // mang theo số thật.
+      proctorClient.analyzeFrame.mockResolvedValue({
+        faceDetected: true,
+        faceCount: 1,
+        attentionScore: 90,
+        gazeDirection: 'CENTER',
+      });
+      counter.getCount.mockResolvedValue(2);
+
+      const result = await service.processFrame({
+        attemptId: 'attempt-1',
+        capturedAt: new Date(),
+        frameBase64: 'mock',
+      });
+
+      expect(result.violationCount).toBe(2);
+      expect(result.violationThreshold).toBe(3);
+      expect(result.proctorAvailable).toBe(true);
+      expect(result.gazeDirection).toBe('CENTER');
+    });
+
+    it('should_markProctorUnavailable_When_proctorCallFails', async () => {
+      proctorClient.analyzeFrame.mockRejectedValue(new Error('ECONNREFUSED'));
+      counter.getCount.mockResolvedValue(2);
+
+      const result = await service.processFrame({
+        attemptId: 'attempt-1',
+        capturedAt: new Date(),
+        frameBase64: 'mock',
+      });
+
+      // Không được để client hiểu nhầm là "không thấy mặt".
+      expect(result.proctorAvailable).toBe(false);
+      expect(result.violationCount).toBe(2);
     });
   });
 

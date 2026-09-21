@@ -1,0 +1,71 @@
+# Build context cua monorepo.
+#
+# Cac Dockerfile duoi services/ (ai-suite/ml-worker, ai-suite/api-gateway va
+# toan bo service Java) deu duoc build voi context la THU MUC GOC repo, vi
+# chung COPY ca libs/ lan services/<ten>/. Khong co file nay thi Docker nen va
+# gui toan bo cay thu muc — ~2,9GB, trong do 1,7GB la .venv cua ml-worker va
+# 0,5GB node_modules — cho moi lan build, ke ca khi khong co gi doi.
+#
+# Chi loai cac thu muc san pham/phu thuoc sinh ra tren may local. Khong
+# Dockerfile nao COPY tu chung: Java build bang mvn ngay trong image, Node
+# chay pnpm install trong image, Python chay poetry install trong image.
+
+.git
+.gitignore
+.github
+
+# Phu thuoc va san pham build cua tung he sinh thai
+**/node_modules
+**/target
+**/dist
+**/build
+**/.venv
+**/venv
+**/__pycache__
+**/*.py[cod]
+**/*.egg-info
+
+# Cache cua cong cu
+#
+# *.tsbuildinfo phai loai, khong phai cho gon ma vi tinh dung: tsconfig cua
+# libs/common-node va ai-gateway deu bat `incremental`. Neu file tsbuildinfo
+# cua may local lot vao image trong khi dist/ da bi loai, tsc doi chieu thay
+# "khong co gi doi" va BO QUA buoc sinh ma — dist/ trong image chi co .d.ts,
+# thieu gan het .js, va container chet voi
+# 'Cannot find module .../common-node/dist/index.js'. Da dinh that mot lan.
+**/*.tsbuildinfo
+**/.mypy_cache
+**/.pytest_cache
+**/.ruff_cache
+**/.coverage
+**/coverage
+**/.turbo
+**/.next
+
+# Bi mat va log — KHONG BAO GIO dua vao image
+**/.env
+**/.env.*
+!**/.env.example
+**/*.log
+.local-logs
+
+# Thu muc lam viec cua may local
+.claude
+.idea
+.vscode
+**/.DS_Store
+
+# Tai lieu, so tay, ha tang — khong service nao can luc chay
+docs
+notebooks
+**/notebooks
+infrastructure/monitoring
+infrastructure/k8s-manifests
+infrastructure/helm
+infrastructure/terraform
+infrastructure/argocd
+
+# Test: chay o CI chu khong dong goi vao image runtime
+**/tests
+**/*.spec.ts
+**/*.test.ts

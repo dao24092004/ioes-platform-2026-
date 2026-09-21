@@ -1,0 +1,165 @@
+{
+  "questionBank": {
+    "title": "Ngân Hàng Câu Hỏi",
+    "subtitle": "Quản lý và tổ chức câu hỏi thi với tìm kiếm AI",
+    "search": {
+      "placeholder": "Tìm kiếm câu hỏi theo nội dung, chủ đề, kỹ năng...",
+      "advanced": "Bộ lọc nâng cao",
+      "hideAdvanced": "Ẩn bộ lọc",
+      "button": "Tìm kiếm",
+      "searching": "Đang tìm...",
+      "reset": "Xóa bộ lọc"
+    },
+    "filters": {
+      "difficulty": "Độ khó",
+      "difficultyPlaceholder": "Chọn độ khó",
+      "questionType": "Loại câu hỏi",
+      "questionTypePlaceholder": "Chọn loại",
+      "topic": "Chủ đề",
+      "topicPlaceholder": "Chọn chủ đề"
+    },
+    "difficulty": {
+      "very_easy": "Rất Dễ",
+      "easy": "Dễ",
+      "medium": "Trung Bình",
+      "hard": "Khó",
+      "very_hard": "Rất Khó"
+    },
+    "questionType": {
+      "multiple_choice": "Trắc Nghiệm",
+      "multiple_select": "Nhiều Đáp Án",
+      "true_false": "Đúng/Sai",
+      "short_answer": "Câu Trả Lời Ngắn",
+      "essay": "Tự Luận",
+      "coding": "Lập Trình"
+    },
+    "actions": {
+      "create": "Tạo Câu Hỏi",
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "preview": "Xem Trước",
+      "addToExam": "Thêm Vào Đề Thi"
+    },
+    "card": {
+      "points": "{{points}} điểm",
+      "published": "Đã Xuất Bản",
+      "draft": "Nháp",
+      "options": "{{count}} đáp án",
+      "moreOptions": "+{{count}} đáp án khác"
+    },
+    "form": {
+      "title": "Chi Tiết Câu Hỏi",
+      "createTitle": "Tạo Câu Hỏi Mới",
+      "editTitle": "Sửa Câu Hỏi",
+      "questionText": "Nội dung câu hỏi",
+      "questionTextPlaceholder": "Nhập câu hỏi của bạn...",
+      "questionType": "Loại câu hỏi",
+      "difficulty": "Độ khó",
+      "points": "Điểm",
+      "topic": "Chủ đề",
+      "topicPlaceholder": "Chọn hoặc tìm chủ đề",
+      "skills": "Kỹ năng",
+      "skillsPlaceholder": "Chọn kỹ năng (nhấn Enter)",
+      "explanation": "Giải thích",
+      "explanationPlaceholder": "Cung cấp giải thích cho đáp án đúng...",
+      "options": "Các đáp án",
+      "addOption": "Thêm đáp án",
+      "optionText": "Đáp án {{number}}",
+      "optionTextPlaceholder": "Nhập nội dung đáp án",
+      "isCorrect": "Đáp án đúng",
+      "shortAnswer": "Câu trả lời mong đợi",
+      "shortAnswerPlaceholder": "Nhập câu trả lời ngắn mong đợi...",
+      "essayGuideline": "Hướng dẫn chấm tự luận",
+      "essayGuidelinePlaceholder": "Cung cấp tiêu chí chấm điểm cho bài tự luận...",
+      "codingLanguage": "Ngôn ngữ lập trình",
+      "codeTemplate": "Mã khởi đầu",
+      "codeTemplatePlaceholder": "// Code mẫu cho sinh viên",
+      "testCases": "Test cases",
+      "addTestCase": "Thêm test case",
+      "testCaseInput": "Input",
+      "testCaseExpectedOutput": "Output mong đợi",
+      "removeTestCase": "Xóa",
+      "image": "Hình ảnh câu hỏi (tùy chọn)",
+      "imageUpload": "Tải lên hình ảnh",
+      "imageFormats": "PNG, JPG tối đa 5MB",
+      "cancel": "Hủy",
+      "save": "Lưu Câu Hỏi",
+      "saving": "Đang lưu...",
+      "create": "Tạo Câu Hỏi",
+      "creating": "Đang tạo..."
+    },
+    "empty": {
+      "title": "Không tìm thấy câu hỏi",
+      "description": "Thử điều chỉnh tìm kiếm hoặc bộ lọc, hoặc tạo câu hỏi mới.",
+      "action": "Tạo câu hỏi đầu tiên"
+    },
+    "delete": {
+      "confirm": "Xóa câu hỏi này?",
+      "confirmDesc": "Hành động này không thể hoàn tác. Câu hỏi sẽ bị xóa vĩnh viễn.",
+      "cancel": "Hủy",
+      "delete": "Xóa"
+    },
+    "stats": {
+      "total": "Tổng Số Câu Hỏi",
+      "byDifficulty": "Theo Độ Khó",
+      "byType": "Theo Loại",
+      "recentlyAdded": "Thêm Gần Đây"
+    },
+    "practice": {
+      "title": "Luyện Tập Câu Hỏi",
+      "subtitle": "Cải thiện kiến thức với câu hỏi thích ứng",
+      "selectTopic": "Chọn chủ đề để luyện tập",
+      "topicPlaceholder": "Chọn chủ đề",
+      "startPractice": "Bắt Đầu Luyện Tập",
+      "currentQuestion": "Câu {{current}} / {{total}}",
+      "submit": "Nộp Đáp Án",
+      "submitting": "Đang nộp...",
+      "next": "Câu Tiếp Theo",
+      "finish": "Kết Thúc",
+      "feedback": {
+        "correct": "Chính xác!",
+        "incorrect": "Chưa đúng",
+        "explanation": "Giải thích"
+      },
+      "results": {
+        "title": "Kết Quả Luyện Tập",
+        "score": "Điểm Của Bạn",
+        "correct": "Đúng",
+        "incorrect": "Sai",
+        "total": "Tổng Câu Hỏi",
+        "tryAgain": "Thử Lại",
+        "backToTopics": "Quay Lại Chủ Đề"
+      },
+      "knowledgeGraph": {
+        "title": "Lộ Trình Kiến Thức",
+        "current": "Hiện Tại",
+        "prerequisites": "Kiến Thức Cần Có",
+        "next": "Chủ Đề Tiếp Theo",
+        "completed": "Đã Hoàn Thành",
+        "locked": "Đã Khóa"
+      }
+    },
+    "validation": {
+      "questionTextRequired": "Nội dung câu hỏi là bắt buộc",
+      "questionTypeRequired": "Loại câu hỏi là bắt buộc",
+      "difficultyRequired": "Độ khó là bắt buộc",
+      "pointsRequired": "Điểm là bắt buộc",
+      "pointsMin": "Điểm tối thiểu là 1",
+      "topicRequired": "Chủ đề là bắt buộc",
+      "optionsMin": "Cần ít nhất 2 đáp án",
+      "correctAnswerRequired": "Đánh dấu ít nhất một đáp án đúng",
+      "shortAnswerRequired": "Câu trả lời mong đợi là bắt buộc",
+      "essayGuidelineRequired": "Hướng dẫn chấm tự luận là bắt buộc",
+      "codingLanguageRequired": "Ngôn ngữ lập trình là bắt buộc",
+      "testCasesMin": "Cần ít nhất 1 test case"
+    },
+    "toast": {
+      "createSuccess": "Tạo câu hỏi thành công",
+      "updateSuccess": "Cập nhật câu hỏi thành công",
+      "deleteSuccess": "Xóa câu hỏi thành công",
+      "createError": "Tạo câu hỏi thất bại",
+      "updateError": "Cập nhật câu hỏi thất bại",
+      "deleteError": "Xóa câu hỏi thất bại"
+    }
+  }
+}

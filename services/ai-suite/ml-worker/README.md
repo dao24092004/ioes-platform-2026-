@@ -56,6 +56,98 @@ poetry install                  # hoặc pip install -e . nếu Poetry giải ph
 poetry run uvicorn ml_worker.main:app --host 0.0.0.0 --port 9101
 ```
 
+Trên Windows, `.local-logs\start-local.ps1 -WithAi` khởi động sẵn Milvus,
+ml-worker và ai-gateway cùng với các service Java (không có `-WithAi` thì chỉ
+chạy Java, vì AI ăn thêm khoảng 4GB RAM).
+
+### Tạo lại venv
+
+`.venv/` **không** dùng chung giữa các máy được. Virtualenv ghi đường dẫn tuyệt
+đối của interpreter gốc vào `.venv/pyvenv.cfg`, nên một `.venv` lỡ đi theo bản
+sao thư mục từ máy khác sẽ trỏ vào một `C:\Users\<người khác>\...\python.exe`
+không tồn tại; mọi lệnh sau đó báo lỗi kiểu "No pyvenv.cfg file" hoặc treo im.
+Triệu chứng đã gặp một lần trên repo này. Cách chữa duy nhất đáng tin là xoá và
+tạo lại — không sửa tay `pyvenv.cfg`:
+
+```bash
+cd services/ai-suite/ml-worker
+rm -rf .venv                                  # PowerShell: Remove-Item -Recurse -Force .venv
+
+# Cách 1 — Poetry (đúng theo pyproject, đây là cách dự án quản lý phụ thuộc).
+# poetry.toml đặt virtualenvs.in-project = true nên venv nằm ngay ở .venv/.
+poetry env use python3.11                     # Windows: poetry env use py -3.11
+poetry install --with ml                      # nhóm ml (torch, sentence-transformers) không được bỏ
+
+# Cách 2 — venv + pip, khi Poetry giải phụ thuộc quá lâu
+python3.11 -m venv .venv                      # Windows: py -3.11 -m venv .venv
+source .venv/bin/activate                     # Windows: .venv\Scripts\Activate.ps1
+pip install -e ../../../libs/common-python    # ioes-common là path dependency
+pip install -e .
+```
+
+Kiểm tra nhanh trước khi báo là xong:
+
+```bash
+python -c "import ml_worker, ioes_common, mediapipe, sentence_transformers; print('ok')"
+```
+
+Cả hai cách đều cần **Python 3.11** đúng bản (`pyproject` ghim `^3.11`);
+mediapipe 0.10.x chưa có wheel cho 3.13.
+
+### Chạy bằng Docker
+
+> **Lần build đầu rất lâu — tính bằng giờ nếu đường mạng chậm.** Image kéo về
+> khoảng 3GB wheel. Repo **chưa commit `poetry.lock`**, nên
+> mỗi lần build Poetry phải giải lại toàn bộ đồ thị phụ thuộc từ đầu; cộng thêm
+> `torch` trên Linux kéo theo bộ wheel `nvidia-cuda-*` khoảng 2,5GB dù service
+> chạy `model_device=cpu`. Commit một `poetry.lock` (`poetry lock`) sẽ cắt phần
+> giải phụ thuộc, và khai báo nguồn torch CPU-only
+> (`https://download.pytorch.org/whl/cpu`) sẽ cắt phần CUDA — cả hai đều là việc
+> nên làm, chưa làm.
+
+```bash
+# từ thư mục GỐC monorepo — context phải chứa libs/common-python
+docker build -f services/ai-suite/ml-worker/Dockerfile -t ioes/ml-worker:dev .
+
+docker run --rm -p 9101:9101 \
+  -e MILVUS_HOST=host.docker.internal \
+  -e CONTENT_SERVICE_URL=http://host.docker.internal:9001 \
+  -v ml_worker_hf_cache:/app/.cache/huggingface \
+  ioes/ml-worker:dev
+```
+
+Ba điểm dễ vấp, đã xử lý sẵn trong Dockerfile:
+
+- **OS package cho opencv.** mediapipe kéo theo `opencv-contrib-python`, bản
+  wheel đó link động tới `libGL.so.1` và `libglib-2.0.so.0` — `python:3.11-slim`
+  không có. Thiếu chúng thì `import mediapipe` chết lúc nạp, và lỗi chỉ hiện ra
+  ở lần gọi `/internal/ai/proctor/analyze` đầu tiên chứ không phải lúc build.
+  Image cài `libgl1`, `libglib2.0-0`, `libgomp1`. Giữ đúng tên `libglib2.0-0`,
+  đừng "sửa" thành `libglib2.0-0t64`: `python:3.11-slim` hiện là Debian 13
+  (trixie) và gói thật ở đó mang tên `...t64`, nhưng nó khai
+  `Provides: libglib2.0-0` nên apt vẫn phân giải được tên cũ — tên cũ chạy đúng
+  trên cả bookworm lẫn trixie, tên t64 thì chỉ chạy từ trixie trở lên.
+- **Gói mô hình `face_landmarker.task` (~3,8MB)** được tải **lúc build** vào
+  `/app/.cache/mediapipe/` và `PROCTOR_MODEL_PATH` trỏ sẵn vào đó. Chọn nhét vào
+  image chứ không gắn volume vì file quá nhỏ để đáng có thêm một bước thủ công
+  trong quy trình triển khai, và vì cách còn lại — để runtime tự tải từ
+  `storage.googleapis.com` — làm container không ra được internet hỏng đúng vào
+  lúc đang có người thi. Mạng kín thì build bằng
+  `--build-arg PROCTOR_MODEL_URL=<gương nội bộ>`, hoặc mount file rồi đặt lại
+  `PROCTOR_MODEL_PATH`.
+- **Mô hình nhúng (~470MB)** thì ngược lại: quá lớn để nhét vào image, nên nó
+  vẫn tải từ HuggingFace ở lần nhúng đầu tiên. `HF_HOME=/app/.cache/huggingface`
+  — gắn volume vào đường dẫn này để không phải tải lại mỗi lần tạo container.
+
+`UVICORN_WORKERS` mặc định `1`: mỗi worker nạp một bản sentence-transformers và
+một bản MediaPipe riêng, khoảng 1,5GB RAM mỗi bản.
+
+Trong container **không có file `.env` nào được đọc**: `BaseServiceSettings` tìm
+`.env` bằng cách đi ngược lên tìm `.env.example` (ADR-008), mà image không chứa
+file đó. Mọi cấu hình phải truyền bằng `-e` hoặc `--env-file` — tối thiểu là
+`MILVUS_HOST`, `CONTENT_SERVICE_URL`, và `LLM_PROVIDER` + `GEMINI_API_KEY` nếu
+cần lộ trình học thật.
+
 Nạp corpus rồi hỏi thử:
 
 ```bash

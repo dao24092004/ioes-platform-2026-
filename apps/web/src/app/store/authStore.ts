@@ -14,13 +14,16 @@ interface AuthState {
   user: User | null;
   /** JWT gửi kèm mọi request qua API Gateway. */
   accessToken: string | null;
+  /** Dùng để xin access token mới khi access token (15 phút) hết hạn. */
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 
   // Actions
   setUser: (user: User | null) => void;
   setAccessToken: (token: string | null) => void;
-  login: (user: User, accessToken?: string) => void;
+  setTokens: (accessToken: string, refreshToken: string) => void;
+  login: (user: User, accessToken?: string, refreshToken?: string) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
 }
@@ -30,6 +33,7 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       accessToken: null,
+      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
 
@@ -37,9 +41,12 @@ export const useAuthStore = create<AuthState>()(
 
       setAccessToken: (accessToken) => set({ accessToken }),
 
-      login: (user, accessToken) => set({
+      setTokens: (accessToken, refreshToken) => set({ accessToken, refreshToken }),
+
+      login: (user, accessToken, refreshToken) => set({
         user,
         ...(accessToken === undefined ? {} : { accessToken }),
+        ...(refreshToken === undefined ? {} : { refreshToken }),
         isAuthenticated: true,
         isLoading: false
       }),
@@ -47,6 +54,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => set({
         user: null,
         accessToken: null,
+        refreshToken: null,
         isAuthenticated: false,
         isLoading: false
       }),
@@ -58,6 +66,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated
       }),
     }

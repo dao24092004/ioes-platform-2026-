@@ -1,21 +1,15 @@
 import {
   Body,
   Controller,
-  ExecutionContext,
   Get,
   HttpCode,
   HttpStatus,
-  Injectable,
   Param,
   Post,
-  SetMetadata,
   UseGuards,
-  CanActivate,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import {
   ApiBearerAuth,
-  ApiHeader,
   ApiOperation,
   ApiResponse as ApiDocResponse,
   ApiTags,
@@ -23,7 +17,9 @@ import {
 import {
   ApiResponse,
   CurrentUser,
+  JwtAuthGuard,
   Roles,
+  RolesGuard,
   UserPrincipalDto,
 } from '@ioes/common-node';
 import { StartAttemptRequestDto, StartAttemptResponseDto } from './dto/start-attempt.dto';
@@ -33,45 +29,14 @@ import {
 } from './dto/answer-save.dto';
 import { ExamSessionService } from './exam-session.service';
 
-export const DEV_AUTH_BYPASS_KEY = 'dev_auth_bypass';
-
 /**
- * Dev-only guard: cho phép bypass JWT auth khi `DEV_AUTH_BYPASS=true`.
- *
- * Chỉ áp dụng ở exam-session controller — KHÔNG động vào common-node.
- * Production: set DEV_AUTH_BYPASS=false (mặc định).
- *
- * Khi bypass, user lấy từ header `X-Dev-User-Id` (UUID) thay vì JWT.
+ * Auth: JwtAuthGuard (verify JWT của auth-service) + RolesGuard (enforce @Roles).
+ * Role trong token được JwtAuthGuard chuẩn hoá sang UPPERCASE.
  */
-@Injectable()
-export class DevAuthBypassGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
-  canActivate(ctx: ExecutionContext): boolean {
-    const bypass = process.env.DEV_AUTH_BYPASS === 'true';
-    if (!bypass) return false;
-    const req = ctx.switchToHttp().getRequest();
-    const userId = req.headers['x-dev-user-id'] || '00000000-0000-4000-8000-000000000001';
-    req.user = {
-      sub: userId,
-      email: `${userId}@dev.local`,
-      role: 'STUDENT',
-    };
-    req.userId = userId;
-    return true;
-  }
-}
-
 @ApiTags('exam-session')
 @ApiBearerAuth('bearer')
-@ApiHeader({
-  name: 'X-Dev-User-Id',
-  description:
-    'Dev-only: UUID của user. Chỉ hoạt động khi DEV_AUTH_BYPASS=true. Bỏ qua khi dùng Bearer token.',
-  required: false,
-  example: '00000000-0000-4000-8000-000000000001',
-})
 @Controller('api/v1/exam-attempts')
-@UseGuards(DevAuthBypassGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ExamSessionController {
   constructor(private readonly examSessionService: ExamSessionService) {}
 
@@ -194,37 +159,41 @@ export class ExamSessionController {
   }
 
   /**
-   * GET /api/v1/instructor/exams/:examId/active-attempts
-   * [UC_009 bước 2] List tất cả attempt IN_PROGRESS của 1 exam (cho Instructor).
+   * GET /api/v1/exam-attempts/instructor/exams/:examId/active-attempts
+   * [UC_009 bước 2] List tất cả attempt IN_PROGRESS của 1 exam.
    *
-   * Response: ApiResponse<ExamAttemptEntity[]>
+   * Instructor chỉ xem được exam của chính mình; ADMIN/SUPER_ADMIN xem tất cả.
    */
   @Get('instructor/exams/:examId/active-attempts')
-  @Roles('INSTRUCTOR', 'ADMIN')
+  @Roles('INSTRUCTOR', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({
     summary: '[UC_009] List attempts đang thi (real-time monitoring)',
     description:
-      'Instructor xem danh sách attempts đang IN_PROGRESS của 1 exam. ' +
+      'Instructor (chủ exam) hoặc Admin xem danh sách attempts đang IN_PROGRESS của 1 exam. ' +
       'Dùng cho màn hình Live Monitor.',
   })
   @ApiDocResponse({ status: 200, description: 'Danh sách attempts.' })
-  @ApiDocResponse({ status: 403, description: 'Không phải Instructor/Admin.' })
+  @ApiDocResponse({ status: 403, description: 'Không phải chủ exam / Admin.' })
+  @ApiDocResponse({ status: 404, description: 'Exam không tồn tại.' })
   async listActiveAttempts(
     @Param('examId') examId: string,
     @CurrentUser() user: UserPrincipalDto,
   ): Promise<ApiResponse<any[]>> {
-    const list = await this.examSessionService.listActiveAttempts(examId, user.userId);
+    const list = await this.examSessionService.listActiveAttempts(examId, {
+      userId: user.userId,
+      role: user.role,
+    });
     return ApiResponse.success(list, `Tìm thấy ${list.length} attempt đang thi`);
   }
 
   /**
    * GET /api/v1/exam-attempts/:id/proctoring-report
-   * [UC_009 bước 13] Report chi tiết sau thi cho Instructor.
+   * [UC_009 bước 13] Report chi tiết sau thi.
    *
-   * Response: ApiResponse<ProctoringReport>
+   * Instructor chỉ xem được attempt thuộc exam của chính mình; ADMIN/SUPER_ADMIN xem tất cả.
    */
   @Get(':id/proctoring-report')
-  @Roles('INSTRUCTOR', 'ADMIN')
+  @Roles('INSTRUCTOR', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({
     summary: '[UC_009] Báo cáo proctoring chi tiết 1 attempt',
     description:
@@ -232,12 +201,16 @@ export class ExamSessionController {
       '(Phase 2), screenRecording URL (Phase 2).',
   })
   @ApiDocResponse({ status: 200, description: 'Report.' })
+  @ApiDocResponse({ status: 403, description: 'Không phải chủ exam / Admin.' })
   @ApiDocResponse({ status: 404, description: 'Attempt không tồn tại.' })
   async getProctoringReport(
     @Param('id') id: string,
     @CurrentUser() user: UserPrincipalDto,
   ): Promise<ApiResponse<any>> {
-    const report = await this.examSessionService.getProctoringReport(id, user.userId);
+    const report = await this.examSessionService.getProctoringReport(id, {
+      userId: user.userId,
+      role: user.role,
+    });
     if (!report) {
       return ApiResponse.error('Attempt không tồn tại');
     }

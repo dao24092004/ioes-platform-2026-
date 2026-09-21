@@ -180,10 +180,7 @@ build-node: ## Build Node.js services
 
 build-python: ## Build Python services
 	@echo "$(BLUE)=== Building Python Services ===$(NC)"
-	@for service in ai-suite/api-gateway ai-suite/ml-worker; do \
-		echo "Building $$service..."; \
-		cd services/$$service && pip install -e . -q 2>/dev/null || true; \
-	done
+	cd services/ai-suite/ml-worker && poetry install --no-interaction
 	@echo "$(GREEN)✓ Python services built!$(NC)"
 
 # ============================================
@@ -227,11 +224,11 @@ dev-node: ## Start Node.js services
 	cd services/blockchain-suite && pnpm start:dev &
 	@wait
 
-dev-python: ## Start Python services
-	@echo "$(BLUE)=== Starting Python Services ===$(NC)"
-	cd services/ai-suite/api-gateway && uvicorn main:app --reload &
-	cd services/ai-suite/ml-worker && uvicorn main:app --reload &
-	@wait
+dev-python: ## Start ml-worker (FastAPI, 9101)
+	@echo "$(BLUE)=== Starting ml-worker ===$(NC)"
+# ai-suite/api-gateway la NestJS chu khong phai Python: chay bang
+# `pnpm --filter @ioes/ai-gateway dev` (xem muc dev-node / README cua no).
+	cd services/ai-suite/ml-worker && poetry run uvicorn ml_worker.main:app --reload --port 9101
 
 dev-debug: ## Start Java services with debug enabled
 	@echo "$(BLUE)=== Starting Java Services (Debug Mode) ===$(NC)"
@@ -317,7 +314,10 @@ docker-build-all: ## Build all Docker images
 	make docker-build SERVICE=auth-service
 	make docker-build SERVICE=content-service
 	make docker-build SERVICE=exam-suite
-	make docker-build SERVICE=ai-suite
+# Khong co services/ai-suite/Dockerfile: ai-suite la hai service rieng,
+# ml-worker (Python/FastAPI) va api-gateway (NestJS), moi cai mot Dockerfile.
+	make docker-build SERVICE=ai-suite/ml-worker
+	make docker-build SERVICE=ai-suite/api-gateway
 	make docker-build SERVICE=blockchain-suite
 	make docker-build SERVICE=api-gateway
 	@echo "$(GREEN)✓ All images built!$(NC)"

@@ -7,7 +7,8 @@ trả lời.
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from ioes_common import (
     add_request_id_middleware,
     configure_logging,
@@ -17,8 +18,13 @@ from ioes_common import (
     register_exception_handlers,
 )
 
+from ml_worker.api.ingest import router as ingest_router
+from ml_worker.api.learning_path import router as learning_path_router
+from ml_worker.api.proctor import router as proctor_router
 from ml_worker.api.questions import router as questions_router
 from ml_worker.api.rag import router as rag_router
+from ml_worker.api.recommendations import router as recommendations_router
+from ml_worker.core.concurrency import ServiceOverloadedError
 from ml_worker.core.config import get_settings
 
 logger = get_logger(__name__)
@@ -53,16 +59,49 @@ instrument_fastapi(app)
 
 app.include_router(rag_router)
 app.include_router(questions_router)
+# FR-AI-004: nạp bài học thật từ content-service vào Milvus.
+app.include_router(ingest_router)
+# FR-AI-002 gợi ý khoá học, FR-AI-005 lộ trình cá nhân hoá.
+app.include_router(recommendations_router)
+app.include_router(learning_path_router)
+# FR-AI-006: exam-suite gọi thẳng /internal/ai/proctor/analyze, không qua gateway.
+app.include_router(proctor_router)
+
+
+@app.exception_handler(ServiceOverloadedError)
+async def _overloaded(_request: Request, exc: ServiceOverloadedError) -> JSONResponse:
+    """Hết chỗ cho việc nặng → 503 kèm ``Retry-After``.
+
+    Đăng ký ở đây chứ không bắt trong từng route: cả bốn route nặng cùng đi qua
+    ``run_heavy``, viết một chỗ thì không route nào quên. Handler cụ thể luôn
+    thắng handler bắt ``Exception`` của ``register_exception_handlers``.
+    """
+    return JSONResponse(
+        status_code=503,
+        content={"detail": str(exc)},
+        headers={"Retry-After": "30"},
+    )
 
 
 @app.get("/health")
 async def health() -> dict:
+    """Luôn trả lời tức thì.
+
+    ``async def`` mà không chạm gì nặng là có chủ ý: không đọc Milvus, không
+    chạm mô hình. Đây là thứ duy nhất nói được "tiến trình còn sống", nên nó
+    không bao giờ được xếp hàng sau việc của ai. Muốn biết tầng truy xuất ra
+    sao thì gọi ``GET /v1/rag/status``.
+    """
     return {"status": "ok", "service": "ml-worker"}
 
 
 @app.post("/v1/embeddings")
-async def embeddings(payload: dict) -> dict:
-    """Nhúng danh sách văn bản thành vector."""
+def embeddings(payload: dict) -> dict:
+    """Nhúng danh sách văn bản thành vector.
+
+    ``def`` trần: ``embed_documents`` là suy luận PyTorch trên CPU, chặn luồng.
+    Xem ``core/concurrency.py``.
+    """
     from ml_worker.services.embeddings import get_embeddings
 
     settings = get_settings()

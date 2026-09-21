@@ -1,5 +1,22 @@
 # IOES Infrastructure - Local Development
 
+> **Phạm vi:** `docker-compose.yml` ở đây **chỉ** có hạ tầng (Postgres, Redis,
+> Mongo, Kafka, MinIO, Milvus, quan trắc, dev tool). Không service ứng dụng nào
+> của IOES được khai ở đây — mọi service Java/Node/Python đều chạy ngoài compose
+> (xem `.local-logs/start-local.ps1`) hoặc build image riêng từ Dockerfile của
+> chúng. Đừng tìm `ml-worker` hay `ai-suite` trong file này.
+>
+> **MinIO lấy từ `quay.io`, không phải Docker Hub.** `docker pull minio/minio`
+> trả `denied: requested access to the resource is denied` — MinIO đã rút kho
+> public trên Docker Hub, kể cả với tag `RELEASE.*` cụ thể. Milvus standalone
+> phụ thuộc MinIO, nên đổi hai dòng `image:` đó về Docker Hub là làm hỏng cả
+> tầng vector trên mọi máy mới. Mọi image còn lại trong file vẫn kéo được bình
+> thường.
+>
+> **Milvus ngốn ~2GB** (cộng etcd + MinIO là ~2,5GB). Trên máy 16GB đang chạy đủ
+> bảy service Java thì không còn chỗ — phải chọn giữa "đủ stack Java" và
+> "Java gọn + AI".
+
 ## 🚀 Quick Start
 
 ```bash

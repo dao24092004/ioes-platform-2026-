@@ -1,5 +1,13 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { KAFKA_TOPICS } from '@ioes/common-node';
+import { ExamRepository } from '../exam/repositories/exam.repository';
+import { isAdminRole } from '../../common/auth/roles';
 import { StartAttemptRequestDto, StartAttemptResponseDto } from './dto/start-attempt.dto';
 import { AnswerSaveRequestDto } from './dto/answer-save.dto';
 import { AnswerBulkSaveRequestDto } from './dto/reconnect.dto';
@@ -23,6 +31,12 @@ import {
   RECONNECT_SESSION_USE_CASE,
 } from './use-cases/reconnect-session.use-case';
 import { KafkaPublisherService } from '../../common/kafka-publisher.service';
+
+/** Người gọi đã xác thực (role UPPERCASE từ JwtAuthGuard). */
+export interface SessionCaller {
+  userId: string;
+  role: string;
+}
 
 /**
  * Orchestrator cho exam-session module.
@@ -48,6 +62,7 @@ export class ExamSessionService {
     @Inject(SUBMIT_EXAM_USE_CASE) private readonly submitExam: ISubmitExamUseCase,
     @Inject(RECONNECT_SESSION_USE_CASE)
     private readonly reconnectSession: IReconnectSessionUseCase,
+    private readonly examRepo: ExamRepository,
   ) {}
 
   /**
@@ -159,23 +174,25 @@ export class ExamSessionService {
 
   /**
    * [UC_009 bước 2] List active attempts cho Instructor.
-   * Phase 1: filter theo examId, không check ownership (giả định Instructor phụ trách mọi exam).
-   * Phase 2 (sau): check Instructor có quyền với exam này không (qua exam.instructorIds).
+   * ADMIN/SUPER_ADMIN: mọi exam. INSTRUCTOR: chỉ exam có `exams.instructor_id` = mình.
    */
-  async listActiveAttempts(examId: string, _instructorId: string) {
+  async listActiveAttempts(examId: string, caller: SessionCaller) {
+    await this.assertCanMonitorExam(examId, caller);
     return this.repository.listActiveAttempts(examId);
   }
 
   /**
    * [UC_009 bước 13] Report chi tiết 1 attempt cho Instructor.
-   * FR-PROC-008: Trả về attempt info + violations từ Redis.
+   * FR-PROC-008: Trả về attempt info + violations từ Redis + screenRecording (nếu có).
+   * Quyền: như listActiveAttempts, xét trên exam của attempt.
    *
    * Phase 1: violations từ Redis (violation_events list).
    * Phase 2 (sau): join với bảng proctoring_violation khi có migration.
    */
-  async getProctoringReport(attemptId: string, _instructorId: string) {
+  async getProctoringReport(attemptId: string, caller: SessionCaller) {
     const attempt = await this.repository.findAttemptById(attemptId);
     if (!attempt) return null;
+    await this.assertCanMonitorExam(attempt.examId, caller);
 
     // Lấy violations từ Redis
     const [violationEvents, totalCount] = await Promise.all([
@@ -202,5 +219,23 @@ export class ExamSessionService {
       screenRecording: null,
       submission: submission ?? null,
     };
+  }
+
+  /**
+   * Admin/Super admin: luôn được. Instructor: phải là chủ exam.
+   * Role khác bị RolesGuard chặn từ trước, nhưng vẫn từ chối ở đây cho chắc.
+   */
+  private async assertCanMonitorExam(examId: string, caller: SessionCaller): Promise<void> {
+    if (isAdminRole(caller.role)) return;
+    if (caller.role !== 'INSTRUCTOR') {
+      throw new ForbiddenException('Chỉ giảng viên phụ trách hoặc admin được xem');
+    }
+    const exam = await this.examRepo.findById(examId);
+    if (!exam || exam.deletedAt) {
+      throw new NotFoundException('Exam không tồn tại');
+    }
+    if (exam.instructorId !== caller.userId) {
+      throw new ForbiddenException('Bạn không phải giảng viên phụ trách exam này');
+    }
   }
 }

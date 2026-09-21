@@ -1,5 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { ApiError, unwrap, unwrapVoid } from './api.config';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
+import { ApiError, apiClient, unwrap, unwrapVoid } from './api.config';
+import { useAuthStore } from '@/app/store/authStore';
 
 const envelope = <T>(over: Partial<Record<string, unknown>> = {}, data?: T) => ({
   data: {
@@ -55,6 +57,94 @@ describe('unwrap', () => {
   it('báo không kết nối được khi không có phản hồi', async () => {
     const promise = unwrap(Promise.reject({ message: 'Network Error' }));
     await expect(promise).rejects.toThrow('Network Error');
+  });
+});
+
+describe('tự refresh khi access token hết hạn', () => {
+  const originalAdapter = apiClient.defaults.adapter;
+  const calls: Array<{ url?: string; auth?: string }> = [];
+
+  const respond = (config: InternalAxiosRequestConfig, status: number, data: unknown) => {
+    const response: AxiosResponse = { data, status, statusText: '', headers: {}, config };
+    return status >= 400
+      ? Promise.reject(new AxiosError(`status ${status}`, undefined, config, null, response))
+      : Promise.resolve(response);
+  };
+
+  /** Adapter giả: token 'fresh' mới hợp lệ; refresh trả kết quả theo `refreshStatus`. */
+  const install = (refreshStatus: number | 'network' = 200) => {
+    apiClient.defaults.adapter = vi.fn(async (config: InternalAxiosRequestConfig) => {
+      const auth = config.headers.Authorization as string | undefined;
+      calls.push({ url: config.url, auth });
+      if (config.url === '/api/auth/refresh') {
+        if (refreshStatus === 'network') throw new AxiosError('Network Error', 'ERR_NETWORK', config);
+        return respond(config, refreshStatus, {
+          success: refreshStatus === 200,
+          message: '',
+          timestamp: '',
+          data: { accessToken: 'fresh', refreshToken: 'r2' },
+        });
+      }
+      if (config.url === '/api/auth/login') return respond(config, 401, { success: false, message: 'Sai mật khẩu' });
+      return respond(config, auth === 'Bearer fresh' ? 200 : 401, { ok: true });
+    });
+  };
+
+  beforeEach(() => {
+    calls.length = 0;
+    useAuthStore.setState({
+      user: { id: 'u1', email: 'a@b.c', full_name: 'A', role: 'student' },
+      accessToken: 'expired',
+      refreshToken: 'r1',
+      isAuthenticated: true,
+    });
+  });
+
+  afterEach(() => {
+    apiClient.defaults.adapter = originalAdapter;
+  });
+
+  it('refresh rồi gửi lại request gốc với token mới', async () => {
+    install();
+    const res = await apiClient.get('/api/v1/courses/enrollments/me');
+
+    expect(res.data).toEqual({ ok: true });
+    expect(calls.map((c) => c.url)).toEqual([
+      '/api/v1/courses/enrollments/me',
+      '/api/auth/refresh',
+      '/api/v1/courses/enrollments/me',
+    ]);
+    // Không gửi access token đã hết hạn kèm lời gọi refresh.
+    expect(calls[1].auth).toBeUndefined();
+    expect(useAuthStore.getState()).toMatchObject({ accessToken: 'fresh', refreshToken: 'r2', isAuthenticated: true });
+  });
+
+  it('nhiều request 401 cùng lúc chỉ refresh một lần', async () => {
+    install();
+    await Promise.all([apiClient.get('/a'), apiClient.get('/b'), apiClient.get('/c')]);
+
+    expect(calls.filter((c) => c.url === '/api/auth/refresh')).toHaveLength(1);
+  });
+
+  it('refresh token bị từ chối thì đăng xuất và trả lỗi 401 gốc', async () => {
+    install(401);
+    await expect(apiClient.get('/a')).rejects.toMatchObject({ response: { status: 401 } });
+
+    expect(useAuthStore.getState()).toMatchObject({ accessToken: null, refreshToken: null, isAuthenticated: false });
+  });
+
+  it('mất mạng khi refresh thì giữ phiên', async () => {
+    install('network');
+    await expect(apiClient.get('/a')).rejects.toBeTruthy();
+
+    expect(useAuthStore.getState()).toMatchObject({ refreshToken: 'r1', isAuthenticated: true });
+  });
+
+  it('401 từ đăng nhập không kích hoạt refresh', async () => {
+    install();
+    await expect(apiClient.post('/api/auth/login', {})).rejects.toMatchObject({ response: { status: 401 } });
+
+    expect(calls.map((c) => c.url)).toEqual(['/api/auth/login']);
   });
 });
 

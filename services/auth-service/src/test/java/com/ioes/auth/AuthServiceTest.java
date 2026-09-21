@@ -7,10 +7,13 @@ import com.ioes.auth.domain.port.in.AuthUseCase;
 import com.ioes.auth.domain.port.out.UserRepositoryPort;
 import com.ioes.auth.domain.service.AuthService;
 import com.ioes.common.dto.UserPrincipal;
+import com.ioes.common.exception.ApiException;
 import com.ioes.common.security.JwtTokenProvider;
+import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -75,7 +78,9 @@ class AuthServiceTest {
 
         assertThat(user.getEmail()).isEqualTo("newuser@ioes.com");
         assertThat(user.getRole()).isEqualTo(UserRole.student);
-        assertThat(user.getStatus()).isEqualTo(UserStatus.pending);
+        // Chưa có xác thực email: tài khoản phải đăng nhập được ngay sau khi đăng ký.
+        assertThat(user.getStatus()).isEqualTo(UserStatus.active);
+        assertThat(user.isEmailVerified()).isFalse();
         assertThat(user.getPasswordHash()).isNotNull();
         verify(userRepositoryPort).save(any(User.class));
     }
@@ -134,6 +139,72 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.login(command))
                 .isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    void should_RegisteredUserLogin_When_JustRegistered() {
+        when(userRepositoryPort.existsByEmail("fresh@ioes.com")).thenReturn(false);
+        when(userRepositoryPort.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        User registered = authService.register(
+                new AuthUseCase.RegisterCommand("fresh@ioes.com", "Password123!", "Fresh User"));
+
+        when(userRepositoryPort.findByEmail("fresh@ioes.com")).thenReturn(Optional.of(registered));
+        when(jwtTokenProvider.generateAccessToken(any(UserPrincipal.class))).thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken(any(UUID.class))).thenReturn("refresh-token");
+
+        AuthUseCase.LoginResult result = authService.login(
+                new AuthUseCase.LoginCommand("fresh@ioes.com", "Password123!", "127.0.0.1"));
+
+        assertThat(result.accessToken()).isEqualTo("access-token");
+    }
+
+    @Test
+    void should_RefreshWithRoleFromDatabase_When_RefreshTokenIsValid() {
+        testUser.setRole(UserRole.instructor);
+        Claims claims = mock(Claims.class);
+        when(claims.get("type", String.class)).thenReturn("refresh");
+        when(claims.getSubject()).thenReturn(testUser.getId().toString());
+        when(jwtTokenProvider.validateToken("refresh-jwt")).thenReturn(claims);
+        when(userRepositoryPort.findById(testUser.getId())).thenReturn(Optional.of(testUser));
+        when(jwtTokenProvider.generateAccessToken(any(UserPrincipal.class))).thenReturn("new-access");
+        when(jwtTokenProvider.generateRefreshToken(testUser.getId())).thenReturn("new-refresh");
+
+        AuthUseCase.LoginResult result = authService.refreshToken("refresh-jwt");
+
+        assertThat(result.accessToken()).isEqualTo("new-access");
+        assertThat(result.refreshToken()).isEqualTo("new-refresh");
+        ArgumentCaptor<UserPrincipal> principal = ArgumentCaptor.forClass(UserPrincipal.class);
+        verify(jwtTokenProvider).generateAccessToken(principal.capture());
+        // Refresh token không mang role; access token mới phải có role lấy từ DB.
+        assertThat(principal.getValue().getRole()).isEqualTo("instructor");
+        assertThat(principal.getValue().getEmail()).isEqualTo("test@ioes.com");
+    }
+
+    @Test
+    void should_RejectRefresh_When_TokenIsAnAccessToken() {
+        Claims claims = mock(Claims.class);
+        when(claims.get("type", String.class)).thenReturn("access");
+        when(jwtTokenProvider.validateToken("access-jwt")).thenReturn(claims);
+
+        assertThatThrownBy(() -> authService.refreshToken("access-jwt"))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining("Invalid or expired token");
+        verify(jwtTokenProvider, never()).generateAccessToken(any());
+    }
+
+    @Test
+    void should_RejectRefresh_When_AccountIsSuspended() {
+        testUser.setStatus(UserStatus.suspended);
+        Claims claims = mock(Claims.class);
+        when(claims.get("type", String.class)).thenReturn("refresh");
+        when(claims.getSubject()).thenReturn(testUser.getId().toString());
+        when(jwtTokenProvider.validateToken("refresh-jwt")).thenReturn(claims);
+        when(userRepositoryPort.findById(testUser.getId())).thenReturn(Optional.of(testUser));
+
+        assertThatThrownBy(() -> authService.refreshToken("refresh-jwt"))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining("not active");
+        verify(jwtTokenProvider, never()).generateAccessToken(any());
     }
 
     @Test
