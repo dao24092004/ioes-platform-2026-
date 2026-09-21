@@ -54,6 +54,8 @@ class EnrollmentUseCaseTest {
     private EnrollmentRepository enrollmentRepository;
     @Mock
     private LessonProgressRepository lessonProgressRepository;
+    @Mock
+    private CoursePrerequisiteUseCase prerequisiteUseCase;
 
     private EnrollmentUseCase useCase;
 
@@ -67,7 +69,8 @@ class EnrollmentUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new EnrollmentUseCase(
-                courseRepository, chapterRepository, lessonRepository, enrollmentRepository, lessonProgressRepository);
+                courseRepository, chapterRepository, lessonRepository,
+                enrollmentRepository, lessonProgressRepository, prerequisiteUseCase);
         instructorId = UUID.randomUUID();
         studentId = UUID.randomUUID();
         courseId = UUID.randomUUID();
@@ -107,6 +110,11 @@ class EnrollmentUseCaseTest {
         when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
     }
 
+    /** Stub prerequisite check: không có khoá tiên quyết nào thiếu. */
+    private void stubNoPrerequisites() {
+        when(prerequisiteUseCase.findMissingPrerequisites(any(), any())).thenReturn(List.of());
+    }
+
     private void stubTwoLessons() {
         when(chapterRepository.findByCourseId(courseId))
                 .thenReturn(List.of(Chapter.builder().id(chapterId).courseId(courseId).title("Chương 1").build()));
@@ -125,6 +133,7 @@ class EnrollmentUseCaseTest {
             stubCourse(course(CourseStatus.published, BigDecimal.ZERO));
             when(enrollmentRepository.findByUserIdAndCourseId(studentId, courseId)).thenReturn(Optional.empty());
             when(enrollmentRepository.save(any(Enrollment.class))).thenAnswer(call -> call.getArgument(0));
+            stubNoPrerequisites();
 
             EnrollmentView view = useCase.enroll(courseId, learner());
 
@@ -141,6 +150,7 @@ class EnrollmentUseCaseTest {
         void should_requirePayment_When_courseHasPrice() {
             stubCourse(course(CourseStatus.published, new BigDecimal("499000")));
             when(enrollmentRepository.findByUserIdAndCourseId(studentId, courseId)).thenReturn(Optional.empty());
+            stubNoPrerequisites();
 
             assertThatThrownBy(() -> useCase.enroll(courseId, learner()))
                     .isInstanceOf(PaymentRequiredException.class);

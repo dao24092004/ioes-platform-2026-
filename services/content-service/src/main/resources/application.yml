@@ -2,6 +2,12 @@ server:
   port: 9001
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+
+spring:
   application:
     name: content-service
   cloud:
@@ -59,6 +65,14 @@ jwt:
 ioes:
   kafka:
     topics: content.topic.created,content.topic.updated,content.topic.deleted
+
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  public-endpoint: ${MINIO_PUBLIC_ENDPOINT:${MINIO_ENDPOINT:http://localhost:9000}}
+  access-key: ${MINIO_ACCESS_KEY:minio}
+  secret-key: ${MINIO_SECRET_KEY:minio123}
+  buckets: ioes-media
+  max-file-size-mb: 500
 
 eureka:
   client:
