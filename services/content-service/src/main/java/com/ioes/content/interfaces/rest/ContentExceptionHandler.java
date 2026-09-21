@@ -6,6 +6,7 @@ import com.ioes.content.domain.exception.DuplicateSlugException;
 import com.ioes.content.domain.exception.InvalidCourseStateException;
 import com.ioes.content.domain.exception.InvalidTopicHierarchyException;
 import com.ioes.content.domain.exception.PaymentRequiredException;
+import com.ioes.content.domain.exception.PrerequisiteNotMetException;
 import com.ioes.content.domain.exception.TopicHasQuestionsException;
 import com.ioes.content.domain.exception.TopicNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +48,11 @@ public class ContentExceptionHandler {
     @ExceptionHandler(PaymentRequiredException.class)
     public ResponseEntity<Map<String, Object>> handlePaymentRequired(PaymentRequiredException ex) {
         return respond(HttpStatus.PAYMENT_REQUIRED, "PAYMENT_REQUIRED", ex);
+    }
+
+    @ExceptionHandler(PrerequisiteNotMetException.class)
+    public ResponseEntity<Map<String, Object>> handlePrerequisiteNotMet(PrerequisiteNotMetException ex) {
+        return respond(HttpStatus.FORBIDDEN, "PREREQUISITE_NOT_MET", ex);
     }
 
     @ExceptionHandler({InvalidCourseStateException.class, DuplicateSlugException.class, TopicHasQuestionsException.class})

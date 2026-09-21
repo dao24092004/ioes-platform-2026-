@@ -42,4 +42,12 @@ public class CategoryController {
         categoryUseCase.deactivate(id);
         return ResponseEntity.noContent().build();
     }
+
+    /** Cập nhật một phần danh mục. Trường null nghĩa là giữ nguyên. */
+    @PatchMapping("/{id}")
+    public CategoryView update(
+            @PathVariable UUID id,
+            @Valid @RequestBody CourseCommands.UpdateCategory command) {
+        return categoryUseCase.update(id, command);
+    }
 }

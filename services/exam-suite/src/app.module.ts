@@ -8,6 +8,7 @@ import { SubmissionModule } from './modules/submission/submission.module';
 import { HealthModule } from './modules/health/health.module';
 import { QuestionBankModule } from './modules/question-bank/question-bank.module';
 import { ExamEventsModule } from './modules/exam-events/exam-events.module';
+import { ExamSessionModule } from './modules/exam-session/exam-session.module';
 import { DgraphSyncConsumer } from './modules/question-bank/dgraph-sync.consumer';
 import { dbConfig } from './config/app.config';
 import { SnakeCaseNamingStrategy } from './config/snake-case.naming-strategy';
@@ -45,6 +46,7 @@ import { SnakeCaseNamingStrategy } from './config/snake-case.naming-strategy';
     HealthModule,
     QuestionBankModule,
     ExamEventsModule,
+    ExamSessionModule,
   ],
   providers: [EurekaClient],
 })

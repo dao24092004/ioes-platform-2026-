@@ -10,10 +10,12 @@ import com.ioes.content.application.port.CourseRepository;
 import com.ioes.content.application.port.EnrollmentRepository;
 import com.ioes.content.application.port.LessonProgressRepository;
 import com.ioes.content.application.port.LessonRepository;
+import com.ioes.content.application.usecase.CoursePrerequisiteUseCase;
 import com.ioes.content.domain.exception.ContentAccessDeniedException;
 import com.ioes.content.domain.exception.ContentNotFoundException;
 import com.ioes.content.domain.exception.InvalidCourseStateException;
 import com.ioes.content.domain.exception.PaymentRequiredException;
+import com.ioes.content.domain.exception.PrerequisiteNotMetException;
 import com.ioes.content.domain.model.Chapter;
 import com.ioes.content.domain.model.Course;
 import com.ioes.content.domain.model.CourseStatus;
@@ -62,6 +64,7 @@ public class EnrollmentUseCase {
     private final LessonRepository lessonRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final LessonProgressRepository lessonProgressRepository;
+    private final CoursePrerequisiteUseCase prerequisiteUseCase;
 
     /** Người học lấy từ token. Tên và email có thể null nếu token không mang claim đó. */
     public record Learner(UUID id, String fullName, String email) {}
@@ -78,6 +81,14 @@ public class EnrollmentUseCase {
         if (course.getStatus() != CourseStatus.published) {
             throw new InvalidCourseStateException("Chỉ ghi danh được khoá học đã xuất bản");
         }
+
+        // Kiểm tra khoá tiên quyết
+        var missing = prerequisiteUseCase.findMissingPrerequisites(courseId, learner.id());
+        if (!missing.isEmpty()) {
+            throw new PrerequisiteNotMetException(
+                    "Bạn chưa hoàn thành " + missing.size() + " khoá tiên quyết trước khi ghi danh");
+        }
+
         if (course.getPrice() != null && course.getPrice().signum() > 0) {
             throw new PaymentRequiredException("Khoá học có phí, hệ thống chưa hỗ trợ thanh toán");
         }

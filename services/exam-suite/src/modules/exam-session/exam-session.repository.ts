@@ -85,6 +85,18 @@ export class ExamSessionRepository {
   }
 
   /**
+   * BR-011: cập nhật flag + flagReason cho attempt khi phát hiện vi phạm.
+   * attention < 40 → flag attempt.
+   */
+  async updateAttemptFlag(
+    id: string,
+    flag: boolean,
+    flagReason: string,
+  ): Promise<void> {
+    await this.attemptRepo.update(id, { flag, flagReason });
+  }
+
+  /**
    * Lưu các attempt cùng exam + status filter (dùng cho UC_009 list active).
    */
   async listActiveAttempts(examId: string): Promise<ExamAttemptEntity[]> {

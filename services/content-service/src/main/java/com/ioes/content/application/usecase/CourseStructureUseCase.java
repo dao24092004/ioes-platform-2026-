@@ -144,6 +144,88 @@ public class CourseStructureUseCase {
         log.info("Bài học {} bị {} xoá", lessonId, actorId);
     }
 
+    /**
+     * Cập nhật chương. Quyền lấy từ khoá cha — chương không có chủ sở hữu
+     * riêng.
+     *
+     * <p>Trường null trong command là giữ nguyên, khớp với cách {@link
+     * CourseUseCase#update} xử lý cập nhật khoá học.
+     */
+    @Transactional
+    public ChapterView updateChapter(
+            UUID chapterId, CourseCommands.UpdateChapter command, UUID actorId, String role) {
+
+        Chapter chapter = chapterRepository.findById(chapterId)
+                .orElseThrow(() -> new ContentNotFoundException(CHAPTER, chapterId));
+        requireOwnerOrAdmin(requireLiveCourse(chapter.getCourseId()), actorId, role);
+
+        if (command.title() != null) {
+            chapter.setTitle(command.title());
+        }
+        if (command.description() != null) {
+            chapter.setDescription(command.description());
+        }
+        if (command.sortOrder() != null) {
+            chapter.setSortOrder(command.sortOrder());
+        }
+        if (command.isFree() != null) {
+            chapter.setIsFree(command.isFree());
+        }
+
+        Chapter saved = chapterRepository.save(chapter);
+        log.info("Chương {} bị {} cập nhật", chapterId, actorId);
+        // Trả về kèm danh sách bài học hiện có để response đồng dạng với POST.
+        List<LessonView> lessons = lessonRepository.findByChapterId(chapterId).stream()
+                .map(LessonView::from).toList();
+        return ChapterView.from(saved, lessons);
+    }
+
+    /**
+     * Cập nhật bài học. Quyền qua khoá cha (chương → khoá).
+     *
+     * <p>{@code lessonType} là tuỳ chọn: nếu client muốn đổi kiểu bài (vd từ
+     * document sang quiz) họ phải gửi rõ; null là giữ nguyên kiểu cũ.
+     */
+    @Transactional
+    public LessonView updateLesson(
+            UUID lessonId, CourseCommands.UpdateLesson command, UUID actorId, String role) {
+
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new ContentNotFoundException(LESSON, lessonId));
+        Chapter chapter = chapterRepository.findById(lesson.getChapterId())
+                .orElseThrow(() -> new ContentNotFoundException(CHAPTER, lesson.getChapterId()));
+        requireOwnerOrAdmin(requireLiveCourse(chapter.getCourseId()), actorId, role);
+
+        if (command.title() != null) {
+            lesson.setTitle(command.title());
+        }
+        if (command.description() != null) {
+            lesson.setDescription(command.description());
+        }
+        if (command.lessonType() != null) {
+            lesson.setLessonType(command.lessonType());
+        }
+        if (command.contentUrl() != null) {
+            lesson.setContentUrl(command.contentUrl());
+        }
+        if (command.durationMinutes() != null) {
+            lesson.setDurationMinutes(command.durationMinutes());
+        }
+        if (command.sortOrder() != null) {
+            lesson.setSortOrder(command.sortOrder());
+        }
+        if (command.isFree() != null) {
+            lesson.setIsFree(command.isFree());
+        }
+        if (command.isPreview() != null) {
+            lesson.setIsPreview(command.isPreview());
+        }
+
+        Lesson saved = lessonRepository.save(lesson);
+        log.info("Bài học {} bị {} cập nhật", lessonId, actorId);
+        return LessonView.from(saved);
+    }
+
     private Course requireLiveCourse(UUID courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ContentNotFoundException(COURSE, courseId));

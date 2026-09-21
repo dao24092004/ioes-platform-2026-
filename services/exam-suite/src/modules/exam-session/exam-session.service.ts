@@ -5,6 +5,7 @@ import { AnswerSaveRequestDto } from './dto/answer-save.dto';
 import { AnswerBulkSaveRequestDto } from './dto/reconnect.dto';
 import { ExamSessionRepository } from './exam-session.repository';
 import { SessionCacheService } from './session-cache.service';
+import { ViolationCounterService } from './services/violation-counter.service';
 import {
   IStartExamUseCase,
   START_EXAM_USE_CASE,
@@ -41,6 +42,7 @@ export class ExamSessionService {
     private readonly repository: ExamSessionRepository,
     private readonly sessionCache: SessionCacheService,
     private readonly kafkaPublisher: KafkaPublisherService,
+    private readonly violationCounter: ViolationCounterService,
     @Inject(START_EXAM_USE_CASE) private readonly startExam: IStartExamUseCase,
     @Inject(SAVE_ANSWER_USE_CASE) private readonly saveAnswerUc: ISaveAnswerUseCase,
     @Inject(SUBMIT_EXAM_USE_CASE) private readonly submitExam: ISubmitExamUseCase,
@@ -121,6 +123,9 @@ export class ExamSessionService {
   async autoSubmit(attemptId: string, kind: 'TIMEOUT' | 'AUTO_FLAG') {
     const result = await this.submitExam.execute('', attemptId, kind);
 
+    // Clear violations sau khi submit
+    await this.violationCounter.clearAll(attemptId);
+
     void this.kafkaPublisher
       .publish(KAFKA_TOPICS.EXAM_SUBMITTED, 'ExamSubmitted', {
         attemptId,
@@ -163,15 +168,23 @@ export class ExamSessionService {
 
   /**
    * [UC_009 bước 13] Report chi tiết 1 attempt cho Instructor.
-   * Trả về: attempt info + violations + screenRecording (nếu có).
+   * FR-PROC-008: Trả về attempt info + violations từ Redis.
    *
-   * Phase 1: chỉ aggregate từ `exam_attempt.flag`, `flagReason`, `submissionKind`.
-   * Phase 2 (sau): join với bảng proctoring_violation + media frame khi có migration V3-V5.
+   * Phase 1: violations từ Redis (violation_events list).
+   * Phase 2 (sau): join với bảng proctoring_violation khi có migration.
    */
   async getProctoringReport(attemptId: string, _instructorId: string) {
     const attempt = await this.repository.findAttemptById(attemptId);
     if (!attempt) return null;
+
+    // Lấy violations từ Redis
+    const [violationEvents, totalCount] = await Promise.all([
+      this.violationCounter.getEvents(attemptId),
+      this.violationCounter.getCount(attemptId),
+    ]);
+
     const submission = await this.repository.findSubmissionByAttempt(attemptId);
+
     return {
       attemptId: attempt.id,
       userId: attempt.userId,
@@ -182,8 +195,11 @@ export class ExamSessionService {
       flag: attempt.flag,
       flagReason: attempt.flagReason,
       submissionKind: attempt.submissionKind,
-      violations: [], // Phase 2: join với proctoring_violation
-      screenRecording: null, // Phase 2: S3 presigned URL
+      // FR-PROC-008: violations từ Redis
+      violations: violationEvents,
+      totalViolationCount: totalCount,
+      // Phase 2: S3 presigned URL cho screen recording
+      screenRecording: null,
       submission: submission ?? null,
     };
   }
