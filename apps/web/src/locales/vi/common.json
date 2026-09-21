@@ -1918,19 +1918,50 @@
     "reports": {
       "title": "Báo cáo học tập",
       "subtitle": "Phân tích tiến độ và kết quả học tập của bạn",
-      "tabs": {
-        "study": "Thời gian học",
-        "exam": "Bài thi",
-        "achievement": "Thành tích",
-        "engagement": "Tương tác"
+      "stats": {
+        "enrolled": "Khóa đã ghi danh",
+        "completed": "Khóa đã hoàn thành",
+        "avgScore": "Điểm thi trung bình",
+        "passRate": "Tỉ lệ đạt"
       },
-      "range": {
-        "7d": "7 ngày",
-        "30d": "30 ngày",
-        "90d": "90 ngày",
-        "ytd": "Cả năm"
+      "courseProgress": {
+        "title": "Tiến độ khóa học",
+        "avg": "Trung bình {{value}}%",
+        "empty": "Bạn chưa ghi danh khóa học nào.",
+        "browse": "Khám phá khóa học",
+        "lastAccessed": "Truy cập gần nhất: {{date}}",
+        "enrolledAt": "Ghi danh: {{date}}",
+        "completed": "Đã hoàn thành"
       },
-      "export": "Xuất báo cáo"
+      "examScores": {
+        "title": "Điểm các bài thi gần đây",
+        "recent": "{{n}} lượt gần nhất",
+        "empty": "Bạn chưa nộp bài thi nào.",
+        "browse": "Xem bài thi",
+        "noGraded": "Các bài đã nộp đang chờ chấm điểm.",
+        "taken": "Lượt đã nộp",
+        "passed": "Lượt đạt",
+        "best": "Điểm cao nhất"
+      },
+      "recentCourse": {
+        "title": "Khóa học gần đây",
+        "empty": "Chưa có khóa học nào.",
+        "progress": "Đã hoàn thành {{value}}%"
+      },
+      "recentExam": {
+        "title": "Bài thi gần đây",
+        "empty": "Chưa có bài thi nào.",
+        "pending": "Chờ chấm"
+      },
+      "streak": {
+        "title": "Chuỗi ngày học",
+        "days": "ngày",
+        "longest": "Kỷ lục: {{n}} ngày"
+      },
+      "studyTime": {
+        "title": "Thời gian học",
+        "empty": "Chưa có dữ liệu thời gian học theo ngày — hệ thống hiện chưa ghi nhận số liệu này."
+      }
     }
   },
   "instructor": {

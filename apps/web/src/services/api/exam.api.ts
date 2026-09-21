@@ -300,8 +300,8 @@ export async function submitExam(
 
 /**
  * `POST /exams/:examId/submissions/:attemptId/grade` — chấm tự động phần trắc
- * nghiệm. Controller bỏ qua `manualScores` trong body (`void body`), nên chưa
- * có cách nhập điểm tay qua API này.
+ * nghiệm. Backend đã nhận `manualScores` (điểm tay cho câu tự luận/code), nhưng
+ * hàm này chưa gửi và giao diện chưa có ô nhập điểm.
  */
 export async function gradeAttempt(examId: string, attemptId: string): Promise<GradeResult> {
   const raw = await unwrap(
@@ -408,10 +408,10 @@ export function getGradingStats(): Promise<GradingQueueStats> {
 }
 
 /*
- * Không bọc `/api/v1/exam-attempts/**` (exam-session): controller đó chỉ gắn
- * `DevAuthBypassGuard`, guard này trả `false` khi `DEV_AUTH_BYPASS` khác
- * `'true'`, nên mọi request mang JWT thật đều bị 403. Lưu đáp án từng câu và
- * báo cáo giám thị chỉ dùng được sau khi controller đó đổi sang JwtAuthGuard.
+ * Chưa bọc `/api/v1/exam-attempts/**` (exam-session). Controller đó đã dùng
+ * JwtAuthGuard nên JWT thật gọi được, nhưng DB `ioes_exam` chưa có bảng của
+ * exam-session (chưa có migration) nên lưu đáp án từng câu và báo cáo giám thị
+ * vẫn chưa dùng được.
  */
 
 export const examApi = {

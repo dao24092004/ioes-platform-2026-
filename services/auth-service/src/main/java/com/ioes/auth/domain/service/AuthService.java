@@ -8,6 +8,7 @@ import com.ioes.auth.domain.port.out.UserRepositoryPort;
 import com.ioes.common.dto.UserPrincipal;
 import com.ioes.common.exception.ApiException;
 import com.ioes.common.security.JwtTokenProvider;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,7 +44,11 @@ public class AuthService implements AuthUseCase {
                 .passwordHash(passwordEncoder.encode(command.password()))
                 .fullName(command.fullName())
                 .role(UserRole.student)
-                .status(UserStatus.pending)
+                // Chưa có luồng xác thực email (verifyEmail vẫn rỗng), nên tạo `pending`
+                // thì login() chặn mãi và tài khoản mới không bao giờ dùng được.
+                // Kích hoạt ngay và giữ emailVerified=false; khi có xác thực email thì
+                // chặn theo cờ đó thay vì theo status.
+                .status(UserStatus.active)
                 .emailVerified(false)
                 .failedLoginAttempts(0)
                 .createdAt(Instant.now())
@@ -96,10 +101,38 @@ public class AuthService implements AuthUseCase {
 
     @Override
     public LoginResult refreshToken(String refreshToken) {
-        UserPrincipal principal = jwtTokenProvider.getUserPrincipalFromToken(refreshToken);
+        Claims claims = jwtTokenProvider.validateToken(refreshToken);
+        // Không kiểm tra thì access token (còn hạn) cũng đổi được thành cặp token mới,
+        // tức là lấy trộm access token là gia hạn phiên vô thời hạn.
+        if (!"refresh".equals(claims.get("type", String.class))) {
+            throw ApiException.unauthorized("Invalid or expired token");
+        }
 
-        User user = userRepositoryPort.findById(principal.getUserId())
+        UUID userId;
+        try {
+            userId = UUID.fromString(claims.getSubject());
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            throw ApiException.unauthorized("Invalid or expired token");
+        }
+
+        User user = userRepositoryPort.findById(userId)
                 .orElseThrow(() -> ApiException.unauthorized("User not found"));
+
+        // Refresh token còn hạn 7 ngày: tài khoản bị khoá/đình chỉ trong thời gian đó
+        // thì phải dừng phiên ở đây, như login().
+        if (!user.isActive() || user.isLocked()) {
+            throw ApiException.forbidden("Account is not active");
+        }
+
+        // Refresh token chỉ mang sub; lấy email/role/tên từ DB, nếu không access token
+        // mới sẽ có role=null và mọi endpoint phân quyền trả 403. Lấy từ DB cũng để
+        // đổi role có hiệu lực ở lần refresh kế tiếp.
+        UserPrincipal principal = UserPrincipal.builder()
+                .userId(user.getId())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .fullName(user.getFullName())
+                .build();
 
         String newAccessToken = jwtTokenProvider.generateAccessToken(principal);
         String newRefreshToken = jwtTokenProvider.generateRefreshToken(user.getId());

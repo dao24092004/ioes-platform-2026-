@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/app/store/authStore';
 import { Button, Input } from '@/components/common';
@@ -14,32 +14,18 @@ import type { User } from '@/types/db';
  * thì sẽ báo sai mật khẩu, đúng như mong đợi.
  *
  * Khối này chỉ hiện khi `import.meta.env.DEV`, để mật khẩu không lọt vào gói
- * build production. `database/seeds` hiện đang trống nên các nút này chưa đăng
- * nhập được cho tới khi có seed tạo đúng bốn tài khoản dưới đây.
+ * build production. Email và mật khẩu phải khớp dữ liệu seed của auth-service:
+ * mọi tài khoản seed dùng chung mật khẩu `Test@123`.
  */
 const SHOW_DEMO_ACCOUNTS = import.meta.env.DEV;
 
+const DEMO_PASSWORD = 'Test@123';
+
 const DEMO_ACCOUNTS: Array<{ label: string; email: string; password: string }> = [
-  {
-    label: 'Admin',
-    email: 'minh.nv@fpt.edu.vn',
-    password: 'admin123',
-  },
-  {
-    label: 'Super Admin',
-    email: 'super.admin@ioes.vn',
-    password: 'super123',
-  },
-  {
-    label: 'Instructor',
-    email: 'a.nv@fpt.edu.vn',
-    password: 'instructor123',
-  },
-  {
-    label: 'Student',
-    email: 'nam.nh@fpt.edu.vn',
-    password: 'student123',
-  },
+  { label: 'Admin', email: 'admin2@ioes.com', password: DEMO_PASSWORD },
+  { label: 'Super Admin', email: 'admin@ioes.com', password: DEMO_PASSWORD },
+  { label: 'Instructor', email: 'instructor@ioes.com', password: DEMO_PASSWORD },
+  { label: 'Student', email: 'student@ioes.com', password: DEMO_PASSWORD },
 ];
 
 const homeForRole = (role: User['role']): string => {
@@ -60,7 +46,9 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useAuthStore();
-  const [email, setEmail] = useState('');
+  // RegisterPage chuyển về đây kèm email vừa đăng ký.
+  const registeredEmail = (useLocation().state as { registeredEmail?: string } | null)?.registeredEmail;
+  const [email, setEmail] = useState(registeredEmail ?? '');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -87,7 +75,7 @@ export default function LoginPage() {
         avatar_url: session.user.avatarUrl,
       } as User;
 
-      login(user, session.accessToken);
+      login(user, session.accessToken, session.refreshToken);
       navigate(homeForRole(user.role));
     } catch (err) {
       setError(
@@ -239,6 +227,13 @@ export default function LoginPage() {
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            {registeredEmail && !error && (
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+                <p className="text-sm text-emerald-700 dark:text-emerald-400 text-center">
+                  Đăng ký thành công. Đăng nhập bằng tài khoản vừa tạo.
+                </p>
+              </div>
+            )}
             {error && (
               <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
                 <p className="text-sm text-red-600 dark:text-red-400 text-center">{error}</p>
