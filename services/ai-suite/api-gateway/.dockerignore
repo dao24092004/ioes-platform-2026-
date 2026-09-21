@@ -1,3 +1,7 @@
+# LUU Y: file nay KHONG co tac dung voi Dockerfile cua service.
+# Docker chi doc .dockerignore o goc build context, ma Dockerfile o day duoc
+# build voi context la thu muc GOC monorepo (no COPY ca libs/). File dung that
+# su la /.dockerignore o goc repo. Giu lai day cho ai build rieng thu muc nay.
 node_modules
 dist
 coverage

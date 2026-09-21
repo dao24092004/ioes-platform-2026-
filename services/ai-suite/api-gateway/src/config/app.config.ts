@@ -77,6 +77,44 @@ export const mlWorkerConfig = {
    * (60s) sẽ cắt ngang giữa chừng.
    */
   generateTimeoutMs: int('ML_WORKER_GENERATE_TIMEOUT_MS', 180_000),
+  /**
+   * Lộ trình chạy năm agent tuần tự, mỗi agent một lượt gọi Gemini cộng một
+   * lượt truy xuất Milvus. Dùng timeout hỏi đáp (60s) thì đứt giữa chừng và
+   * người dùng mất cả lượt sinh, nên tách riêng như phần sinh câu hỏi.
+   */
+  learningPathTimeoutMs: int('ML_WORKER_LEARNING_PATH_TIMEOUT_MS', 180_000),
+};
+
+/**
+ * content-service (Spring Boot, cổng 9001) giữ khoá học và ghi danh.
+ *
+ * Gọi thẳng vào service chứ không qua Spring gateway: gateway chỉ để cho
+ * client ngoài, còn gọi vòng lại qua nó thì thêm một chặng mạng và một lần
+ * kiểm JWT không cần thiết.
+ */
+export const contentServiceConfig = {
+  baseUrl: required('CONTENT_SERVICE_URL', 'http://localhost:9001'),
+  timeoutMs: int('CONTENT_SERVICE_TIMEOUT_MS', 10_000),
+  /**
+   * content-service kẹp per_page ở 100 (CourseUseCase.MAX_PER_PAGE), xin hơn
+   * cũng chỉ nhận được 100 mà lại lệch giữa số trang tính ở đây và ở đó.
+   */
+  catalogPageSize: int('CONTENT_CATALOG_PAGE_SIZE', 100),
+  /**
+   * Trần số trang để một catalogue phình to không biến mỗi lượt gợi ý thành
+   * hàng chục lượt gọi HTTP. Gợi ý 6 khoá không cần đọc hết kho.
+   */
+  catalogMaxPages: int('CONTENT_CATALOG_MAX_PAGES', 5),
+};
+
+export const recommendationsConfig = {
+  /**
+   * Gợi ý đổi theo tiến độ học, mà tiến độ thì thay đổi theo phút chứ không
+   * theo giây. TTL ngắn đủ để trang chủ tải lại không gọi lại cả chuỗi
+   * content-service + ml-worker, nhưng vẫn kịp phản ánh khoá vừa ghi danh.
+   */
+  cacheTtlSeconds: int('RECOMMENDATIONS_CACHE_TTL_SECONDS', 180),
+  defaultLimit: int('RECOMMENDATIONS_DEFAULT_LIMIT', 6),
 };
 
 export const kafkaConfig = {
