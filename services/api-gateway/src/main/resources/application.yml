@@ -72,7 +72,7 @@ spring.cloud.gateway:
     # Exam Service (controllers @Controller('exams') / @Controller('attempts'),
     # nên chỉ cắt đoạn /api)
     - id: exam-suite
-      uri: http://localhost:9005
+      uri: lb://exam-suite
       predicates:
         - Path=/api/exams/**,/api/attempts/**
       filters:
@@ -81,13 +81,13 @@ spring.cloud.gateway:
     # Exam session: @Controller('api/v1/exam-attempts') đã tự mang tiền tố
     # /api/v1, nên không cắt đoạn nào.
     - id: exam-session
-      uri: http://localhost:9005
+      uri: lb://exam-suite
       predicates:
         - Path=/api/v1/exam-attempts/**
 
     # Question Bank (nested path, strip only 1 segment)
     - id: question-bank
-      uri: http://localhost:9005
+      uri: lb://exam-suite
       predicates:
         - Path=/api/question-bank/**
       filters:
@@ -131,12 +131,34 @@ spring.cloud.gateway:
         - StripPrefix=1
 
     # AI Service
+    #
+    # POST /api/ai/learning-path/generate (FR-AI-005) chay 5 agent tuan tu qua
+    # Gemini: do duoc ~58s, va se lau hon khi catalogue lon hon. response-timeout
+    # chung 30s o duoi cat ngang va tra 504 cho mot request thuc ra da thanh cong
+    # — lo trinh da duoc luu vao ioes_ai.learning_paths roi nguoi dung van thay loi.
+    #
+    # Noi rieng cho route nay bang metadata: NettyRoutingFilter doc
+    # `response-timeout`/`connect-timeout` (don vi ms) tu metadata cua route va uu
+    # tien chung hon gia tri chung, nen mot loi goi LLM cham khong lam moi route
+    # khac treo theo. KHONG nang spring.cloud.gateway.httpclient.response-timeout.
+    #
+    # Luu y: resilience4j KHONG nam tren duong request cua cac route nay — khong
+    # route nao khai filter CircuitBreaker, nen
+    # `--resilience4j.timelimiter.instances.default.timeoutDuration` ma
+    # .local-logs/start-local.ps1 truyen vao khong co tac dung o day.
     - id: ai-suite
       uri: lb://ai-suite
       predicates:
         - Path=/api/ai/**,/api/learning-path/**,/api/recommendations/**
       filters:
         - StripPrefix=2
+      metadata:
+        # Phai LON HON ML_WORKER_LEARNING_PATH_TIMEOUT_MS cua ai-gateway (mac dinh
+        # 180000) cong thoi gian lay catalogue tu content-service, de ai-gateway
+        # kip tra 503 kem thong bao that cua no. Bang dung 180000 thi gateway luon
+        # cat truoc va nguoi dung chi thay mot loi het gio tran.
+        response-timeout: 200000
+        connect-timeout: 5000
 
 # ============================================
 # GLOBAL FILTERS
