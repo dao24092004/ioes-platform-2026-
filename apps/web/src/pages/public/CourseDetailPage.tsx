@@ -303,6 +303,7 @@ const Detail: React.FC = () => {
                 {(['overview', 'curriculum', 'reviews'] as const).map((key) => (
                   <button
                     key={key}
+                    data-testid={`coursedetail-tab-${key}`}
                     onClick={() => setActiveTab(key)}
                     className={`px-6 py-3 text-sm font-semibold rounded-xl transition-all ${
                       activeTab === key
@@ -369,6 +370,7 @@ const Detail: React.FC = () => {
                             className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 overflow-hidden transition-all"
                           >
                             <button
+                              data-testid={`coursedetail-chapter-${chapter.id}`}
                               onClick={() => toggleChapter(chapter.id)}
                               className="w-full p-4 flex items-center gap-4 text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             >

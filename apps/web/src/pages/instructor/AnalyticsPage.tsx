@@ -38,7 +38,7 @@ const AnalyticsPage: React.FC = () => {
 
   return (
     <InstructorLayout title={t('instructor.analytics.title')} subtitle={t('instructor.analytics.subtitle')}>
-      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6" data-testid="instructor-analytics-kpis">
         <KpiCard color="blue" value={isLoading ? '—' : exams.length} label={t('instructor.dashboard.stats.exams')} />
         <KpiCard color="orange" value={stats?.pending ?? '—'} label={t('examApi.instructorDashboard.stats.pending')} />
         <KpiCard color="green" value={stats?.graded ?? '—'} label={t('examApi.instructorDashboard.stats.graded')} />
@@ -49,7 +49,7 @@ const AnalyticsPage: React.FC = () => {
         />
       </section>
 
-      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 mb-6 text-center">
+      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 mb-6 text-center" data-testid="instructor-analytics-trend-empty">
         <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">
           {t('instructor.analytics.charts.enrollmentTrend')}
         </h2>
@@ -73,7 +73,7 @@ const AnalyticsPage: React.FC = () => {
                 <th className="text-left px-5 py-3">{t('examApi.instructorDashboard.stats.pending')}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody data-testid="instructor-analytics-rows">
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-12 text-center">
@@ -90,7 +90,7 @@ const AnalyticsPage: React.FC = () => {
                 </tr>
               ) : (
                 exams.map(exam => (
-                  <tr key={exam.id} className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                  <tr key={exam.id} data-testid="instructor-analytics-row" className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40">
                     <td className="px-5 py-3 font-semibold text-slate-900 dark:text-white">{exam.title}</td>
                     <td className="px-5 py-3 text-slate-700 dark:text-slate-300">{t(`student.exams.type.${exam.examType}`)}</td>
                     <td className="px-5 py-3 text-slate-700 dark:text-slate-300 tabular-nums">

@@ -30,12 +30,12 @@ const ProfilePage: React.FC = () => {
   return (
     <InstructorLayout title={t('instructor.profile.title')} subtitle={t('instructor.profile.subtitle')}>
       {isError && (
-        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400">
+        <div data-testid="instructor-profile-load-error" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400">
           {t('common.loadError')}
         </div>
       )}
 
-      <section className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden mb-6">
+      <section data-testid="instructor-profile-card" className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden mb-6">
         <div className="h-32 bg-gradient-to-r from-blue-600 via-cyan-500 to-purple-500" />
         <div className="px-6 pb-6 -mt-12">
           <div className="flex items-end gap-4 flex-wrap">
@@ -77,6 +77,7 @@ const ProfilePage: React.FC = () => {
         {TABS.map(tb => (
           <button
             key={tb}
+            data-testid={`instructor-profile-tab-${tb}`}
             onClick={() => setTab(tb)}
             className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all ${
               tab === tb ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
@@ -169,18 +170,19 @@ const SecurityTab: React.FC = () => {
       <h3 className="text-sm font-semibold mb-1">{t('instructor.profile.security.password.title')}</h3>
       <p className="text-xs text-slate-500 mb-4">{t('instructor.profile.security.password.desc')}</p>
       <form className="space-y-3" onSubmit={onSubmit}>
-        <input type="password" autoComplete="current-password" placeholder={t('examApi.profile.password.current')} value={oldPassword} onChange={e => setOldPassword(e.target.value)} className={inputClass} />
-        <input type="password" autoComplete="new-password" placeholder={t('examApi.profile.password.new')} value={newPassword} onChange={e => setNewPassword(e.target.value)} className={inputClass} />
-        <input type="password" autoComplete="new-password" placeholder={t('examApi.profile.password.confirm')} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className={inputClass} />
+        <input type="password" data-testid="instructor-profile-old-password" autoComplete="current-password" placeholder={t('examApi.profile.password.current')} value={oldPassword} onChange={e => setOldPassword(e.target.value)} className={inputClass} />
+        <input type="password" data-testid="instructor-profile-new-password" autoComplete="new-password" placeholder={t('examApi.profile.password.new')} value={newPassword} onChange={e => setNewPassword(e.target.value)} className={inputClass} />
+        <input type="password" data-testid="instructor-profile-confirm-password" autoComplete="new-password" placeholder={t('examApi.profile.password.confirm')} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className={inputClass} />
         {validationError && <p className="text-sm text-red-600 dark:text-red-400">{validationError}</p>}
         {changePassword.isError && (
-          <p className="text-sm text-red-600 dark:text-red-400">
+          <p data-testid="instructor-profile-password-error" className="text-sm text-red-600 dark:text-red-400">
             {t('examApi.profile.password.failed', { message: changePassword.error.message })}
           </p>
         )}
-        {changePassword.isSuccess && <p className="text-sm text-emerald-600 dark:text-emerald-400">{t('examApi.profile.password.success')}</p>}
+        {changePassword.isSuccess && <p data-testid="instructor-profile-password-success" className="text-sm text-emerald-600 dark:text-emerald-400">{t('examApi.profile.password.success')}</p>}
         <button
           type="submit"
+          data-testid="instructor-profile-change-password-submit"
           disabled={changePassword.isPending || !oldPassword || !newPassword}
           className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold transition-colors"
         >

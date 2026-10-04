@@ -14,6 +14,10 @@ interface Env {
 }
 
 export const env: Env = {
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080',
+  // Empty base URL → axios uses window.location.origin. In dev Vite proxies
+  // `/api/*` to the gateway on :8080, so requests appear same-origin and
+  // Playwright's `page.route('**/api/...')` intercepts them without a CORS
+  // preflight. Production deployments override VITE_API_BASE_URL.
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? '',
   isDev: import.meta.env.DEV,
 };

@@ -41,7 +41,7 @@ const SearchPage: React.FC = () => {
 
   return (
     <StudentLayout title={t('student.search.title')} subtitle={t('courseApi.search.coursesOnly')}>
-      <div className="max-w-3xl mx-auto">
+      <div data-testid="search-page" className="max-w-3xl mx-auto">
         <div className="relative mb-6">
           <input
             type="search"

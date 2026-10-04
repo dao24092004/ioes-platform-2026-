@@ -15,11 +15,13 @@ const DiscussionsPage: React.FC = () => {
 
   return (
     <StudentLayout title={t('comingSoon.discussion.title')}>
+      <div data-testid="discussions-page">
       <ComingSoon
         title={t('comingSoon.discussion.title')}
         description={t('comingSoon.discussion.description')}
         missing={t('comingSoon.discussion.missing', { returnObjects: true }) as string[]}
       />
+      </div>
     </StudentLayout>
   );
 };

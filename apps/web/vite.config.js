@@ -14,6 +14,16 @@ export default defineConfig({
         port: 3000,
         open: true,
         host: true,
+        // Proxy /api/* to the gateway. Keeps API calls same-origin from the
+        // browser's point of view so Playwright's `page.route('**/api/...')`
+        // intercepts them and CORS preflights never fire.
+        proxy: {
+            '/api': {
+                target: 'http://localhost:8080',
+                changeOrigin: false,
+                ws: false,
+            },
+        },
     },
     preview: {
         port: 4173,

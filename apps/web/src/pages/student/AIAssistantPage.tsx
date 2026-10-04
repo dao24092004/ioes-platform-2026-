@@ -371,7 +371,7 @@ const StudentAIAssistantPage: React.FC = () => {
       title={t('student.aiAssistant.title')}
       subtitle={t('student.aiAssistant.subtitle')}
     >
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-[calc(100vh-180px)]">
+      <div data-testid="aiassistant-page" className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-[calc(100vh-180px)]">
         {/* History sidebar */}
         <aside className="xl:col-span-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex flex-col gap-4 h-full overflow-hidden">
           <button

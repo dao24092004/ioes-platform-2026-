@@ -41,7 +41,7 @@ const GradingPage: React.FC = () => {
 
   return (
     <InstructorLayout title={t('instructor.grading.title')} subtitle={t('instructor.grading.subtitle')}>
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <section data-testid="instructor-grading-stats" className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <StatBox color="amber" value={stats?.pending ?? '—'} label={t('examApi.grading.stats.pending')} />
         <StatBox color="emerald" value={stats?.graded ?? '—'} label={t('examApi.grading.stats.graded')} />
         <StatBox
@@ -52,18 +52,18 @@ const GradingPage: React.FC = () => {
       </section>
 
       {(statsError || isError) && (
-        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400">
+        <div data-testid="instructor-grading-load-error" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400">
           {t('common.loadError')}
         </div>
       )}
 
       {grade.isError && (
-        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400">
+        <div data-testid="instructor-grading-grade-error" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400">
           {t('examApi.grading.gradeError', { message: grade.error.message })}
         </div>
       )}
       {grade.isSuccess && (
-        <div className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-sm text-emerald-700 dark:text-emerald-300">
+        <div data-testid="instructor-grading-grade-success" className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-sm text-emerald-700 dark:text-emerald-300">
           {t('examApi.grading.gradeSuccess', {
             score: grade.data.score,
             max: grade.data.maxScore,
@@ -72,7 +72,7 @@ const GradingPage: React.FC = () => {
         </div>
       )}
 
-      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <section data-testid="instructor-grading-queue" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
           <h2 className="text-base font-bold text-slate-900 dark:text-white">{t('examApi.grading.queueTitle')}</h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t('examApi.grading.note')}</p>
@@ -92,13 +92,13 @@ const GradingPage: React.FC = () => {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-12 text-center">
+                  <td data-testid="instructor-grading-loading" colSpan={5} className="px-5 py-12 text-center">
                     <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                   </td>
                 </tr>
               ) : queue.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-12 text-center text-slate-500 dark:text-slate-400">
+                  <td data-testid="instructor-grading-empty" colSpan={5} className="px-5 py-12 text-center text-slate-500 dark:text-slate-400">
                     {t('examApi.grading.empty')}
                   </td>
                 </tr>
@@ -123,6 +123,7 @@ const GradingPage: React.FC = () => {
                       <td className="px-5 py-3 text-right">
                         <button
                           type="button"
+                          data-testid="instructor-grading-grade-button"
                           onClick={() => grade.mutate(item)}
                           disabled={grade.isPending}
                           className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60 disabled:opacity-60 transition-colors"

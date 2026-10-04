@@ -89,7 +89,10 @@ const CourseCreatePage: React.FC = () => {
     <InstructorLayout title={t('instructor.course.create')} subtitle={t('instructor.course.subtitle')}>
       <div className="max-w-4xl mx-auto">
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+          <div
+            data-testid="instructor-course-create-error"
+            className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300"
+          >
             {error}
           </div>
         )}

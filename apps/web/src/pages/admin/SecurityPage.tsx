@@ -14,11 +14,13 @@ const SecurityPage: React.FC = () => {
 
   return (
     <AdminLayout title={t('security.title')}>
-      <ComingSoon
-        title={t('security.title')}
-        description={t('admin.noBackend.security.description')}
-        missing={t('admin.noBackend.security.missing', { returnObjects: true }) as string[]}
-      />
+      <div data-testid="admin-coming-security">
+        <ComingSoon
+          title={t('security.title')}
+          description={t('admin.noBackend.security.description')}
+          missing={t('admin.noBackend.security.missing', { returnObjects: true }) as string[]}
+        />
+      </div>
     </AdminLayout>
   );
 };

@@ -1,0 +1,6 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-STT-001,speechToText,startRecording throws until backend exists,P3,No STT backend,Call startRecording(),"",rejects with NotImplementedError,Unit
+UT-STT-002,speechToText,transcribeAudio POST /api/ai/stt/transcribe with audio blob,P3,Backend up,Call transcribeAudio(blob,'vi'),"",URL=/api/ai/stt/transcribe; multipart body,Unit
+UT-STT-003,speechToText,transcribeAudio returns {text,language,confidence},P3,Backend up,Call transcribeAudio(blob),"payload",result equals payload,Unit
+IT-STT-001,SpeechToText,ComingSoon placeholder renders with the documented copy,P1,Student auth,Mount SpeechToTextPage,"","Coming soon" copy visible,Integration
+TC-STT-001,SpeechToText,STT page renders the placeholder and never requests microphone,P1,Student auth; permissions cleared,Visit /student/speech-to-text,"","Coming soon" visible; no microphone prompts",E2E

@@ -91,22 +91,22 @@ const CourseApprovalPage: React.FC = () => {
   const statusBadge = (course: Course) => {
     const status = course.reviewStatus;
     if (status === 'pending') return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 transition-transform hover:scale-105">
+      <span data-testid="admin-course-approval-status" className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 transition-transform hover:scale-105">
         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-[pulse_2s_infinite]" />{t('admin.status.pending')}
       </span>
     );
     if (status === 'approved') return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 transition-transform hover:scale-105">
+      <span data-testid="admin-course-approval-status" className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 transition-transform hover:scale-105">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />{t('admin.stats.approved')}
       </span>
     );
     if (status === 'rejected') return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 transition-transform hover:scale-105">
+      <span data-testid="admin-course-approval-status" className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 transition-transform hover:scale-105">
         <span className="w-1.5 h-1.5 rounded-full bg-red-500" />{t('admin.status.rejected')}
       </span>
     );
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+      <span data-testid="admin-course-approval-status" className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
         <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />{t('courseApi.reviewStatus.none')}
       </span>
     );
@@ -148,6 +148,7 @@ const CourseApprovalPage: React.FC = () => {
           return (
             <button
               key={s.key}
+              data-testid={`admin-course-approval-stat-${s.key}`}
               onClick={() => setFilter(s.key)}
               className={`group text-left bg-white dark:bg-slate-900 rounded-2xl border p-5 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/5 opacity-0 animate-[fadeInUp_1s_ease-out_forwards] ${
                 active ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-800'
@@ -170,6 +171,7 @@ const CourseApprovalPage: React.FC = () => {
           <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
           <input
             type="text"
+            data-testid="admin-course-approval-search"
             placeholder={t('admin.approval.searchPlaceholder')}
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -180,17 +182,17 @@ const CourseApprovalPage: React.FC = () => {
 
       {/* Cards grid */}
       {isLoading && (
-        <div className="text-center py-16">
+        <div data-testid="admin-course-approval-loading" className="text-center py-16">
           <div className="inline-block w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
         </div>
       )}
       {isError && (
-        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-red-200 dark:border-red-900 text-sm text-red-600">
+        <div data-testid="admin-course-approval-error" className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-red-200 dark:border-red-900 text-sm text-red-600">
           {t('common.loadError')}
         </div>
       )}
       {!isLoading && !isError && courses.length === 0 && (
-        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div data-testid="admin-course-approval-empty" className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
             <svg className="w-8 h-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
           </div>
@@ -204,6 +206,7 @@ const CourseApprovalPage: React.FC = () => {
           return (
             <div
               key={c.id}
+              data-testid="admin-course-approval-card"
               className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-800 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
               style={{ animationDelay: `${i * 0.05}s` }}
             >
@@ -237,7 +240,7 @@ const CourseApprovalPage: React.FC = () => {
               </div>
 
               {c.rejectionReason && c.reviewStatus === 'rejected' && (
-                <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-xs text-red-700 dark:text-red-300">
+                <div data-testid="admin-course-approval-reason" className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-xs text-red-700 dark:text-red-300">
                   <strong className="block mb-1">{t('admin.approval.rejectionReason')}:</strong>{c.rejectionReason}
                 </div>
               )}
@@ -245,6 +248,7 @@ const CourseApprovalPage: React.FC = () => {
               {c.reviewStatus === 'pending' ? (
                 <div className="flex items-center gap-2">
                   <button
+                    data-testid="admin-course-approval-preview"
                     onClick={() => setPreview(c)}
                     className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all hover:-translate-y-0.5"
                   >
@@ -252,6 +256,7 @@ const CourseApprovalPage: React.FC = () => {
                     {t('admin.approval.preview')}
                   </button>
                   <button
+                    data-testid="admin-course-approval-reject"
                     // Từ chối cần lý do, nên mở hộp xem trước để nhập thay vì gửi ngay.
                     onClick={() => { setPreview(c); setReason(''); }}
                     className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-md shadow-red-500/30 hover:shadow-red-500/50 transition-all hover:-translate-y-0.5"
@@ -260,6 +265,7 @@ const CourseApprovalPage: React.FC = () => {
                     {t('admin.approval.reject')}
                   </button>
                   <button
+                    data-testid="admin-course-approval-approve"
                     onClick={() => { setPreview(c); approveMut.mutate(c.id); }}
                     disabled={approveMut.isPending}
                     className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all hover:-translate-y-0.5 disabled:opacity-50"
@@ -270,6 +276,7 @@ const CourseApprovalPage: React.FC = () => {
                 </div>
               ) : (
                 <button
+                  data-testid="admin-course-approval-view-detail"
                   onClick={() => setPreview(c)}
                   className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
                 >
@@ -284,17 +291,17 @@ const CourseApprovalPage: React.FC = () => {
 
       {/* Preview modal */}
       {preview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-[fadeIn_.2s_ease-out]" onClick={closePreview}>
+        <div data-testid="admin-course-approval-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-[fadeIn_.2s_ease-out]" onClick={closePreview}>
           <div onClick={e => e.stopPropagation()} className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-[fadeInUp_.5s_ease-out] max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-900 z-10">
               <div className="flex items-center gap-3">
                 {renderThumb(preview, 'sm')}
                 <div>
-                  <h2 className="text-lg font-bold">{preview.title}</h2>
+                  <h2 data-testid="admin-course-approval-modal-title" className="text-lg font-bold">{preview.title}</h2>
                   <p className="text-xs text-slate-500">{categoryName(preview.categoryId) ?? t('courseApi.uncategorized')}</p>
                 </div>
               </div>
-              <button onClick={closePreview} className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-all">
+              <button data-testid="admin-course-approval-modal-close" onClick={closePreview} className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-all">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
             </div>
@@ -310,11 +317,11 @@ const CourseApprovalPage: React.FC = () => {
               <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">{preview.description ?? preview.shortDescription ?? t('courseApi.noDescription')}</p>
               <div className="grid grid-cols-3 gap-3 mb-6">
                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-600">{previewDetail ? countLessons(previewDetail.chapters) : '…'}</div>
+                  <div data-testid="admin-course-approval-lesson-count" className="text-2xl font-bold text-blue-600">{previewDetail ? countLessons(previewDetail.chapters) : '…'}</div>
                   <div className="text-xs text-slate-500 mt-1">{t('admin.approval.lessons')}</div>
                 </div>
                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold text-emerald-600">{previewDetail ? previewDetail.chapters.length : '…'}</div>
+                  <div data-testid="admin-course-approval-chapter-count" className="text-2xl font-bold text-emerald-600">{previewDetail ? previewDetail.chapters.length : '…'}</div>
                   <div className="text-xs text-slate-500 mt-1">{t('student.courseDetail.section')}</div>
                 </div>
                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 text-center">
@@ -328,6 +335,7 @@ const CourseApprovalPage: React.FC = () => {
                   <textarea
                     rows={3}
                     maxLength={1000}
+                    data-testid="admin-course-approval-reason-input"
                     value={reason}
                     onChange={e => setReason(e.target.value)}
                     placeholder={t('admin.approval.reasonPlaceholder')}
@@ -337,18 +345,19 @@ const CourseApprovalPage: React.FC = () => {
                 </div>
               )}
               {mutationError && (
-                <div className="mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+                <div data-testid="admin-course-approval-mutation-error" className="mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
                   {mutationError.message}
                 </div>
               )}
             </div>
             <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2 bg-slate-50 dark:bg-slate-800/30">
-              <button onClick={closePreview} className="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+              <button data-testid="admin-course-approval-cancel" onClick={closePreview} className="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
                 {t('common.cancel')}
               </button>
               {preview.reviewStatus === 'pending' && (
                 <>
                   <button
+                    data-testid="admin-course-approval-modal-reject"
                     onClick={() => rejectMut.mutate({ id: preview.id, reason: reason.trim() })}
                     disabled={rejectMut.isPending || !reason.trim()}
                     className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg shadow-red-500/30 transition-all disabled:opacity-50"
@@ -357,6 +366,7 @@ const CourseApprovalPage: React.FC = () => {
                     {t('admin.approval.reject')}
                   </button>
                   <button
+                    data-testid="admin-course-approval-modal-approve"
                     onClick={() => approveMut.mutate(preview.id)}
                     disabled={approveMut.isPending}
                     className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/30 transition-all disabled:opacity-50"

@@ -117,6 +117,7 @@ const AuthLayout: React.FC = () => {
             />
             <Link
               to="/auth/login"
+              data-testid="auth-tab-login"
               className={`flex-1 py-3 text-center text-sm font-semibold rounded-lg transition-all duration-300 relative z-10 ${
                 isLogin ? 'text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
@@ -125,6 +126,7 @@ const AuthLayout: React.FC = () => {
             </Link>
             <Link
               to="/auth/register"
+              data-testid="auth-tab-register"
               className={`flex-1 py-3 text-center text-sm font-semibold rounded-lg transition-all duration-300 relative z-10 ${
                 !isLogin ? 'text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}

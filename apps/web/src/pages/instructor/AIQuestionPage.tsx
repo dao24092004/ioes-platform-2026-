@@ -68,7 +68,7 @@ const AIQuestionPage: React.FC = () => {
     >
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* Form */}
-        <section className="xl:col-span-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 h-fit sticky top-20">
+        <section data-testid="instructor-ai-question-form" className="xl:col-span-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 h-fit sticky top-20">
           <div className="flex items-center gap-2 mb-5">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -86,6 +86,7 @@ const AIQuestionPage: React.FC = () => {
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">{t('instructor.aiQuestion.config.topic')}</label>
               <input
                 type="text"
+                data-testid="instructor-ai-question-topic"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder={t('instructor.aiQuestion.config.topicPlaceholder')}
@@ -176,6 +177,7 @@ const AIQuestionPage: React.FC = () => {
             </div>
 
             <button
+              data-testid="instructor-ai-question-generate"
               onClick={handleGenerate}
               disabled={!topic.trim() || generating}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold shadow-md transition-all"
@@ -198,10 +200,11 @@ const AIQuestionPage: React.FC = () => {
         </section>
 
         {/* Output */}
-        <section className="xl:col-span-8 space-y-4">
+        <section data-testid="instructor-ai-question-output" className="xl:col-span-8 space-y-4">
           {error && (
             <div
               role="alert"
+              data-testid="instructor-ai-question-error"
               className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 rounded-2xl px-5 py-3 text-sm"
             >
               {error}
@@ -211,7 +214,7 @@ const AIQuestionPage: React.FC = () => {
           {/* Hoc lieu khong phu chu de. Day la ket qua hop le, khong phai loi -
               noi ro de giang vien biet can nap them tai lieu. */}
           {result && !result.grounded && (
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900 rounded-2xl p-8 text-center">
+            <div data-testid="instructor-ai-question-not-grounded" className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900 rounded-2xl p-8 text-center">
               <h3 className="text-base font-semibold mb-1 text-amber-800 dark:text-amber-300">
                 {t('instructor.aiQuestion.notGrounded.title')}
               </h3>
@@ -222,7 +225,7 @@ const AIQuestionPage: React.FC = () => {
           )}
 
           {!result && !generating && !error && (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 p-12 text-center">
+            <div data-testid="instructor-ai-question-empty" className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 p-12 text-center">
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400">
                 <SparkleSvg />
               </div>
@@ -232,7 +235,7 @@ const AIQuestionPage: React.FC = () => {
           )}
 
           {result && questions.length > 0 && (
-            <div className="flex items-center justify-between gap-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 px-5 py-3">
+            <div data-testid="instructor-ai-question-summary" className="flex items-center justify-between gap-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 px-5 py-3">
               <div className="text-sm min-w-0">
                 <span className="font-semibold">{questions.length}</span> {t('instructor.aiQuestion.questionsReady')}
                 {/* Tra it hon so da xin la binh thuong: hoc lieu du can cu toi
@@ -258,7 +261,7 @@ const AIQuestionPage: React.FC = () => {
           )}
 
           {questions.map((q, idx) => (
-            <article key={`${q.source.chunkId}-${idx}`} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
+            <article key={`${q.source.chunkId}-${idx}`} data-testid="instructor-ai-question-card" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
               <header className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <span className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-bold">{idx + 1}</span>

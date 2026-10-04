@@ -1,0 +1,2 @@
+# Prettier does not support CSV files without a plugin.
+**/*.csv

@@ -15,11 +15,13 @@ const OCRPage: React.FC = () => {
 
   return (
     <StudentLayout title={t('comingSoon.ocr.title')}>
+      <div data-testid="ocr-page">
       <ComingSoon
         title={t('comingSoon.ocr.title')}
         description={t('comingSoon.ocr.description')}
         missing={t('comingSoon.ocr.missing', { returnObjects: true }) as string[]}
       />
+      </div>
     </StudentLayout>
   );
 };

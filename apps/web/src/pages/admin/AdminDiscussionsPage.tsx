@@ -15,11 +15,13 @@ const AdminDiscussionsPage: React.FC = () => {
 
   return (
     <AdminLayout title={t('comingSoon.discussion.title')}>
-      <ComingSoon
-        title={t('comingSoon.discussion.title')}
-        description={t('comingSoon.discussion.description')}
-        missing={t('comingSoon.discussion.missing', { returnObjects: true }) as string[]}
-      />
+      <div data-testid="admin-coming-discussions">
+        <ComingSoon
+          title={t('comingSoon.discussion.title')}
+          description={t('comingSoon.discussion.description')}
+          missing={t('comingSoon.discussion.missing', { returnObjects: true }) as string[]}
+        />
+      </div>
     </AdminLayout>
   );
 };

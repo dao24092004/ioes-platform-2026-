@@ -53,6 +53,7 @@ const EnrollmentPage: React.FC = () => {
           {filters.map(f => (
             <button
               key={f}
+              data-testid={`enrollment-filter-${f}`}
               onClick={() => setFilter(f)}
               className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
                 filter === f
@@ -120,7 +121,7 @@ const EnrollmentPage: React.FC = () => {
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{formatDate(enrollment.lastAccessedAt)}</td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       {confirmingId === course.id ? (
-                        <div className="inline-flex flex-col items-end gap-2">
+                        <div data-testid="enrollment-cancel-confirm" className="inline-flex flex-col items-end gap-2">
                           <span className="text-xs text-red-600 dark:text-red-400 max-w-[220px] text-right">
                             {t('enrollmentApi.cancelConfirm')}
                           </span>
@@ -128,6 +129,7 @@ const EnrollmentPage: React.FC = () => {
                             <button
                               onClick={() => cancelMut.mutate(course.id)}
                               disabled={cancelMut.isPending}
+                              data-testid="enrollment-cancel-confirm-button"
                               className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold disabled:opacity-50"
                             >
                               {t('enrollmentApi.cancel')}
@@ -144,12 +146,14 @@ const EnrollmentPage: React.FC = () => {
                         <div className="inline-flex gap-2">
                           <Link
                             to={`/student/learn/${course.id}`}
+                            data-testid="enrollment-continue-link"
                             className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold"
                           >
                             {t('enrollmentApi.continue')}
                           </Link>
                           <button
                             onClick={() => setConfirmingId(course.id)}
+                            data-testid="enrollment-cancel-button"
                             className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-red-600 text-xs font-semibold"
                           >
                             {t('enrollmentApi.cancel')}

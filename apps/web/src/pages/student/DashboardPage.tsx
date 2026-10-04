@@ -81,6 +81,7 @@ const DashboardPage: React.FC = () => {
       headerActions={
         <Link
           to="/student/exams"
+          data-testid="dashboard-header-exams-link"
           className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition-colors"
         >
           {t('student.exams.title')}
@@ -89,13 +90,13 @@ const DashboardPage: React.FC = () => {
     >
       <section className="mb-6">
         <p className="text-sm text-slate-500 dark:text-slate-400">{t(greetingKey)},</p>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+        <h2 data-testid="dashboard-greeting" className="text-2xl font-bold text-slate-900 dark:text-white">
           {user?.full_name || 'Student'}
         </h2>
       </section>
 
       {analyticsError && (
-        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400">
+        <div data-testid="dashboard-analytics-error" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400">
           {t('common.loadError')}
         </div>
       )}
@@ -130,6 +131,7 @@ const DashboardPage: React.FC = () => {
                   <li key={enrollment.id}>
                     <Link
                       to={`/student/learn/${course.id}`}
+                      data-testid="dashboard-continue-learning-link"
                       className="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
                     >
                       <div className="w-16 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 overflow-hidden flex-shrink-0">
@@ -193,6 +195,7 @@ const DashboardPage: React.FC = () => {
                         </span>
                         <Link
                           to={`/student/exams/${exam.id}/take`}
+                          data-testid="dashboard-exam-start-link"
                           className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                         >
                           {exam.status === 'in_progress' ? t('student.exams.resumeBtn') : t('student.exams.startBtn')}

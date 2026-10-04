@@ -1,0 +1,8 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-STREAK-001,Streak,emptyYear returns 365 consecutive days ending today,P1,Today anchor,"Call emptyYear()","-","length===365 and last.date===today YYYY-MM-DD",Unit
+UT-STREAK-002,Streak,emptyYear assigns level=0 to every day,P1,All zero seed,"Call emptyYear()","-","every entry has level===0",Unit
+UT-STREAK-003,Streak,MILESTONE_TARGETS contains m1=7, m2=30, m3=100, m4=365 with non-negative rewards,P1,Static table,"Read MILESTONE_TARGETS","-","length===4, m1.target===7, m2.target===30, m3.target===100, m4.target===365",Unit
+UT-STREAK-004,Streak,WEEK_DAY_LABELS has seven entries indexed 0..6 starting with Sunday,P1,Static array,"Read WEEK_DAY_LABELS","-","length===7, [0]==='streak.weekSun'",Unit
+IT-STREAK-001,Streak,StreakPage renders the three hero counters from the analytics payload,P1,"Student auth, analytics mock returns currentStreak=15","Render StreakPage at /student/streak","currentStreak=15, longestStreak=30","hero value=15, best value=30, days-to-next=15, freeze button present",Integration
+IT-STREAK-002,Streak,StreakPage renders the milestones list with the achieved badge on m1 (7 days) when currentStreak=15,P1,currentStreak=15,"Render StreakPage at /student/streak","milestones=[7,30,100,365]","m1 shows 'Achieved', m2 shows 'Continue to 30 days'",Integration
+TC-STREAK-001,Streak,/student/streak renders hero streak value, freeze button, and four milestone cards with no console errors,P1,"web-student storageState, mock analytics with currentStreak=15","1. Visit /student/streak 2. Wait for hero 4. Assert freeze button + 4 milestone cards","currentStreak=15","hero=15, freeze button visible, 4 milestone cards, console errors=0",E2E

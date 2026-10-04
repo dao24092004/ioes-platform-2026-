@@ -10,9 +10,10 @@ interface ToggleRowProps {
   description?: string;
   value: boolean;
   onChange: (v: boolean) => void;
+  testId?: string;
 }
 
-const ToggleRow: React.FC<ToggleRowProps> = ({ label, description, value, onChange }) => (
+const ToggleRow: React.FC<ToggleRowProps> = ({ label, description, value, onChange, testId }) => (
   <div className="flex items-center justify-between gap-4 py-3 px-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
     <div className="flex-1 min-w-0">
       <div className="text-sm font-semibold">{label}</div>
@@ -20,6 +21,7 @@ const ToggleRow: React.FC<ToggleRowProps> = ({ label, description, value, onChan
     </div>
     <button
       type="button"
+      data-testid={testId}
       onClick={() => onChange(!value)}
       role="switch"
       aria-checked={value}
@@ -43,13 +45,15 @@ interface InputRowProps {
   type?: string;
   placeholder?: string;
   onChange: (v: string) => void;
+  testId?: string;
 }
 
-const InputRow: React.FC<InputRowProps> = ({ label, value, type = 'text', placeholder, onChange }) => (
+const InputRow: React.FC<InputRowProps> = ({ label, value, type = 'text', placeholder, onChange, testId }) => (
   <div className="py-3">
     <label className="block text-sm font-semibold mb-1.5">{label}</label>
     <input
       type={type}
+      data-testid={testId}
       value={value}
       placeholder={placeholder}
       onChange={e => onChange(e.target.value)}
@@ -64,13 +68,15 @@ interface NumberRowProps {
   min?: number;
   max?: number;
   onChange: (v: number) => void;
+  testId?: string;
 }
 
-const NumberRow: React.FC<NumberRowProps> = ({ label, value, min, max, onChange }) => (
+const NumberRow: React.FC<NumberRowProps> = ({ label, value, min, max, onChange, testId }) => (
   <div className="py-3">
     <label className="block text-sm font-semibold mb-1.5">{label}</label>
     <input
       type="number"
+      data-testid={testId}
       value={value}
       min={min}
       max={max}
@@ -86,13 +92,15 @@ interface SelectRowProps {
   options: Array<{ value: string; label: string }>;
   onChange: (v: string) => void;
   ariaLabel?: string;
+  testId?: string;
 }
 
-const SelectRow: React.FC<SelectRowProps> = ({ label, value, options, onChange, ariaLabel }) => (
+const SelectRow: React.FC<SelectRowProps> = ({ label, value, options, onChange, ariaLabel, testId }) => (
   <div className="py-3">
     <label className="block text-sm font-semibold mb-1.5">{label}</label>
     <select
       value={value}
+      data-testid={testId}
       onChange={e => onChange(e.target.value)}
       aria-label={ariaLabel ?? label}
       className="w-full px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
@@ -220,7 +228,7 @@ const SystemConfigPage: React.FC = () => {
       headerActions={
         <div className="flex items-center gap-2">
           {savedAt && (
-            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium hidden sm:inline-flex items-center gap-1.5">
+            <span data-testid="admin-config-saved-at" className="text-xs text-emerald-600 dark:text-emerald-400 font-medium hidden sm:inline-flex items-center gap-1.5">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
               {t('systemConfig.savedAt', { time: savedAt })}
             </span>
@@ -257,6 +265,7 @@ const SystemConfigPage: React.FC = () => {
             {sections.map(s => (
               <button
                 key={s.key}
+                data-testid={`admin-config-section-${s.key}`}
                 onClick={() => setActive(s.key)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left ${
                   active === s.key
@@ -275,16 +284,17 @@ const SystemConfigPage: React.FC = () => {
         </aside>
 
         {/* Content */}
-        <main className="lg:col-span-9 space-y-6">
+        <main data-testid="admin-config-panel" className="lg:col-span-9 space-y-6">
           {active === 'general' && (
             <SectionCard title={t('systemConfig.sections.general')} icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3" /><path d="M12 1v6m0 10v6m11-11h-6m-10 0H1" /></svg>}>
-              <InputRow label={t('systemConfig.general.platformName')} value={platformName} onChange={setPlatformName} />
-              <InputRow label={t('systemConfig.general.tagline')} value={tagline} onChange={setTagline} />
-              <InputRow label={t('systemConfig.general.supportEmail')} value={supportEmail} type="email" onChange={setSupportEmail} />
+              <InputRow label={t('systemConfig.general.platformName')} value={platformName} onChange={setPlatformName} testId="admin-config-platform-name" />
+              <InputRow label={t('systemConfig.general.tagline')} value={tagline} onChange={setTagline} testId="admin-config-tagline" />
+              <InputRow label={t('systemConfig.general.supportEmail')} value={supportEmail} type="email" onChange={setSupportEmail} testId="admin-config-support-email" />
               <SelectRow
                 label={t('systemConfig.general.defaultLang')}
                 value={defaultLang}
                 ariaLabel={t('aria.selectLanguage')}
+                testId="admin-config-default-lang"
                 options={[
                   { value: 'vi', label: `🇻🇳 ${t('shared.language.vi')}` },
                   { value: 'en', label: `🇺🇸 ${t('shared.language.en')}` },
@@ -295,6 +305,7 @@ const SystemConfigPage: React.FC = () => {
                 label={t('systemConfig.general.timezone')}
                 value={timezone}
                 ariaLabel={t('aria.selectTimezone')}
+                testId="admin-config-timezone"
                 options={[
                   { value: 'Asia/Ho_Chi_Minh', label: t('shared.timezone.hn') },
                   { value: 'Asia/Bangkok', label: t('shared.timezone.bkk') },
@@ -305,6 +316,7 @@ const SystemConfigPage: React.FC = () => {
               />
               <ToggleRow
                 label={t('systemConfig.general.maintenance')}
+                testId="admin-config-maintenance"
                 description="Tạm dừng truy cập cho người dùng ngoại trừ super admin"
                 value={maintenance}
                 onChange={setMaintenance}
@@ -316,43 +328,43 @@ const SystemConfigPage: React.FC = () => {
             <SectionCard title={t('systemConfig.sections.security')} icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>}>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 px-4">{t('systemConfig.security.passwordPolicy')}</h3>
               <div className="px-4">
-                <NumberRow label={t('systemConfig.security.minLength')} value={minLength} min={6} max={32} onChange={setMinLength} />
+                <NumberRow label={t('systemConfig.security.minLength')} value={minLength} min={6} max={32} onChange={setMinLength} testId="admin-config-min-length" />
               </div>
-              <ToggleRow label={t('systemConfig.security.requireUppercase')} value={requireUpper} onChange={setRequireUpper} />
-              <ToggleRow label={t('systemConfig.security.requireNumber')} value={requireNumber} onChange={setRequireNumber} />
-              <ToggleRow label={t('systemConfig.security.requireSpecial')} value={requireSpecial} onChange={setRequireSpecial} />
+              <ToggleRow label={t('systemConfig.security.requireUppercase')} value={requireUpper} onChange={setRequireUpper} testId="admin-config-require-uppercase" />
+              <ToggleRow label={t('systemConfig.security.requireNumber')} value={requireNumber} onChange={setRequireNumber} testId="admin-config-require-number" />
+              <ToggleRow label={t('systemConfig.security.requireSpecial')} value={requireSpecial} onChange={setRequireSpecial} testId="admin-config-require-special" />
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 px-4 pt-4">{t('systemConfig.sections.system') || 'Phiên & MFA'}</h3>
               <div className="px-4">
-                <NumberRow label={t('systemConfig.security.sessionTimeout')} value={sessionTimeout} min={5} max={1440} onChange={setSessionTimeout} />
-                <NumberRow label={t('systemConfig.security.loginThrottle')} value={loginThrottle} min={1} max={20} onChange={setLoginThrottle} />
+                <NumberRow label={t('systemConfig.security.sessionTimeout')} value={sessionTimeout} min={5} max={1440} onChange={setSessionTimeout} testId="admin-config-session-timeout" />
+                <NumberRow label={t('systemConfig.security.loginThrottle')} value={loginThrottle} min={1} max={20} onChange={setLoginThrottle} testId="admin-config-login-throttle" />
               </div>
-              <ToggleRow label={t('systemConfig.security.mfaRequired')} value={mfaRequired} onChange={setMfaRequired} />
+              <ToggleRow label={t('systemConfig.security.mfaRequired')} value={mfaRequired} onChange={setMfaRequired} testId="admin-config-mfa-required" />
             </SectionCard>
           )}
 
           {active === 'exam' && (
             <SectionCard title={t('systemConfig.sections.exam')} icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" /><path d="M9 14l2 2 4-4" /></svg>}>
               <div className="px-4">
-                <NumberRow label={t('systemConfig.exam.defaultDuration')} value={defaultDuration} min={5} max={300} onChange={setDefaultDuration} />
-                <NumberRow label={t('systemConfig.exam.maxQuestions')} value={maxQuestions} min={1} max={500} onChange={setMaxQuestions} />
-                <NumberRow label={t('systemConfig.exam.gradingScale')} value={gradingScale} min={0} max={100} onChange={setGradingScale} />
+                <NumberRow label={t('systemConfig.exam.defaultDuration')} value={defaultDuration} min={5} max={300} onChange={setDefaultDuration} testId="admin-config-default-duration" />
+                <NumberRow label={t('systemConfig.exam.maxQuestions')} value={maxQuestions} min={1} max={500} onChange={setMaxQuestions} testId="admin-config-max-questions" />
+                <NumberRow label={t('systemConfig.exam.gradingScale')} value={gradingScale} min={0} max={100} onChange={setGradingScale} testId="admin-config-grading-scale" />
               </div>
-              <ToggleRow label={t('systemConfig.exam.enableProctoring')} description="Bật webcam giám sát trong quá trình thi" value={proctoring} onChange={setProctoring} />
-              <ToggleRow label={t('systemConfig.exam.shuffleQuestions')} value={shuffle} onChange={setShuffle} />
-              <ToggleRow label={t('systemConfig.exam.antiCheat')} description="Ngăn copy/paste và chuyển tab" value={antiCheat} onChange={setAntiCheat} />
+              <ToggleRow label={t('systemConfig.exam.enableProctoring')} testId="admin-config-proctoring" description="Bật webcam giám sát trong quá trình thi" value={proctoring} onChange={setProctoring} />
+              <ToggleRow label={t('systemConfig.exam.shuffleQuestions')} value={shuffle} onChange={setShuffle} testId="admin-config-shuffle" />
+              <ToggleRow label={t('systemConfig.exam.antiCheat')} testId="admin-config-anti-cheat" description="Ngăn copy/paste và chuyển tab" value={antiCheat} onChange={setAntiCheat} />
             </SectionCard>
           )}
 
           {active === 'notification' && (
             <SectionCard title={t('systemConfig.sections.notification')} icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4-5.7V5a2 2 0 10-4 0v.3C7.7 6.2 6 8.4 6 11v3.2c0 .5-.2 1-.6 1.4L4 17h5" /></svg>}>
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 px-4">Kênh gửi</h3>
-              <ToggleRow label={t('systemConfig.notification.emailChannel')} value={emailCh} onChange={setEmailCh} />
-              <ToggleRow label={t('systemConfig.notification.pushChannel')} value={pushCh} onChange={setPushCh} />
-              <ToggleRow label={t('systemConfig.notification.smsChannel')} value={smsCh} onChange={setSmsCh} />
+              <ToggleRow label={t('systemConfig.notification.emailChannel')} value={emailCh} onChange={setEmailCh} testId="admin-config-email-channel" />
+              <ToggleRow label={t('systemConfig.notification.pushChannel')} value={pushCh} onChange={setPushCh} testId="admin-config-push-channel" />
+              <ToggleRow label={t('systemConfig.notification.smsChannel')} value={smsCh} onChange={setSmsCh} testId="admin-config-sms-channel" />
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 px-4 pt-4">Sự kiện</h3>
-              <ToggleRow label={t('systemConfig.notification.newUserAlert')} value={newUserAlert} onChange={setNewUserAlert} />
-              <ToggleRow label={t('systemConfig.notification.courseSubmittedAlert')} value={courseSubmittedAlert} onChange={setCourseSubmittedAlert} />
-              <ToggleRow label={t('systemConfig.notification.examGradedAlert')} value={examGradedAlert} onChange={setExamGradedAlert} />
+              <ToggleRow label={t('systemConfig.notification.newUserAlert')} value={newUserAlert} onChange={setNewUserAlert} testId="admin-config-new-user-alert" />
+              <ToggleRow label={t('systemConfig.notification.courseSubmittedAlert')} value={courseSubmittedAlert} onChange={setCourseSubmittedAlert} testId="admin-config-course-submitted-alert" />
+              <ToggleRow label={t('systemConfig.notification.examGradedAlert')} value={examGradedAlert} onChange={setExamGradedAlert} testId="admin-config-exam-graded-alert" />
             </SectionCard>
           )}
 
@@ -361,6 +373,7 @@ const SystemConfigPage: React.FC = () => {
               <SelectRow
                 label={t('systemConfig.blockchain.network')}
                 value={network}
+                testId="admin-config-network"
                 options={[
                   { value: 'polygon-amoy', label: 'Polygon Amoy (Testnet)' },
                   { value: 'polygon-mainnet', label: 'Polygon Mainnet' },
@@ -369,24 +382,25 @@ const SystemConfigPage: React.FC = () => {
                 ]}
                 onChange={setNetwork}
               />
-              <InputRow label={t('systemConfig.blockchain.contracts')} value={contract} onChange={setContract} />
-              <InputRow label={t('systemConfig.blockchain.tokenSymbol')} value={tokenSymbol} onChange={setTokenSymbol} />
+              <InputRow label={t('systemConfig.blockchain.contracts')} value={contract} onChange={setContract} testId="admin-config-contract" />
+              <InputRow label={t('systemConfig.blockchain.tokenSymbol')} value={tokenSymbol} onChange={setTokenSymbol} testId="admin-config-token-symbol" />
               <div className="px-4">
-                <NumberRow label={t('systemConfig.blockchain.mintPerExam')} value={mintPerExam} min={0} max={1000} onChange={setMintPerExam} />
+                <NumberRow label={t('systemConfig.blockchain.mintPerExam')} value={mintPerExam} min={0} max={1000} onChange={setMintPerExam} testId="admin-config-mint-per-exam" />
               </div>
             </SectionCard>
           )}
 
           {active === 'backup' && (
             <SectionCard title={t('systemConfig.sections.backup')} icon={<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" /></svg>}>
-              <ToggleRow label={t('systemConfig.backup.autoBackup')} description="Sao lưu hàng ngày lúc 02:00 UTC" value={autoBackup} onChange={setAutoBackup} />
+              <ToggleRow label={t('systemConfig.backup.autoBackup')} testId="admin-config-auto-backup" description="Sao lưu hàng ngày lúc 02:00 UTC" value={autoBackup} onChange={setAutoBackup} />
               <div className="px-4">
-                <NumberRow label={t('systemConfig.backup.retentionDays')} value={retentionDays} min={1} max={365} onChange={setRetentionDays} />
+                <NumberRow label={t('systemConfig.backup.retentionDays')} value={retentionDays} min={1} max={365} onChange={setRetentionDays} testId="admin-config-retention-days" />
               </div>
               <SelectRow
                 label={t('systemConfig.backup.targetStorage')}
                 value={targetStorage}
                 ariaLabel={t('aria.selectStorage')}
+                testId="admin-config-target-storage"
                 options={[
                   { value: 's3-ioes-prod', label: t('shared.storage.s3') },
                   { value: 'gcs-ioes-backup', label: t('shared.storage.gcs') },

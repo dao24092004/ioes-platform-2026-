@@ -4,6 +4,11 @@
 > **Áp dụng cho:** Toàn bộ team
 > **Owner:** QA Lead + Tech Lead
 
+> **Frontend (`apps/web`):** tài liệu này nói về nguyên tắc chung cho mọi tầng
+> ngôn ngữ. Cách tổ chức file và lệnh chạy riêng cho web (Vitest + Playwright, chia
+> theo vai trò `public / auth / student / instructor / admin / shared`) nằm ở
+> [`apps/web/tests/README.md`](../../../apps/web/tests/README.md).
+
 ---
 
 ## 1. TEST PYRAMID

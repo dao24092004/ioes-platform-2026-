@@ -46,7 +46,7 @@ export default function NotFoundPage() {
                 404
               </span>
             </div>
-            <h1 className="relative text-7xl md:text-8xl font-black bg-gradient-to-br from-blue-600 via-cyan-500 to-purple-500 bg-clip-text text-transparent tracking-tight animate-pulse">
+            <h1 data-testid="error-heading" className="relative text-7xl md:text-8xl font-black bg-gradient-to-br from-blue-600 via-cyan-500 to-purple-500 bg-clip-text text-transparent tracking-tight animate-pulse">
               404
             </h1>
           </div>

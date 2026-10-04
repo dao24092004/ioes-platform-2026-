@@ -1,0 +1,8 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-DISCUSS-001,discussionsApi,listCourseThreads GET /api/v1/discussions/courses/:courseId/threads,P1,Backend up,Call listCourseThreads('c-1'),"",URL=/api/v1/discussions/courses/c-1/threads,Unit
+UT-DISCUSS-002,discussionsApi,listCourseThreads returns the unwrapped threads array,P1,Backend up,Call listCourseThreads('c-1'),"payload",result equals payload,Unit
+UT-DISCUSS-003,discussionsApi,createThread POST /api/v1/discussions/courses/:courseId/threads,P1,Backend up,Call createThread('c-1',{title,content}),"","URL=/api/v1/discussions/courses/c-1/threads; body matches input",Unit
+UT-DISCUSS-004,discussionsApi,createReply POST /api/v1/discussions/threads/:threadId/replies,P1,Backend up,Call createReply('th-1',{content}),"","URL=/api/v1/discussions/threads/th-1/replies; body.content matches",Unit
+IT-DISCUSS-001,Discussions,Course-scoped route renders threads list from API,P1,"Mock returns 1 thread",Mount at /student/discussions/c-1,"title='Best resources for week 1?'","thread title visible",Integration
+IT-DISCUSS-002,Discussions,Index route renders without course filter,P1,Mock returns [],Mount at /student/discussions,"","no threads" copy visible,Integration
+TC-DISCUSS-001,Discussions,Discussions end-to-end with one thread,P1,"Student auth; mocked GET /api/v1/discussions/courses/c-1/threads","Visit /student/discussions/c-1","1 thread","thread title visible",E2E

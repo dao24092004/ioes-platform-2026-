@@ -9,17 +9,48 @@ import { examApi, toStudentExamView, type StudentExamView } from '@/services/api
 
 type StatusFilter = 'all' | 'available' | 'in_progress' | 'completed';
 
-const statusStyles: Record<StudentExamView['status'], { bg: string; text: string; dot: string; label: string }> = {
-  available: { bg: 'bg-emerald-50 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500 animate-pulse', label: 'student.exams.status.available' },
-  in_progress: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500', label: 'student.exams.status.in_progress' },
-  completed: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400', dot: 'bg-slate-400', label: 'student.exams.status.completed' },
+const statusStyles: Record<
+  StudentExamView['status'],
+  { bg: string; text: string; dot: string; label: string }
+> = {
+  available: {
+    bg: 'bg-emerald-50 dark:bg-emerald-900/30',
+    text: 'text-emerald-600 dark:text-emerald-400',
+    dot: 'bg-emerald-500 animate-pulse',
+    label: 'student.exams.status.available',
+  },
+  in_progress: {
+    bg: 'bg-amber-50 dark:bg-amber-900/30',
+    text: 'text-amber-600 dark:text-amber-400',
+    dot: 'bg-amber-500',
+    label: 'student.exams.status.in_progress',
+  },
+  completed: {
+    bg: 'bg-slate-100 dark:bg-slate-800',
+    text: 'text-slate-600 dark:text-slate-400',
+    dot: 'bg-slate-400',
+    label: 'student.exams.status.completed',
+  },
 };
 
-const typeStyles: Record<StudentExamView['examType'], { bg: string; text: string; label: string }> = {
-  practice: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400', label: 'student.exams.type.practice' },
-  graded: { bg: 'bg-purple-50 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400', label: 'student.exams.type.graded' },
-  certification: { bg: 'bg-red-50 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', label: 'student.exams.type.certification' },
-};
+const typeStyles: Record<StudentExamView['examType'], { bg: string; text: string; label: string }> =
+  {
+    practice: {
+      bg: 'bg-slate-100 dark:bg-slate-800',
+      text: 'text-slate-600 dark:text-slate-400',
+      label: 'student.exams.type.practice',
+    },
+    graded: {
+      bg: 'bg-purple-50 dark:bg-purple-900/30',
+      text: 'text-purple-600 dark:text-purple-400',
+      label: 'student.exams.type.graded',
+    },
+    certification: {
+      bg: 'bg-red-50 dark:bg-red-900/30',
+      text: 'text-red-600 dark:text-red-400',
+      label: 'student.exams.type.certification',
+    },
+  };
 
 const ExamsPage: React.FC = () => {
   const { t } = useTranslation();
@@ -29,15 +60,21 @@ const ExamsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const examsQuery = useQuery({ queryKey: ['student', 'exams', 'list'], queryFn: () => examApi.listExams() });
-  const attemptsQuery = useQuery({ queryKey: ['student', 'attempts'], queryFn: () => examApi.listAttempts() });
+  const examsQuery = useQuery({
+    queryKey: ['student', 'exams', 'list'],
+    queryFn: () => examApi.listExams(),
+  });
+  const attemptsQuery = useQuery({
+    queryKey: ['student', 'attempts'],
+    queryFn: () => examApi.listAttempts(),
+  });
 
   const isLoading = examsQuery.isLoading || attemptsQuery.isLoading;
   const error = examsQuery.error ?? attemptsQuery.error;
 
   const exams = useMemo<StudentExamView[]>(
-    () => (examsQuery.data ?? []).map(e => toStudentExamView(e, attemptsQuery.data ?? [])),
-    [examsQuery.data, attemptsQuery.data],
+    () => (examsQuery.data ?? []).map((e) => toStudentExamView(e, attemptsQuery.data ?? [])),
+    [examsQuery.data, attemptsQuery.data]
   );
 
   const filtered = useMemo(() => {
@@ -64,31 +101,59 @@ const ExamsPage: React.FC = () => {
 
   const stats = useMemo(() => {
     const scored = exams.filter((e: StudentExamView) => e.bestScore !== null);
-    const avg = scored.length > 0 ? Math.round(scored.reduce((s: number, e: StudentExamView) => s + (e.bestScore ?? 0), 0) / scored.length) : 0;
+    const avg =
+      scored.length > 0
+        ? Math.round(
+            scored.reduce((s: number, e: StudentExamView) => s + (e.bestScore ?? 0), 0) /
+              scored.length
+          )
+        : 0;
     return {
       total: exams.length,
-      available: exams.filter((e: StudentExamView) => e.status === 'available' || e.status === 'in_progress').length,
+      available: exams.filter(
+        (e: StudentExamView) => e.status === 'available' || e.status === 'in_progress'
+      ).length,
       completed: exams.filter((e: StudentExamView) => e.status === 'completed').length,
       avgScore: avg,
     };
   }, [exams]);
 
   return (
-    <StudentLayout
-      title={t('student.exams.title')}
-      subtitle={t('student.exams.subtitle')}
-    >
+    <StudentLayout title={t('student.exams.title')} subtitle={t('student.exams.subtitle')}>
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard color="blue" icon={<ExamIcon />} value={stats.total} label={t('student.exams.stats.total')} />
-        <StatCard color="amber" icon={<ClockIcon />} value={stats.available} label={t('student.exams.filter.available')} />
-        <StatCard color="emerald" icon={<CheckIcon />} value={stats.completed} label={t('student.exams.stats.completed')} />
-        <StatCard color="purple" icon={<TrophyIcon />} value={stats.avgScore} label={t('student.exams.stats.avgScore')} />
+        <StatCard
+          color="blue"
+          icon={<ExamIcon />}
+          value={stats.total}
+          label={t('student.exams.stats.total')}
+        />
+        <StatCard
+          color="amber"
+          icon={<ClockIcon />}
+          value={stats.available}
+          label={t('student.exams.filter.available')}
+        />
+        <StatCard
+          color="emerald"
+          icon={<CheckIcon />}
+          value={stats.completed}
+          label={t('student.exams.stats.completed')}
+        />
+        <StatCard
+          color="purple"
+          icon={<TrophyIcon />}
+          value={stats.avgScore}
+          label={t('student.exams.stats.avgScore')}
+        />
       </section>
 
       <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-wrap gap-3 items-center justify-between">
+        <div
+          data-testid="exams-page"
+          className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-wrap gap-3 items-center justify-between"
+        >
           <div className="flex flex-wrap gap-2">
-            {(['all', 'available', 'in_progress', 'completed'] as StatusFilter[]).map(s => (
+            {(['all', 'available', 'in_progress', 'completed'] as StatusFilter[]).map((s) => (
               <button
                 key={s}
                 onClick={() => setStatus(s)}
@@ -106,16 +171,26 @@ const ExamsPage: React.FC = () => {
             <div className="relative">
               <input
                 type="search"
+                data-testid="exams-search-input"
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder={t('student.exams.searchPlaceholder')}
                 className="pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:border-blue-500 w-64"
               />
-              <svg className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+              <svg
+                className="w-4 h-4 absolute left-3 top-2.5 text-slate-400"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
             </div>
             <select
               value={sort}
-              onChange={e => setSort(e.target.value as 'recent' | 'score')}
+              onChange={(e) => setSort(e.target.value as 'recent' | 'score')}
               className="px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:border-blue-500"
             >
               <option value="recent">{t('student.exams.sort.recent')}</option>
@@ -125,9 +200,13 @@ const ExamsPage: React.FC = () => {
         </div>
 
         {error ? (
-          <div className="p-12 text-center text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</div>
+          <div className="p-12 text-center text-sm text-red-600 dark:text-red-400">
+            {t('common.loadError')}
+          </div>
         ) : isLoading ? (
-          <div className="p-12 text-center"><div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
+          <div className="p-12 text-center">
+            <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          </div>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-sm text-slate-500">{t('student.exams.empty')}</div>
         ) : (
@@ -136,10 +215,18 @@ const ExamsPage: React.FC = () => {
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase tracking-wider text-slate-500">
                   <th className="text-left px-6 py-3 font-semibold">{t('student.exams.title')}</th>
-                  <th className="text-center px-6 py-3 font-semibold">{t('student.exams.duration')}</th>
-                  <th className="text-center px-6 py-3 font-semibold">{t('student.exams.attempts', { done: 0, max: 0 })}</th>
-                  <th className="text-left px-6 py-3 font-semibold">{t('student.exams.statusColumn')}</th>
-                  <th className="text-left px-6 py-3 font-semibold">{t('student.exams.bestScore')}</th>
+                  <th className="text-center px-6 py-3 font-semibold">
+                    {t('student.exams.duration')}
+                  </th>
+                  <th className="text-center px-6 py-3 font-semibold">
+                    {t('student.exams.attempts', { done: 0, max: 0 })}
+                  </th>
+                  <th className="text-left px-6 py-3 font-semibold">
+                    {t('student.exams.statusColumn')}
+                  </th>
+                  <th className="text-left px-6 py-3 font-semibold">
+                    {t('student.exams.bestScore')}
+                  </th>
                   <th className="px-6 py-3"></th>
                 </tr>
               </thead>
@@ -148,36 +235,47 @@ const ExamsPage: React.FC = () => {
                   const ss = statusStyles[exam.status];
                   const ts = typeStyles[exam.examType];
                   return (
-                    <tr key={exam.id} className="border-t border-slate-100 dark:border-slate-800 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors">
+                    <tr
+                      key={exam.id}
+                      className="border-t border-slate-100 dark:border-slate-800 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors"
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${ts.bg} ${ts.text}`}>
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${ts.bg} ${ts.text}`}
+                          >
                             {t(ts.label)}
                           </span>
                           <span className="font-semibold text-sm">{exam.title}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <div className="text-sm font-semibold">{exam.timeLimitMinutes ?? '—'} min</div>
+                        <div className="text-sm font-semibold">
+                          {exam.timeLimitMinutes ?? '—'} min
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-center text-sm">
                         {exam.attempts}/{exam.maxAttempts ?? '∞'}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold ${ss.bg} ${ss.text}`}>
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold ${ss.bg} ${ss.text}`}
+                        >
                           <span className={`w-1.5 h-1.5 rounded-full ${ss.dot}`} />
                           {t(ss.label)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         {exam.bestScore !== null ? (
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold ${
-                            exam.bestScore >= 80
-                              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
-                              : exam.bestScore >= 60
-                              ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
-                              : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                          }`}>
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold ${
+                              exam.bestScore >= 80
+                                ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                                : exam.bestScore >= 60
+                                  ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                                  : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                            }`}
+                          >
                             {exam.bestScore}
                           </span>
                         ) : (
@@ -201,7 +299,9 @@ const ExamsPage: React.FC = () => {
                                 : 'bg-blue-600 hover:bg-blue-700 text-white'
                             }`}
                           >
-                            {exam.status === 'in_progress' ? t('student.exams.resumeBtn') : t('student.exams.startBtn')}
+                            {exam.status === 'in_progress'
+                              ? t('student.exams.resumeBtn')
+                              : t('student.exams.startBtn')}
                           </Link>
                         )}
                       </td>
@@ -232,16 +332,25 @@ const ExamsPage: React.FC = () => {
 };
 
 const ExamIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+  </svg>
 );
 const ClockIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
 );
 const CheckIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
 );
 const TrophyIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 21h8M12 17v4M17 4H7l1 7a5 5 0 0010 0l-1-7zM3 4h4v3a3 3 0 01-3 3V4zM21 4h-4v3a3 3 0 003-3V4z" /></svg>
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M8 21h8M12 17v4M17 4H7l1 7a5 5 0 0010 0l-1-7zM3 4h4v3a3 3 0 01-3 3V4zM21 4h-4v3a3 3 0 003-3V4z" />
+  </svg>
 );
 
 export default ExamsPage;

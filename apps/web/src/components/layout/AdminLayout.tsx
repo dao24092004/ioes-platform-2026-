@@ -93,12 +93,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, he
     : 'bg-gradient-to-br from-red-500 to-orange-500';
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <div
+      className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+      data-testid="admin-shell-root"
+    >
       {/* Mobile toggle */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
         className="lg:hidden fixed top-4 left-4 z-[60] w-11 h-11 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-md flex items-center justify-center hover:scale-105 transition-transform"
         aria-label="Toggle sidebar"
+        data-testid="admin-shell-sidebar-toggle"
       >
         <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           {mobileOpen ? (
@@ -114,6 +118,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, he
         <div
           onClick={() => setMobileOpen(false)}
           className="lg:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+          data-testid="admin-shell-overlay"
         />
       )}
 
@@ -122,10 +127,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, he
         className={`fixed top-0 left-0 bottom-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-transform duration-500 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
+        data-testid="admin-shell-sidebar"
       >
         {/* Brand */}
         <div className="h-18 px-6 flex items-center border-b border-slate-200 dark:border-slate-800" style={{ height: '72px' }}>
-          <Link to="/" className="flex items-center gap-3 no-underline">
+          <Link to="/" className="flex items-center gap-3 no-underline" data-testid="admin-shell-brand">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center bg-[length:200%_200%] animate-[gradientShift_3s_ease_infinite]">
               <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 14l9-5-9-5-9 5 9 5z" />
@@ -137,7 +143,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, he
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 py-4 px-3 overflow-y-auto">
+        <nav className="flex-1 py-4 px-3 overflow-y-auto" data-testid="admin-shell-nav">
           {sections.map((section, sIdx) => (
             <div key={sIdx} className="mb-6">
               <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 mb-2">
@@ -149,6 +155,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, he
                     <Link
                       to={item.path}
                       onClick={() => setMobileOpen(false)}
+                      data-testid={`admin-shell-nav-${item.path}`}
                       className={`group relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all overflow-hidden ${
                         isActive(item.path)
                           ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
@@ -177,12 +184,17 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, he
               {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold truncate">{user?.full_name || 'Admin'}</div>
-              <div className="text-xs text-red-500 font-medium">{roleLabel}</div>
+              <div className="text-sm font-semibold truncate" data-testid="admin-shell-user-name">
+                {user?.full_name || 'Admin'}
+              </div>
+              <div className="text-xs text-red-500 font-medium" data-testid="admin-shell-role-label">
+                {roleLabel}
+              </div>
             </div>
             <button
               onClick={() => void signOut()}
               title={t('header.logout')}
+              data-testid="admin-shell-logout"
               className="p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-700 transition-colors opacity-60 hover:opacity-100"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -198,18 +210,24 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, he
       {/* Main */}
       <div className="lg:pl-64 transition-all duration-500">
         {/* Header */}
-        <header className="sticky top-0 z-30 h-[72px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800">
+        <header
+          className="sticky top-0 z-30 h-[72px] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800"
+          data-testid="admin-shell-header"
+        >
           <div className="flex items-center justify-between h-full px-6 lg:px-8 pl-16 lg:pl-8">
             <div className="opacity-0 animate-[fadeIn_1s_ease_forwards]">
-              <h1 className="text-xl lg:text-2xl font-bold">{title}</h1>
+              <h1 className="text-xl lg:text-2xl font-bold" data-testid="admin-shell-header-title">
+                {title}
+              </h1>
               {subtitle && <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{subtitle}</p>}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" data-testid="admin-shell-header-actions">
               {headerActions}
               {/* Language toggle */}
               <button
                 onClick={toggleLang}
                 title="Change Language"
+                data-testid="admin-shell-lang-toggle"
                 className="w-11 h-11 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-110 transition-all text-slate-500 dark:text-slate-400"
               >
                 <span className="text-xs font-bold">{i18n.language?.startsWith('vi') ? 'VN' : 'EN'}</span>
@@ -218,6 +236,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, he
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 title={t('header.toggleTheme')}
+                data-testid="admin-shell-theme-toggle"
                 className="w-11 h-11 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-110 transition-all text-slate-500 dark:text-slate-400"
               >
                 {theme === 'dark' ? (
@@ -231,7 +250,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, he
                 )}
               </button>
               {/* Notifications */}
-              <button className="relative w-11 h-11 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-110 transition-all text-slate-500 dark:text-slate-400">
+              <button
+                className="relative w-11 h-11 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-110 transition-all text-slate-500 dark:text-slate-400"
+                data-testid="admin-shell-notifications-button"
+              >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
@@ -241,7 +263,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, subtitle, children, he
           </div>
         </header>
 
-        <main className="p-6 lg:p-8">
+        <main className="p-6 lg:p-8" data-testid="admin-shell-main">
           {children}
         </main>
       </div>

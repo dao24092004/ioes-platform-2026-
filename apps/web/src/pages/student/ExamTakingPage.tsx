@@ -226,7 +226,10 @@ const ExamTakingPage: React.FC = () => {
   const isDark = theme === 'dark';
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <div
+      className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+      data-testid="exam-taking-page"
+    >
       <header className="fixed top-0 left-0 right-0 z-40 h-[72px] bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 flex items-center justify-between">
         <div className="flex items-center gap-6 min-w-0">
           <div className="flex items-center gap-3">

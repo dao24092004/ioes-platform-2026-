@@ -13,11 +13,13 @@ const AuditLogPage: React.FC = () => {
 
   return (
     <AdminLayout title={t('admin.auditLog.title')}>
-      <ComingSoon
-        title={t('admin.auditLog.title')}
-        description={t('admin.noBackend.auditLog.description')}
-        missing={t('admin.noBackend.auditLog.missing', { returnObjects: true }) as string[]}
-      />
+      <div data-testid="admin-coming-audit-log">
+        <ComingSoon
+          title={t('admin.auditLog.title')}
+          description={t('admin.noBackend.auditLog.description')}
+          missing={t('admin.noBackend.auditLog.missing', { returnObjects: true }) as string[]}
+        />
+      </div>
     </AdminLayout>
   );
 };

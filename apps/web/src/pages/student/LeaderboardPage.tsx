@@ -103,6 +103,7 @@ const LeaderboardPage: React.FC = () => {
           <button
             key={p}
             onClick={() => setPeriod(p)}
+            data-testid={`leaderboard-period-${p === 'allTime' ? 'alltime' : p}`}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
               period === p
                 ? 'bg-blue-600 text-white shadow-sm'
@@ -183,7 +184,11 @@ const LeaderboardPage: React.FC = () => {
               const badge = entry.badge ? badgeStyles[entry.badge] : badgeStyles.none;
               const displayName = entry.full_name ?? t('student.leaderboard.unknownLearner', 'Học viên ẩn danh');
               return (
-                <tr key={entry.user_id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                <tr
+                  key={entry.user_id}
+                  data-testid="leaderboard-row"
+                  className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                >
                   <td className="px-6 py-3 text-center">
                     <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg font-bold text-sm ${badge.bg} ${badge.text}`}>
                       {entry.badge ? badge.label : entry.rank}
@@ -216,7 +221,10 @@ const LeaderboardPage: React.FC = () => {
       </Card>
 
       {myRank && (
-        <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 flex items-center justify-between">
+        <div
+          data-testid="leaderboard-your-rank"
+          className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 flex items-center justify-between"
+        >
           <div>
             <div className="text-xs text-blue-600 dark:text-blue-400 font-semibold">{t('student.leaderboard.yourRank')}</div>
             <div className="text-2xl font-bold text-slate-900 dark:text-white">#{myRank.rank}</div>

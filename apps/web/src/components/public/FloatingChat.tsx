@@ -85,6 +85,7 @@ const FloatingChat: React.FC = () => {
     <>
       {/* Toggle Button */}
       <button
+        data-testid="floating-chat-toggle"
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-blue-600 to-cyan-500 text-white rounded-full shadow-lg flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-110 z-50 ${
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'

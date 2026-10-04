@@ -370,10 +370,14 @@ const AIAssistantPage: React.FC = () => {
       title={t('instructor.aiAssistant.title')}
       subtitle={t('instructor.aiAssistant.subtitle')}
     >
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-[calc(100vh-180px)]">
+      <div
+        data-testid="instructor-aiassistant-page"
+        className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-[calc(100vh-180px)]"
+      >
         {/* History sidebar */}
         <aside className="xl:col-span-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex flex-col gap-4 h-full overflow-hidden">
           <button
+            data-testid="instructor-aiassistant-new-chat"
             onClick={startNewChat}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm"
           >
@@ -472,6 +476,7 @@ const AIAssistantPage: React.FC = () => {
             <button
               onClick={clearActive}
               title={t('instructor.aiAssistant.clearChat')}
+              data-testid="instructor-aiassistant-clear"
               className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-red-500"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -483,6 +488,7 @@ const AIAssistantPage: React.FC = () => {
           {loadError && (
             <div
               role="alert"
+              data-testid="instructor-aiassistant-error"
               className="px-5 py-2.5 flex items-start gap-2 text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-b border-red-200 dark:border-red-900"
             >
               <svg className="w-4 h-4 flex-shrink-0 mt-px" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -550,6 +556,7 @@ const AIAssistantPage: React.FC = () => {
           >
             <div className="flex items-end gap-2">
               <textarea
+                data-testid="instructor-aiassistant-input"
                 rows={1}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -564,6 +571,7 @@ const AIAssistantPage: React.FC = () => {
               />
               <button
                 type="submit"
+                data-testid="instructor-aiassistant-send"
                 disabled={!input.trim() || thinking}
                 className="px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors"
               >
@@ -585,7 +593,10 @@ const Message: React.FC<{ msg: ChatMsg }> = ({ msg }) => {
   if (msg.role === 'user') {
     return (
       <div className="flex items-start gap-2.5 justify-end">
-        <div className="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm max-w-[80%]">
+        <div
+          data-testid="instructor-aiassistant-message-user"
+          className="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm max-w-[80%]"
+        >
           {msg.content}
         </div>
       </div>
@@ -598,7 +609,10 @@ const Message: React.FC<{ msg: ChatMsg }> = ({ msg }) => {
           <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
       </div>
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl rounded-tl-sm px-4 py-3 text-sm max-w-[80%] whitespace-pre-line">
+      <div
+        data-testid="instructor-aiassistant-message-assistant"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl rounded-tl-sm px-4 py-3 text-sm max-w-[80%] whitespace-pre-line"
+      >
         {msg.content}
       </div>
     </div>

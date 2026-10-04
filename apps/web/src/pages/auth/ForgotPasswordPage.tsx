@@ -170,6 +170,7 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="email@company.com"
+                    data-testid="auth-email"
                     className="w-full px-4 py-3.5 text-sm border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-cyan-500/10 outline-none transition-all"
                     required
                   />
@@ -181,6 +182,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
+                  data-testid="auth-submit"
                   className="w-full py-3.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed text-white rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-cyan-500/30 transition-all hover:-translate-y-0.5 disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
                 >
                   {isLoading ? (

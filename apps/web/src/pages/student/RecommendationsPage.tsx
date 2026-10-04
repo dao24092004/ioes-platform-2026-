@@ -58,6 +58,7 @@ const RecommendationsPage: React.FC = () => {
       headerActions={
         <button
           type="button"
+          data-testid="recommendations-refresh"
           onClick={() => void refetch()}
           disabled={isFetching}
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold shadow-sm transition-colors"
@@ -67,7 +68,7 @@ const RecommendationsPage: React.FC = () => {
         </button>
       }
     >
-      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <section data-testid="recommendations-page" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
         {!isLoading && !isError && items.length > 0 && (
           <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-bold text-slate-900 dark:text-white">
@@ -105,7 +106,7 @@ const RecommendationsPage: React.FC = () => {
             </button>
           </div>
         ) : items.length === 0 ? (
-          <div className="p-12 text-center">
+          <div data-testid="recommendations-empty" className="p-12 text-center">
             <p className="text-sm font-semibold text-slate-900 dark:text-white">{t('empty.title')}</p>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{t('empty.description')}</p>
             <Link

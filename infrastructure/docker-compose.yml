@@ -269,13 +269,12 @@ services:
   # ============================================
 
   minio:
-    # quay.io chu KHONG phai Docker Hub, va tag ghim chu khong phai :latest.
-    # `docker pull minio/minio` tren Docker Hub hien tra "denied: requested
-    # access to the resource is denied" — MinIO da rut kho public ben do, ke ca
-    # voi tag RELEASE cu the. quay.io la registry chinh thuc con lai. Milvus
-    # standalone phu thuoc MinIO, nen doi dong nay ve Docker Hub la lam hong
-    # ca tang vector (RAG, goi y, lo trinh) tren may moi.
-    image: quay.io/minio/minio:RELEASE.2024-06-13T22-53-53Z
+    # Tu 24/09/2026, quay.io/minio/minio va quay.io/minio/mc khong con cho
+    # pull anonymous (401 UNAUTHORIZED) va repo MinIO da bi archive. Chuyen
+    # sang Chainguard dang duy tri MinIO + mc, pull free tu cgr.dev.
+    # Milvus standalone phu thuoc MinIO qua S3 API, vi vay credential
+    # MINIO_ROOT_USER / MINIO_ROOT_PASSWORD va cau hinh mc giu nguyen.
+    image: cgr.dev/chainguard/minio:latest
     container_name: ioes-minio
     restart: unless-stopped
     command: server /data --console-address ":9011"
@@ -301,9 +300,10 @@ services:
           memory: 1G
 
   minio-init:
-    # Cung ly do voi service minio o tren: minio/mc tren Docker Hub cung bi tu
-    # choi. Giu registry quay.io.
-    image: quay.io/minio/mc:RELEASE.2024-06-12T14-34-03Z
+    # Cung ly do voi service minio o tren: chuyen sang Chainguard minio-client
+    # de khong bi 401 tu quay.io. API mc tuong thich nguyen ban, entrypoint
+    # ben duoi giu nguyen.
+    image: cgr.dev/chainguard/minio-client:latest
     container_name: ioes-minio-init
     depends_on:
       minio:

@@ -15,11 +15,13 @@ const InstructorApprovalPage: React.FC = () => {
 
   return (
     <AdminLayout title={t('admin.instructorApproval.title')}>
-      <ComingSoon
-        title={t('admin.instructorApproval.title')}
-        description={t('admin.noBackend.instructorApproval.description')}
-        missing={t('admin.noBackend.instructorApproval.missing', { returnObjects: true }) as string[]}
-      />
+      <div data-testid="admin-coming-instructor-approval">
+        <ComingSoon
+          title={t('admin.instructorApproval.title')}
+          description={t('admin.noBackend.instructorApproval.description')}
+          missing={t('admin.noBackend.instructorApproval.missing', { returnObjects: true }) as string[]}
+        />
+      </div>
     </AdminLayout>
   );
 };

@@ -80,19 +80,19 @@ const AdminDashboardPage: React.FC = () => {
   return (
     <AdminLayout title={t('admin.dashboard.title')} subtitle={t('admin.dashboard.subtitle')}>
       {/* Stats grid */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+      <div data-testid="admin-dashboard-stats" className="grid grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
         {statCards.map((s, i) => (
-          <div key={i} className="group relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-800 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+          <div key={i} data-testid={`admin-dashboard-stat-${i}`} className="group relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-200 dark:hover:border-blue-800 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-blue-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             <div className="relative flex items-start justify-between mb-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all group-hover:rotate-[10deg] group-hover:scale-110 ${colorClasses[s.color]}`}>
                 {s.icon}
               </div>
             </div>
-            <div className="relative text-3xl font-bold mb-1 transition-all group-hover:text-blue-600 group-hover:scale-105 origin-left animate-[countUp_.8s_ease_forwards]">
+            <div data-testid={`admin-dashboard-stat-value-${i}`} className="relative text-3xl font-bold mb-1 transition-all group-hover:text-blue-600 group-hover:scale-105 origin-left animate-[countUp_.8s_ease_forwards]">
               {s.value}
             </div>
-            <div className="relative text-sm text-slate-500 dark:text-slate-400">{s.label}</div>
+            <div data-testid={`admin-dashboard-stat-label-${i}`} className="relative text-sm text-slate-500 dark:text-slate-400">{s.label}</div>
           </div>
         ))}
       </div>
@@ -100,7 +100,7 @@ const AdminDashboardPage: React.FC = () => {
       {/* Main grid */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* Recent users */}
-        <div className="xl:col-span-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.2s] hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all duration-300">
+        <div data-testid="admin-dashboard-recent-users" className="xl:col-span-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.2s] hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all duration-300">
           <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <h2 className="flex items-center gap-2.5 text-base font-semibold">
               <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-transform hover:rotate-[10deg] hover:scale-110">
@@ -108,7 +108,7 @@ const AdminDashboardPage: React.FC = () => {
               </span>
               {t('admin.dashboard.recentUsers')}
             </h2>
-            <Link to="/admin/users" className="group flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:translate-x-1 transition-all">
+            <Link data-testid="admin-dashboard-view-all" to="/admin/users" className="group flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:translate-x-1 transition-all">
               {t('admin.dashboard.viewAll')}
               <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5l7 7-7 7" /></svg>
             </Link>
@@ -124,22 +124,22 @@ const AdminDashboardPage: React.FC = () => {
                   <th className="px-6 py-3"></th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody data-testid="admin-dashboard-recent-tbody">
                 {!isRecentLoading && recentUsers.length === 0 && (
-                  <tr><td colSpan={5} className="text-center py-8 text-slate-500 text-sm">{t('admin.users.noResults')}</td></tr>
+                  <tr data-testid="admin-dashboard-recent-empty"><td colSpan={5} className="text-center py-8 text-slate-500 text-sm">{t('admin.users.noResults')}</td></tr>
                 )}
                 {recentUsers.map((u: AdminUser) => (
-                  <tr key={u.id} className="border-t border-slate-100 dark:border-slate-800 transition-all hover:bg-blue-50/50 dark:hover:bg-blue-900/10 group">
+                  <tr key={u.id} data-testid="admin-dashboard-recent-row" className="border-t border-slate-100 dark:border-slate-800 transition-all hover:bg-blue-50/50 dark:hover:bg-blue-900/10 group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {u.avatarUrl ? (
-                          <img src={u.avatarUrl} alt={u.fullName} className="w-10 h-10 rounded-xl object-cover transition-all group-hover:scale-110 group-hover:rotate-[5deg] group-hover:shadow-lg group-hover:shadow-blue-500/30" />
+                          <img data-testid={`admin-dashboard-recent-avatar-${u.id}`} src={u.avatarUrl} alt={u.fullName} className="w-10 h-10 rounded-xl object-cover transition-all group-hover:scale-110 group-hover:rotate-[5deg] group-hover:shadow-lg group-hover:shadow-blue-500/30" />
                         ) : (
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center font-semibold text-sm transition-all group-hover:scale-110 group-hover:rotate-[5deg] group-hover:shadow-lg group-hover:shadow-blue-500/30">
+                          <div data-testid={`admin-dashboard-recent-initials-${u.id}`} className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center font-semibold text-sm transition-all group-hover:scale-110 group-hover:rotate-[5deg] group-hover:shadow-lg group-hover:shadow-blue-500/30">
                             {getInitials(u.fullName)}
                           </div>
                         )}
-                        <div className="min-w-0">
+                        <div data-testid={`admin-dashboard-recent-identity-${u.id}`} className="min-w-0">
                           <div className="font-semibold text-sm">{u.fullName}</div>
                           <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{u.email}</div>
                         </div>
@@ -147,11 +147,11 @@ const AdminDashboardPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">{roleBadge(u.role)}</td>
                     <td className="px-6 py-4">{statusBadge(u.status)}</td>
-                    <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
+                    <td data-testid={`admin-dashboard-recent-joined-${u.id}`} className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
                       {new Date(u.createdAt).toLocaleDateString('vi-VN')}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link to="/admin/users" className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 hover:scale-110 transition-all inline-flex">
+                      <Link data-testid={`admin-dashboard-recent-row-link-${u.id}`} to="/admin/users" className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 hover:scale-110 transition-all inline-flex">
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" />
                         </svg>
@@ -167,7 +167,7 @@ const AdminDashboardPage: React.FC = () => {
         {/* Right column */}
         <div className="xl:col-span-4 space-y-6">
           {/* Quick actions */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.3s] hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all">
+          <div data-testid="admin-dashboard-quick-actions" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.3s] hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all">
             <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
               <h2 className="text-base font-semibold">{t('admin.dashboard.quickActions')}</h2>
             </div>
@@ -187,6 +187,7 @@ const AdminDashboardPage: React.FC = () => {
                 return (
                   <Link
                     key={i}
+                    data-testid="admin-dashboard-quick-action"
                     to={qa.link}
                     className="group relative overflow-hidden flex flex-col items-center gap-2 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-xl transition-all hover:-translate-y-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-lg hover:shadow-blue-500/10"
                   >
@@ -202,7 +203,7 @@ const AdminDashboardPage: React.FC = () => {
           </div>
 
           {/* Recent activity — chưa service nào công bố luồng hoạt động */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.35s]">
+          <div data-testid="admin-dashboard-recent-activity" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.35s]">
             <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
               <h2 className="flex items-center gap-2.5 text-base font-semibold">
                 <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center">
@@ -211,11 +212,11 @@ const AdminDashboardPage: React.FC = () => {
                 {t('admin.dashboard.recentActivity')}
               </h2>
             </div>
-            <div className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">{t('admin.noDataSource')}</div>
+            <div data-testid="admin-dashboard-no-data-source" className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">{t('admin.noDataSource')}</div>
           </div>
 
           {/* System status — chưa có endpoint tổng hợp health các service */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.4s]">
+          <div data-testid="admin-dashboard-system-status" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.4s]">
             <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
               <h2 className="flex items-center gap-2.5 text-base font-semibold">
                 <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center">
@@ -224,7 +225,7 @@ const AdminDashboardPage: React.FC = () => {
                 {t('admin.dashboard.systemStatus')}
               </h2>
             </div>
-            <div className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">{t('admin.noDataSource')}</div>
+            <div data-testid="admin-dashboard-no-data-source" className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">{t('admin.noDataSource')}</div>
           </div>
         </div>
       </div>

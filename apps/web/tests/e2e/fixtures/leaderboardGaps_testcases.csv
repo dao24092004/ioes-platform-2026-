@@ -1,0 +1,6 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-LEADERBOARD-001,Leaderboard,getInitials returns two letters from a full name with two words,P1,"Pure function","Call getInitials('Jane Doe')","name='Jane Doe'","result === 'JD'",Unit
+UT-LEADERBOARD-002,Leaderboard,getInitials returns one letter when the name is a single word,P1,Pure function,"Call getInitials('Alex')","name='Alex'","result === 'A'",Unit
+UT-LEADERBOARD-003,Leaderboard,getInitials returns the placeholder when full_name is null,P1,analytics-service can return null,"Call getInitials(null)","name=null","result === '?'",Unit
+IT-LEADERBOARD-001,Leaderboard,LeaderboardPage renders period buttons (Weekly/Monthly/All time) and re-queries analytics on period change,P1,"Student auth, analytics-service mocked","Render LeaderboardPage at /student/leaderboard, click Monthly button","period=WEEKLY initially, click Monthly","period=MONTHLY call issued in apiClient.leaderboard mock log",Integration
+TC-LEADERBOARD-001,Leaderboard,leaderboard e2e coverage deferred — period-filter re-query and podium render covered by unit + integration tests,P3,"web-student storageState, mocks with empty data","1. Visit /student/leaderboard 2. Verify period buttons visible","data=[]","weekly/monthly/alltime testids visible, 0 console errors",E2E

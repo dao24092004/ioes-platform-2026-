@@ -89,6 +89,7 @@ const CoursesPage: React.FC = () => {
       headerActions={
         <Link
           to="/instructor/courses/create"
+          data-testid="instructor-courses-create-link"
           className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition-colors"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -99,19 +100,21 @@ const CoursesPage: React.FC = () => {
         </Link>
       }
     >
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <section data-testid="instructor-courses-stats" className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard color="blue" label={t('instructor.courses.stats.total')} value={totals.total} icon={<BookSvg />} />
         <StatCard color="emerald" label={t('instructor.courses.stats.published')} value={totals.published} icon={<CheckSvg />} />
         <StatCard color="amber" label={t('instructor.courses.stats.drafts')} value={totals.drafts} icon={<PencilSvg />} />
         <StatCard color="cyan" label={t('instructor.courses.stats.students')} value={totals.students.toLocaleString('en-US')} icon={<UsersSvg />} />
       </section>
 
-      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <section data-testid="instructor-courses-list" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-wrap gap-3 items-center justify-between">
           <div className="flex flex-wrap gap-2">
             {(['all', 'published', 'draft', 'archived'] as StatusFilter[]).map((s) => (
               <button
                 key={s}
+                data-testid="instructor-courses-filter"
+                data-status={s}
                 onClick={() => setStatus(s)}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   status === s
@@ -127,6 +130,7 @@ const CoursesPage: React.FC = () => {
             <div className="relative">
               <input
                 type="search"
+                data-testid="instructor-courses-search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t('instructor.courses.searchPlaceholder')}
@@ -138,6 +142,7 @@ const CoursesPage: React.FC = () => {
               </svg>
             </div>
             <select
+              data-testid="instructor-courses-sort"
               value={sort}
               onChange={(e) => setSort(e.target.value as SortBy)}
               className="px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:border-blue-500"
@@ -150,19 +155,20 @@ const CoursesPage: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className="p-12 text-center">
+          <div data-testid="instructor-courses-loading" className="p-12 text-center">
             <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : isError ? (
-          <div className="p-12 text-center text-sm text-red-600">{t('common.loadError')}</div>
+          <div data-testid="instructor-courses-error" className="p-12 text-center text-sm text-red-600">{t('common.loadError')}</div>
         ) : filtered.length === 0 ? (
-          <div className="p-12 text-center">
+          <div data-testid="instructor-courses-empty" className="p-12 text-center">
             <div className="w-14 h-14 mx-auto mb-3 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
               <BookSvg />
             </div>
             <p className="text-sm text-slate-500">{t('instructor.courses.empty')}</p>
             <Link
               to="/instructor/courses/create"
+              data-testid="instructor-courses-empty-create-link"
               className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors"
             >
               {t('instructor.courses.createNew')}
@@ -175,7 +181,7 @@ const CoursesPage: React.FC = () => {
               const review = c.reviewStatus ?? 'none';
               const enrollments = courseStat(c, 'enrollments');
               return (
-                <div key={c.id} className="px-6 py-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                <div key={c.id} data-testid="instructor-course-row" className="px-6 py-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                   {c.thumbnailUrl ? (
                     <img src={c.thumbnailUrl} alt={c.title} loading="lazy" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
                   ) : (
@@ -216,6 +222,7 @@ const CoursesPage: React.FC = () => {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Link
                       to={`/instructor/courses/${c.id}/edit`}
+                      data-testid="instructor-courses-edit-link"
                       className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:text-blue-600 transition-colors"
                     >
                       {t('instructor.courses.edit')}

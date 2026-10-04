@@ -202,7 +202,7 @@ const LearningPathPage: React.FC = () => {
 
   return (
     <StudentLayout title={t('title')} subtitle={t('subtitle')} headerActions={headerActions}>
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+      <div data-testid="learningpath-page" className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
         <div className="xl:col-span-2 space-y-6">
           {generateMut.isPending && (
             <section className={`${card} p-6`} aria-live="polite">
@@ -267,7 +267,7 @@ const LearningPathPage: React.FC = () => {
           )}
 
           {showForm && (
-            <section className={`${card} p-6`}>
+            <section className={`${card} p-6`} data-testid="lp-form">
               <h2 className="text-lg font-bold">{t('form.heading')}</h2>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{t('form.intro')}</p>
 
@@ -278,6 +278,7 @@ const LearningPathPage: React.FC = () => {
                   </label>
                   <input
                     id="lp-goal"
+                    data-testid="lp-goal"
                     type="text"
                     value={goal}
                     onChange={(e) => setGoal(e.target.value)}
@@ -293,6 +294,7 @@ const LearningPathPage: React.FC = () => {
                   </label>
                   <input
                     id="lp-hours"
+                    data-testid="lp-hours"
                     type="number"
                     min={1}
                     max={80}
@@ -348,7 +350,7 @@ const LearningPathPage: React.FC = () => {
                 )}
 
                 <div className="flex flex-wrap gap-3">
-                  <button type="submit" className={primaryButton} disabled={generateMut.isPending}>
+                  <button type="submit" data-testid="lp-submit" className={primaryButton} disabled={generateMut.isPending}>
                     {generateMut.isPending ? t('form.submitBusy') : t('form.submit')}
                   </button>
                   {latestPath && (

@@ -41,17 +41,21 @@ const ExamManagementPage: React.FC = () => {
     queryKey: ['admin', 'exams', 'stats'],
     queryFn: () => examApi.getAdminStats(),
   });
-  const { data: exams, isLoading, isError } = useQuery({
+  const {
+    data: exams,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['admin', 'exams', 'overview'],
     queryFn: () => examApi.getAdminOverview(),
   });
 
   const filtered = useMemo(() => {
     let arr = exams ?? [];
-    if (typeFilter !== 'all') arr = arr.filter(e => e.examType === typeFilter);
+    if (typeFilter !== 'all') arr = arr.filter((e) => e.examType === typeFilter);
     if (search) {
       const s = search.toLowerCase();
-      arr = arr.filter(e => e.title.toLowerCase().includes(s));
+      arr = arr.filter((e) => e.title.toLowerCase().includes(s));
     }
     return arr;
   }, [exams, search, typeFilter]);
@@ -60,18 +64,116 @@ const ExamManagementPage: React.FC = () => {
     value === null || value === undefined ? t('shared.none') : `${value.toFixed(1)}%`;
 
   const statCards = [
-    { value: stats?.totalExams ?? '—', label: t('examApi.adminExams.stats.totalExams'), color: 'blue', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" /><path d="M9 14l2 2 4-4" /></svg> },
-    { value: stats?.totalAttempts ?? '—', label: t('examApi.adminExams.stats.totalAttempts'), color: 'cyan', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /></svg> },
-    { value: stats?.inProgress ?? '—', label: t('examApi.adminExams.stats.inProgress'), color: 'emerald', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg> },
-    { value: stats?.awaitingGrading ?? '—', label: t('examApi.adminExams.stats.awaitingGrading'), color: 'red', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 8v4l3 3" /><circle cx="12" cy="12" r="10" /></svg> },
-    { value: stats ? percent(stats.avgScore) : '—', label: t('examApi.adminExams.stats.avgScore'), color: 'amber', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5" /></svg> },
-    { value: stats ? percent(stats.passRate) : '—', label: t('examApi.adminExams.stats.passRate'), color: 'purple', icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg> },
+    {
+      value: stats?.totalExams ?? '—',
+      label: t('examApi.adminExams.stats.totalExams'),
+      color: 'blue',
+      icon: (
+        <svg
+          className="w-6 h-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+          <path d="M9 14l2 2 4-4" />
+        </svg>
+      ),
+    },
+    {
+      value: stats?.totalAttempts ?? '—',
+      label: t('examApi.adminExams.stats.totalAttempts'),
+      color: 'cyan',
+      icon: (
+        <svg
+          className="w-6 h-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+        </svg>
+      ),
+    },
+    {
+      value: stats?.inProgress ?? '—',
+      label: t('examApi.adminExams.stats.inProgress'),
+      color: 'emerald',
+      icon: (
+        <svg
+          className="w-6 h-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      ),
+    },
+    {
+      value: stats?.awaitingGrading ?? '—',
+      label: t('examApi.adminExams.stats.awaitingGrading'),
+      color: 'red',
+      icon: (
+        <svg
+          className="w-6 h-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M12 8v4l3 3" />
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+      ),
+    },
+    {
+      value: stats ? percent(stats.avgScore) : '—',
+      label: t('examApi.adminExams.stats.avgScore'),
+      color: 'amber',
+      icon: (
+        <svg
+          className="w-6 h-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <polygon points="12 2 15 8.5 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 9 8.5" />
+        </svg>
+      ),
+    },
+    {
+      value: stats ? percent(stats.passRate) : '—',
+      label: t('examApi.adminExams.stats.passRate'),
+      color: 'purple',
+      icon: (
+        <svg
+          className="w-6 h-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+      ),
+    },
   ];
 
   return (
     <AdminLayout title={t('examAdmin.title')} subtitle={t('examAdmin.subtitle')}>
       {statsError && (
-        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400">
+        <div
+          data-testid="admin-exams-stats-error"
+          className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-sm text-red-600 dark:text-red-400"
+        >
           {t('common.loadError')}
         </div>
       )}
@@ -84,7 +186,9 @@ const ExamManagementPage: React.FC = () => {
             className="group relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/5 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
             style={{ animationDelay: `${(i + 1) * ANIMATION.STAGGER_DURATION_S}s` }}
           >
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 transition-all group-hover:scale-110 group-hover:rotate-[10deg] ${colorMap[s.color]}`}>
+            <div
+              className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 transition-all group-hover:scale-110 group-hover:rotate-[10deg] ${colorMap[s.color]}`}
+            >
               {s.icon}
             </div>
             <div className="text-2xl font-bold tabular-nums mb-1">{s.value}</div>
@@ -93,9 +197,16 @@ const ExamManagementPage: React.FC = () => {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-4" role="group" aria-label={t('examApi.adminExams.filterType')}>
-        {TYPE_KEYS.map(type => {
-          const count = type === 'all' ? (exams?.length ?? 0) : (exams?.filter(e => e.examType === type).length ?? 0);
+      <div
+        className="flex flex-wrap gap-2 mb-4"
+        role="group"
+        aria-label={t('examApi.adminExams.filterType')}
+      >
+        {TYPE_KEYS.map((type) => {
+          const count =
+            type === 'all'
+              ? (exams?.length ?? 0)
+              : (exams?.filter((e) => e.examType === type).length ?? 0);
           const active = typeFilter === type;
           return (
             <button
@@ -110,7 +221,9 @@ const ExamManagementPage: React.FC = () => {
               }`}
             >
               {type === 'all' ? t('shared.all') : t(`student.exams.type.${type}`)}
-              <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-md ${active ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+              <span
+                className={`px-1.5 py-0.5 text-[10px] font-bold rounded-md ${active ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+              >
                 {count}
               </span>
             </button>
@@ -119,11 +232,20 @@ const ExamManagementPage: React.FC = () => {
       </div>
 
       <div className="relative max-w-md mb-4">
-        <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+        <svg
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.35-4.35" />
+        </svg>
         <input
           type="text"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder={t('examApi.adminExams.searchPlaceholder')}
           aria-label={t('aria.searchExam')}
           data-testid={TEST_IDS.EXAM_SEARCH}
@@ -131,31 +253,57 @@ const ExamManagementPage: React.FC = () => {
         />
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards]" style={{ animationDelay: `${2 * ANIMATION.STAGGER_DURATION_S}s` }}>
+      <div
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
+        style={{ animationDelay: `${2 * ANIMATION.STAGGER_DURATION_S}s` }}
+      >
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full" data-testid="admin-exams-table">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase tracking-wider text-slate-500">
                 <th className="text-left px-6 py-4 font-semibold">{t('examAdmin.table.exam')}</th>
                 <th className="text-left px-6 py-4 font-semibold">{t('examAdmin.table.course')}</th>
-                <th className="text-left px-6 py-4 font-semibold">{t('examApi.adminExams.table.type')}</th>
-                <th className="text-left px-6 py-4 font-semibold">{t('examAdmin.table.duration')}</th>
-                <th className="text-left px-6 py-4 font-semibold">{t('examAdmin.table.participants')}</th>
-                <th className="text-left px-6 py-4 font-semibold">{t('examApi.adminExams.table.graded')}</th>
-                <th className="text-left px-6 py-4 font-semibold">{t('examAdmin.table.avgScore')}</th>
+                <th className="text-left px-6 py-4 font-semibold">
+                  {t('examApi.adminExams.table.type')}
+                </th>
+                <th className="text-left px-6 py-4 font-semibold">
+                  {t('examAdmin.table.duration')}
+                </th>
+                <th className="text-left px-6 py-4 font-semibold">
+                  {t('examAdmin.table.participants')}
+                </th>
+                <th className="text-left px-6 py-4 font-semibold">
+                  {t('examApi.adminExams.table.graded')}
+                </th>
+                <th className="text-left px-6 py-4 font-semibold">
+                  {t('examAdmin.table.avgScore')}
+                </th>
               </tr>
             </thead>
             <tbody>
               {isLoading && (
-                <tr><td colSpan={7} className="text-center py-12">
-                  <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                </td></tr>
+                <tr data-testid="admin-exams-loading">
+                  <td colSpan={7} className="text-center py-12">
+                    <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                  </td>
+                </tr>
               )}
               {isError && (
-                <tr><td colSpan={7} className="text-center py-12 text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</td></tr>
+                <tr data-testid="admin-exams-error-row">
+                  <td
+                    colSpan={7}
+                    className="text-center py-12 text-sm text-red-600 dark:text-red-400"
+                  >
+                    {t('common.loadError')}
+                  </td>
+                </tr>
               )}
               {!isLoading && !isError && filtered.length === 0 && (
-                <tr><td colSpan={7} className="text-center py-12 text-sm text-slate-500">{t('examAdmin.empty')}</td></tr>
+                <tr data-testid="admin-exams-empty">
+                  <td colSpan={7} className="text-center py-12 text-sm text-slate-500">
+                    {t('examAdmin.empty')}
+                  </td>
+                </tr>
               )}
               {filtered.map((e: AdminExamRow) => (
                 <tr
@@ -165,26 +313,46 @@ const ExamManagementPage: React.FC = () => {
                 >
                   <td className="px-6 py-4">
                     <div className="font-semibold text-sm">{e.title}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">{formatRelative(e.createdAt)}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">
+                      {formatRelative(e.createdAt)}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     {/* Backend chỉ trả id; tên khoá học / giảng viên chưa có service nào phân giải. */}
-                    <div className="text-sm font-mono text-slate-600 dark:text-slate-300">
+                    <div
+                      data-testid="admin-exams-course-cell"
+                      className="text-sm font-mono text-slate-600 dark:text-slate-300"
+                    >
                       {e.courseId ? e.courseId.slice(0, 8) : t('examApi.adminExams.noCourse')}
                     </div>
-                    <div className="text-xs text-slate-500 font-mono">{e.instructorId.slice(0, 8)}</div>
+                    <div className="text-xs text-slate-500 font-mono">
+                      {e.instructorId.slice(0, 8)}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${typeStyles[e.examType]}`}>
+                    <span
+                      data-testid="admin-exams-type-cell"
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${typeStyles[e.examType]}`}
+                    >
                       {t(`student.exams.type.${e.examType}`)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm tabular-nums">
-                    {e.timeLimitMinutes !== null ? `${e.timeLimitMinutes} ${t('shared.durationUnit')}` : t('shared.none')}
+                  <td
+                    data-testid="admin-exams-duration-cell"
+                    className="px-6 py-4 text-sm tabular-nums"
+                  >
+                    {e.timeLimitMinutes !== null
+                      ? `${e.timeLimitMinutes} ${t('shared.durationUnit')}`
+                      : t('shared.none')}
                   </td>
                   <td className="px-6 py-4 text-sm font-semibold tabular-nums">{e.participants}</td>
                   <td className="px-6 py-4 text-sm tabular-nums">{e.gradedAttempts}</td>
-                  <td className="px-6 py-4 text-sm tabular-nums font-semibold">{percent(e.avgScore)}</td>
+                  <td
+                    data-testid="admin-exams-avg-cell"
+                    className="px-6 py-4 text-sm tabular-nums font-semibold"
+                  >
+                    {percent(e.avgScore)}
+                  </td>
                 </tr>
               ))}
             </tbody>

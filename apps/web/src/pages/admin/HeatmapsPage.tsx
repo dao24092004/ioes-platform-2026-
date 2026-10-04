@@ -13,11 +13,13 @@ const HeatmapsPage: React.FC = () => {
 
   return (
     <AdminLayout title={t('admin.heatmaps.title')}>
-      <ComingSoon
-        title={t('admin.heatmaps.title')}
-        description={t('admin.noBackend.heatmaps.description')}
-        missing={t('admin.noBackend.heatmaps.missing', { returnObjects: true }) as string[]}
-      />
+      <div data-testid="admin-coming-heatmaps">
+        <ComingSoon
+          title={t('admin.heatmaps.title')}
+          description={t('admin.noBackend.heatmaps.description')}
+          missing={t('admin.noBackend.heatmaps.missing', { returnObjects: true }) as string[]}
+        />
+      </div>
     </AdminLayout>
   );
 };

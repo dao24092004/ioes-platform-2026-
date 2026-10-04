@@ -1,0 +1,10 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-BECOMEINSTR-001,becomeInstructor,ListSpecializationSuggestions filters out already-selected,P1,"specializations=['Programming','Web Development']",List suggestions,"",excludes the two selected; Physics/AI/etc included,Unit
+UT-BECOMEINSTR-002,becomeInstructor,AddTag rejects empty strings,P1,empty input,Call addTag(''),"",no change,Unit
+UT-BECOMEINSTR-003,becomeInstructor,AddTag rejects duplicates (case-insensitive),P1,"specializations=['Programming']",Call addTag('programming'),"",no change,Unit
+IT-BECOMEINSTR-001,BecomeInstructor,Form renders all 3 sections (profile / expertise / documents),P1,Student auth,Mount BecomeInstructorPage,"","Profile" + "Expertise" + "Documents" visible,Integration
+IT-BECOMEINSTR-002,BecomeInstructor,Pre-filled fields reflect the user store,P1,"useAuthStore.full_name='Nguyen Hoang Nam'",Mount,"","Nguyen Hoang Nam" + email visible,Integration
+IT-BECOMEINSTR-003,BecomeInstructor,Clicking a specialisation chip adds a tag,P1,Student auth,Click a suggestion chip,"tag='Physics'","Physics" appears as tag pill,Integration
+IT-BECOMEINSTR-004,BecomeInstructor,Removing a tag works,P1,"Default tags include 'Programming'",Click × on 'Programming' tag,"","Programming" no longer visible,Integration
+IT-BECOMEINSTR-005,BecomeInstructor,Submitting marks the application as pending (local setTimeout),P1,Student auth,Click Submit,"","Application pending" banner visible after 900ms,Integration
+TC-BECOMEINSTR-001,BecomeInstructor,Become Instructor end-to-end: fill bio + submit,P1,Student auth,Visit /student/become-instructor; fill bio; click Submit,"bio='Senior engineer'","Application pending banner visible",E2E
