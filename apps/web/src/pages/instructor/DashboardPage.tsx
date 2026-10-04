@@ -69,7 +69,7 @@ const DashboardPage: React.FC = () => {
         </h2>
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6" data-testid="instructor-dashboard-stats">
         <StatCard color="blue" icon={<ExamIcon />} value={examsLoading ? '—' : exams.length} label={t('instructor.dashboard.stats.exams')} />
         <StatCard color="orange" icon={<ClockIcon />} value={gradingStats?.pending ?? '—'} label={t('examApi.instructorDashboard.stats.pending')} />
         <StatCard color="green" icon={<CheckIcon />} value={gradingStats?.graded ?? '—'} label={t('examApi.instructorDashboard.stats.graded')} />
@@ -120,12 +120,13 @@ const DashboardPage: React.FC = () => {
             ) : exams.length === 0 ? (
               <EmptyState text={t('examApi.instructorDashboard.noExams')} />
             ) : (
-              <ul className="space-y-3">
+              <ul className="space-y-3" data-testid="instructor-dashboard-exam-list">
                 {exams.slice(0, 5).map(exam => {
                   const pending = pendingByExam.get(exam.id) ?? 0;
                   return (
                     <li
                       key={exam.id}
+                      data-testid="instructor-dashboard-exam-item"
                       className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
                       <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
@@ -173,7 +174,7 @@ const DashboardPage: React.FC = () => {
               </h2>
             }
           >
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3" data-testid="instructor-dashboard-quick-actions">
               <QuickAction color="purple" icon={<BookIcon />} href="/instructor/courses/create">
                 {t('instructor.nav.createCourse')}
               </QuickAction>
@@ -203,11 +204,11 @@ const DashboardPage: React.FC = () => {
             ) : leaderboard.length === 0 ? (
               <EmptyState text={t('common.noData')} />
             ) : (
-              <ul className="space-y-3">
+              <ul className="space-y-3" data-testid="instructor-dashboard-leaderboard">
                 {leaderboard.map(entry => {
                   const name = entry.displayName ?? entry.userId.slice(0, 8);
                   return (
-                    <li key={entry.userId} className="flex items-center gap-3">
+                    <li key={entry.userId} data-testid="instructor-dashboard-leaderboard-item" className="flex items-center gap-3">
                       <div
                         className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                           entry.rank === 1

@@ -70,13 +70,14 @@ const ExamsPage: React.FC = () => {
       headerActions={
         <Link
           to="/instructor/exams/create"
+          data-testid="instructor-exams-create-link"
           className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition-colors"
         >
           <PlusSvg /> {t('instructor.exams.createNew')}
         </Link>
       }
     >
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <section data-testid="instructor-exams-stats" className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatBox color="blue" label={t('instructor.exams.stats.total')} value={totalExams} icon={<ExamSvg />} />
         <StatBox color="emerald" label={t('instructor.exams.stats.active')} value={EMPTY} icon={<BoltSvg />} />
         <StatBox color="amber" label={t('instructor.exams.stats.pendingGrading')} value={EMPTY} icon={<ClipboardSvg />} />
@@ -85,7 +86,7 @@ const ExamsPage: React.FC = () => {
 
       <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-wrap gap-3 items-center justify-between">
-          <div className="flex flex-wrap gap-2">
+          <div data-testid="instructor-exams-filters" className="flex flex-wrap gap-2">
             {(['all', 'active', 'scheduled', 'completed', 'draft'] as StatusFilter[]).map((s) => {
               const unavailable = UNAVAILABLE_STATUS_FILTERS.includes(s);
               return (
@@ -108,6 +109,7 @@ const ExamsPage: React.FC = () => {
           <div className="relative">
             <input
               type="search"
+              data-testid="instructor-exams-search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('instructor.exams.searchPlaceholder')}
@@ -121,11 +123,11 @@ const ExamsPage: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className="p-12 text-center">
+          <div data-testid="instructor-exams-loading" className="p-12 text-center">
             <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="p-12 text-center">
+          <div data-testid="instructor-exams-empty" className="p-12 text-center">
             <div className="w-14 h-14 mx-auto mb-3 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
               <ExamSvg />
             </div>
@@ -142,7 +144,7 @@ const ExamsPage: React.FC = () => {
             <p className="px-6 py-3 text-xs text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
               {t('instructor.exams.columnsPending')}
             </p>
-            <table className="w-full">
+            <table data-testid="instructor-exams-table" className="w-full">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase tracking-wider text-slate-500">
                   <th className="text-left px-6 py-3 font-semibold">{t('instructor.exams.table.exam')}</th>

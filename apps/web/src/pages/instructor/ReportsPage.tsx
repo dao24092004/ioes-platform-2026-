@@ -16,11 +16,13 @@ const ReportsPage: React.FC = () => {
 
   return (
     <InstructorLayout title={t('instructor.reports.title')} subtitle={t('instructor.reports.subtitle')}>
-      <ComingSoon
-        title={t('examApi.comingSoon.reports.title')}
-        description={t('examApi.comingSoon.reports.description')}
-        missing={t('examApi.comingSoon.reports.missing', { returnObjects: true }) as string[]}
-      />
+      <div data-testid="instructor-reports-coming-soon">
+        <ComingSoon
+          title={t('examApi.comingSoon.reports.title')}
+          description={t('examApi.comingSoon.reports.description')}
+          missing={t('examApi.comingSoon.reports.missing', { returnObjects: true }) as string[]}
+        />
+      </div>
     </InstructorLayout>
   );
 };

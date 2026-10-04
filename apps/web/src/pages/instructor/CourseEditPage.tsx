@@ -152,7 +152,7 @@ const CourseEditPage: React.FC = () => {
   if (isLoading) {
     return (
       <InstructorLayout title={t('instructor.course.edit')}>
-        <div className="p-12 text-center">
+        <div data-testid="instructor-course-edit-loading" className="p-12 text-center">
           <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
         </div>
       </InstructorLayout>
@@ -162,7 +162,10 @@ const CourseEditPage: React.FC = () => {
   if (isError || !detail) {
     return (
       <InstructorLayout title={t('instructor.course.edit')}>
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center">
+        <div
+          data-testid="instructor-course-edit-notfound"
+          className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center"
+        >
           <svg
             className="w-16 h-16 text-slate-300 dark:text-slate-700 mx-auto mb-4"
             viewBox="0 0 24 24"
@@ -175,6 +178,7 @@ const CourseEditPage: React.FC = () => {
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('courseApi.notFound.title')}</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{t('courseApi.notFound.description')}</p>
           <button
+            data-testid="instructor-course-edit-back"
             onClick={handleCancel}
             className="mt-6 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors"
           >
@@ -199,6 +203,7 @@ const CourseEditPage: React.FC = () => {
         <div className="flex items-center gap-2">
           {canSubmit && (
             <button
+              data-testid="instructor-course-edit-submit"
               onClick={() => submitMut.mutate()}
               disabled={submitMut.isPending}
               className="px-4 py-2.5 rounded-xl text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white transition-colors disabled:opacity-50"
@@ -208,6 +213,7 @@ const CourseEditPage: React.FC = () => {
           )}
           {canPublish && (
             <button
+              data-testid="instructor-course-edit-publish"
               onClick={() => publishMut.mutate()}
               disabled={publishMut.isPending}
               className="px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors disabled:opacity-50"
@@ -217,6 +223,7 @@ const CourseEditPage: React.FC = () => {
           )}
           <Link
             to="/instructor/courses"
+            data-testid="instructor-course-edit-cancel"
             className="px-4 py-2.5 rounded-xl text-sm font-semibold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           >
             {t('common.cancel')}
@@ -227,6 +234,7 @@ const CourseEditPage: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <span
+            data-testid="instructor-course-edit-status"
             className={`px-3 py-1 rounded-full text-xs font-semibold ${
               course.status === 'published'
                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
@@ -235,24 +243,36 @@ const CourseEditPage: React.FC = () => {
           >
             {t(`instructor.courses.status.${course.status}`)}
           </span>
-          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+          <span
+            data-testid="instructor-course-edit-review"
+            className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+          >
             {t(`courseApi.reviewStatus.${review}`)}
           </span>
           <span className="text-xs text-slate-500 dark:text-slate-400">ID: {course.id}</span>
         </div>
 
         {course.reviewStatus === 'rejected' && course.rejectionReason && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+          <div
+            data-testid="instructor-course-edit-rejection"
+            className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300"
+          >
             <strong>{t('admin.approval.rejectionReason')}:</strong> {course.rejectionReason}
           </div>
         )}
 
-        <div className="mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50 text-xs text-amber-800 dark:text-amber-300">
+        <div
+          data-testid="instructor-course-edit-notes"
+          className="mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50 text-xs text-amber-800 dark:text-amber-300"
+        >
           {t('courseApi.editNotes')}
         </div>
 
         {(error || actionError) && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+          <div
+            data-testid="instructor-course-edit-error"
+            className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300"
+          >
             {error ?? actionError?.message}
           </div>
         )}

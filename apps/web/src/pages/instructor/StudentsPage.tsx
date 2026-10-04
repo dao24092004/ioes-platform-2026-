@@ -43,7 +43,7 @@ const StudentsPage: React.FC = () => {
 
   return (
     <InstructorLayout title={t('instructor.students.title')} subtitle={t('instructor.students.subtitle')}>
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6" data-testid="instructor-students-stats">
         <StatCard color="blue" icon={<UsersIcon />} value={stats.total} label={t('enrollmentApi.students.total')} />
         <StatCard color="purple" icon={<CheckIcon />} value={stats.completed} label={t('enrollmentApi.students.completed')} />
         <StatCard color="amber" icon={<ChartIcon />} value={`${stats.avg}%`} label={t('enrollmentApi.students.avgProgress')} />
@@ -55,6 +55,8 @@ const StudentsPage: React.FC = () => {
           <select
             value={courseId}
             onChange={e => setCourseId(e.target.value)}
+            aria-label={t('enrollmentApi.students.course')}
+            data-testid="instructor-students-course-filter"
             className="px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 min-w-[240px]"
           >
             <option value="">{t('enrollmentApi.students.allCourses')}</option>
@@ -86,9 +88,9 @@ const StudentsPage: React.FC = () => {
                   <th className="px-6 py-3 text-left font-semibold">{t('enrollmentApi.enrolledAt')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800" data-testid="instructor-students-rows">
                 {students.map(s => (
-                  <tr key={s.enrollment.id}>
+                  <tr key={s.enrollment.id} data-testid="instructor-students-row">
                     <td className="px-6 py-4">
                       <div className="font-semibold text-slate-900 dark:text-white">
                         {s.studentName || t('enrollmentApi.students.unknownName')}

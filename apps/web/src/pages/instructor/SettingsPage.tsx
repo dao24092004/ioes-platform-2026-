@@ -32,10 +32,11 @@ const SettingsPage: React.FC = () => {
     <InstructorLayout title={t('instructor.settings.title')} subtitle={t('instructor.settings.subtitle')}>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <aside className="lg:col-span-3">
-          <nav className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-2 space-y-1">
+          <nav data-testid="instructor-settings-nav" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-2 space-y-1">
             {SECTIONS.map(s => (
               <button
                 key={s}
+                data-testid={`instructor-settings-section-${s}`}
                 onClick={() => setSection(s)}
                 className={`w-full text-left px-3 py-2.5 text-sm font-semibold rounded-xl transition-all flex items-center gap-2 ${
                   section === s
@@ -49,7 +50,7 @@ const SettingsPage: React.FC = () => {
           </nav>
         </aside>
 
-        <main className="lg:col-span-9">
+        <main className="lg:col-span-9" data-testid="instructor-settings-panel">
           {section === 'general' ? (
             <article className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
               <h2 className="text-base font-semibold mb-1">{t('instructor.settings.general.title')}</h2>
@@ -59,6 +60,7 @@ const SettingsPage: React.FC = () => {
                   {t('instructor.settings.general.language')}
                 </label>
                 <select
+                  data-testid="instructor-settings-language"
                   value={i18n.language?.startsWith('en') ? 'en' : 'vi'}
                   onChange={e => changeLanguage(e.target.value as 'vi' | 'en')}
                   className="w-full px-3 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:border-blue-500"

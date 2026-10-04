@@ -15,11 +15,13 @@ const CopyrightPage: React.FC = () => {
 
   return (
     <InstructorLayout title={t('comingSoon.copyright.title')}>
-      <ComingSoon
-        title={t('comingSoon.copyright.title')}
-        description={t('comingSoon.copyright.description')}
-        missing={t('comingSoon.copyright.missing', { returnObjects: true }) as string[]}
-      />
+      <div data-testid="instructor-copyright-page">
+        <ComingSoon
+          title={t('comingSoon.copyright.title')}
+          description={t('comingSoon.copyright.description')}
+          missing={t('comingSoon.copyright.missing', { returnObjects: true }) as string[]}
+        />
+      </div>
     </InstructorLayout>
   );
 };

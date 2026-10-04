@@ -89,13 +89,14 @@ export const QuestionBankPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 p-6">
+    <div data-testid="instructor-question-bank-page" className="min-h-screen bg-slate-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-3xl font-bold text-slate-100">Question Bank</h1>
             <button
+              data-testid="instructor-qbank-create-toggle"
               onClick={() => setShowCreateForm(!showCreateForm)}
               className="px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-medium transition-colors"
             >
@@ -109,14 +110,14 @@ export const QuestionBankPage: React.FC = () => {
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-6 p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
+          <div data-testid="instructor-qbank-error" className="mb-6 p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
             ⚠️ {error}
           </div>
         )}
 
         {/* Create Form */}
         {showCreateForm && (
-          <div className="mb-6 bg-slate-800 border border-slate-700 rounded-lg p-6">
+          <div data-testid="instructor-qbank-create-form" className="mb-6 bg-slate-800 border border-slate-700 rounded-lg p-6">
             <h2 className="text-xl font-bold text-slate-100 mb-4">Create New Question</h2>
             <QuestionForm
               topics={topics}
@@ -135,7 +136,7 @@ export const QuestionBankPage: React.FC = () => {
 
             {/* Results */}
             {searchResult && (
-              <div className="mt-6">
+              <div data-testid="instructor-qbank-results" className="mt-6">
                 <div className="mb-4 flex items-center justify-between">
                   <p className="text-slate-300">
                     Found <span className="font-bold text-sky-400">{searchResult.total}</span>{' '}
@@ -147,7 +148,7 @@ export const QuestionBankPage: React.FC = () => {
                 </div>
 
                 {searchResult.questions.length === 0 ? (
-                  <div className="text-center py-12 bg-slate-800 border border-slate-700 rounded-lg">
+                  <div data-testid="instructor-qbank-no-results" className="text-center py-12 bg-slate-800 border border-slate-700 rounded-lg">
                     <p className="text-slate-400 text-lg mb-2">No questions found</p>
                     <p className="text-slate-500 text-sm">
                       Try adjusting your search filters
@@ -174,7 +175,7 @@ export const QuestionBankPage: React.FC = () => {
 
             {/* Empty State (no search yet) */}
             {!searchResult && !isLoading && (
-              <div className="mt-12 text-center py-12 bg-slate-800 border border-slate-700 rounded-lg">
+              <div data-testid="instructor-qbank-idle" className="mt-12 text-center py-12 bg-slate-800 border border-slate-700 rounded-lg">
                 <div className="text-6xl mb-4">🔍</div>
                 <p className="text-slate-300 text-lg mb-2">Ready to search</p>
                 <p className="text-slate-500 text-sm">
@@ -185,7 +186,7 @@ export const QuestionBankPage: React.FC = () => {
 
             {/* Loading State */}
             {isLoading && (
-              <div className="mt-12 text-center py-12">
+              <div data-testid="instructor-qbank-loading" className="mt-12 text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sky-500"></div>
                 <p className="text-slate-400 mt-4">Loading questions...</p>
               </div>

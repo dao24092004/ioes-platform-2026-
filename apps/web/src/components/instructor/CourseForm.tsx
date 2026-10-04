@@ -152,7 +152,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ initialData, onSubmit, isSubmit
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form data-testid="instructor-course-form" onSubmit={handleSubmit} className="space-y-6">
       <Stepper step={step} setStep={setStep} />
 
       {step === 1 && (
@@ -178,6 +178,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ initialData, onSubmit, isSubmit
       <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
         <button
           type="button"
+          data-testid="instructor-course-form-back"
           onClick={handleBack}
           disabled={step === 1}
           className="px-5 py-2.5 rounded-xl text-sm font-semibold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
@@ -187,6 +188,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ initialData, onSubmit, isSubmit
         {step < 3 ? (
           <button
             type="button"
+            data-testid="instructor-course-form-next"
             onClick={handleNext}
             className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors"
           >
@@ -195,6 +197,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ initialData, onSubmit, isSubmit
         ) : (
           <button
             type="submit"
+            data-testid="instructor-course-form-submit"
             disabled={isSubmitting}
             className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white transition-colors flex items-center gap-2"
           >
@@ -225,11 +228,13 @@ const Stepper: React.FC<StepperProps> = ({ step, setStep }) => {
     { id: 3 as const, key: 'instructor.course.steps.pricing' },
   ];
   return (
-    <div className="flex items-center gap-2 mb-2">
+    <div data-testid="instructor-course-form-stepper" className="flex items-center gap-2 mb-2">
       {steps.map((s, idx) => (
         <React.Fragment key={s.id}>
           <button
             type="button"
+            data-testid="instructor-course-form-step"
+            data-step={s.id}
             onClick={() => setStep(s.id)}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
               step === s.id
@@ -273,6 +278,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ data, setData, errors }) 
       <Field label={t('instructor.course.info.courseTitle')} error={errors.title} required>
         <input
           type="text"
+          data-testid="instructor-course-form-title"
           value={data.title}
           onChange={e => setData({ ...data, title: e.target.value })}
           placeholder={t('instructor.course.info.courseTitlePlaceholder')}
@@ -284,12 +290,16 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ data, setData, errors }) 
         <textarea
           rows={2}
           maxLength={200}
+          data-testid="instructor-course-form-shortdesc"
           value={data.shortDescription}
           onChange={e => setData({ ...data, shortDescription: e.target.value })}
           placeholder={t('instructor.course.info.shortDescPlaceholder')}
           className="input-base resize-none"
         />
-        <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 text-right">
+        <div
+          data-testid="instructor-course-form-shortdesc-counter"
+          className="text-xs text-slate-500 dark:text-slate-400 mt-1 text-right"
+        >
           {data.shortDescription.length}/200
         </div>
       </Field>
@@ -297,6 +307,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ data, setData, errors }) 
       <Field label={t('instructor.course.info.fullDesc')}>
         <textarea
           rows={5}
+          data-testid="instructor-course-form-fulldesc"
           value={data.fullDescription}
           onChange={e => setData({ ...data, fullDescription: e.target.value })}
           placeholder={t('instructor.course.info.fullDescPlaceholder')}
@@ -307,6 +318,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ data, setData, errors }) 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label={t('instructor.course.info.category')} error={errors.category} required>
           <select
+            data-testid="instructor-course-form-category"
             value={data.category}
             onChange={e => setData({ ...data, category: e.target.value })}
             className="input-base"
@@ -323,6 +335,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ data, setData, errors }) 
 
         <Field label={t('instructor.course.info.level')} required>
           <select
+            data-testid="instructor-course-form-level"
             value={data.level}
             onChange={e => setData({ ...data, level: Number(e.target.value) as CourseLevel })}
             className="input-base"
@@ -340,6 +353,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ data, setData, errors }) 
         <input
           type="url"
           maxLength={500}
+          data-testid="instructor-course-form-thumbnail"
           value={data.thumbnailUrl}
           onChange={e => setData({ ...data, thumbnailUrl: e.target.value })}
           placeholder="https://"
@@ -347,6 +361,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ data, setData, errors }) 
         />
         {data.thumbnailUrl.trim() && (
           <img
+            data-testid="instructor-course-form-thumbnail-preview"
             src={data.thumbnailUrl.trim()}
             alt={data.title}
             className="mt-3 w-full max-w-sm aspect-video object-cover rounded-xl border border-slate-200 dark:border-slate-700"
@@ -383,6 +398,7 @@ const CurriculumStep: React.FC<CurriculumStepProps> = ({
         <h2 className="text-base font-bold text-slate-900 dark:text-white">{t('instructor.course.curriculum.title')}</h2>
         <button
           type="button"
+          data-testid="instructor-course-form-add-chapter"
           onClick={onAddChapter}
           className="px-3 py-2 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-sm font-semibold hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors flex items-center gap-1"
         >
@@ -395,13 +411,18 @@ const CurriculumStep: React.FC<CurriculumStepProps> = ({
 
       <ul className="space-y-4">
         {chapters.map((chapter, cIdx) => (
-          <li key={chapter.id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-4">
+          <li
+            key={chapter.id}
+            data-testid="instructor-course-form-chapter"
+            className="border border-slate-200 dark:border-slate-700 rounded-xl p-4"
+          >
             <div className="flex items-start gap-3 mb-3">
               <span className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm font-bold text-slate-600 dark:text-slate-300 flex-shrink-0">
                 {cIdx + 1}
               </span>
               <input
                 type="text"
+                data-testid="instructor-course-form-chapter-title"
                 value={chapter.title}
                 onChange={e => onUpdateChapter(chapter.id, 'title', e.target.value)}
                 placeholder={t('instructor.course.curriculum.chapterPlaceholder')}
@@ -409,6 +430,7 @@ const CurriculumStep: React.FC<CurriculumStepProps> = ({
               />
               <button
                 type="button"
+                data-testid="instructor-course-form-remove-chapter"
                 onClick={() => onRemoveChapter(chapter.id)}
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-colors flex-shrink-0"
                 aria-label="Remove chapter"
@@ -419,10 +441,11 @@ const CurriculumStep: React.FC<CurriculumStepProps> = ({
               </button>
             </div>
 
-            <ul className="space-y-2 pl-11">
+            <ul data-testid="instructor-course-form-lesson-list" className="space-y-2 pl-11">
               {chapter.lessons.map(lesson => (
-                <li key={lesson.id} className="flex items-center gap-2">
+                <li key={lesson.id} data-testid="instructor-course-form-lesson" className="flex items-center gap-2">
                   <select
+                    data-testid="instructor-course-form-lesson-type"
                     value={lesson.type}
                     onChange={e => onUpdateLesson(chapter.id, lesson.id, 'type', e.target.value)}
                     className="input-base !w-auto text-xs py-2"
@@ -435,6 +458,7 @@ const CurriculumStep: React.FC<CurriculumStepProps> = ({
                   </select>
                   <input
                     type="text"
+                    data-testid="instructor-course-form-lesson-title"
                     value={lesson.title}
                     onChange={e => onUpdateLesson(chapter.id, lesson.id, 'title', e.target.value)}
                     placeholder={t('instructor.course.curriculum.lessonPlaceholder')}
@@ -442,6 +466,7 @@ const CurriculumStep: React.FC<CurriculumStepProps> = ({
                   />
                   <input
                     type="text"
+                    data-testid="instructor-course-form-lesson-duration"
                     value={lesson.duration}
                     onChange={e => onUpdateLesson(chapter.id, lesson.id, 'duration', e.target.value)}
                     placeholder={t('instructor.course.curriculum.durationPlaceholder')}
@@ -449,6 +474,7 @@ const CurriculumStep: React.FC<CurriculumStepProps> = ({
                   />
                   <button
                     type="button"
+                    data-testid="instructor-course-form-remove-lesson"
                     onClick={() => onRemoveLesson(chapter.id, lesson.id)}
                     className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-colors flex-shrink-0"
                     aria-label="Remove lesson"
@@ -460,6 +486,7 @@ const CurriculumStep: React.FC<CurriculumStepProps> = ({
               <li>
                 <button
                   type="button"
+                  data-testid="instructor-course-form-add-lesson"
                   onClick={() => onAddLesson(chapter.id)}
                   className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 py-1"
                 >
@@ -490,6 +517,7 @@ const PricingStep: React.FC<PricingStepProps> = ({ data, setData, errors }) => {
       <h2 className="text-base font-bold text-slate-900 dark:text-white">{t('instructor.course.pricing.title')}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <PricingCard
+          data-testid="instructor-course-form-pricing-free"
           selected={data.pricingModel === 'free'}
           onClick={() => setData({ ...data, pricingModel: 'free' })}
           color="emerald"
@@ -498,6 +526,7 @@ const PricingStep: React.FC<PricingStepProps> = ({ data, setData, errors }) => {
           icon={<GiftIcon />}
         />
         <PricingCard
+          data-testid="instructor-course-form-pricing-paid"
           selected={data.pricingModel === 'paid'}
           onClick={() => setData({ ...data, pricingModel: 'paid' })}
           color="blue"
@@ -513,6 +542,7 @@ const PricingStep: React.FC<PricingStepProps> = ({ data, setData, errors }) => {
             type="number"
             min="0"
             step="1000"
+            data-testid="instructor-course-form-price"
             value={data.price}
             onChange={e => setData({ ...data, price: e.target.value })}
             className="input-base"
@@ -525,6 +555,8 @@ const PricingStep: React.FC<PricingStepProps> = ({ data, setData, errors }) => {
 };
 
 interface PricingCardProps {
+  /** `data-testid` forwarded from the two pricing cards in `PricingStep`. */
+  'data-testid'?: string;
   selected: boolean;
   onClick: () => void;
   color: 'emerald' | 'blue';
@@ -533,7 +565,15 @@ interface PricingCardProps {
   icon: React.ReactNode;
 }
 
-const PricingCard: React.FC<PricingCardProps> = ({ selected, onClick, color, title, desc, icon }) => {
+const PricingCard: React.FC<PricingCardProps> = ({
+  'data-testid': testId,
+  selected,
+  onClick,
+  color,
+  title,
+  desc,
+  icon,
+}) => {
   const colorMap: Record<PricingCardProps['color'], string> = {
     emerald: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-300',
     blue: 'text-blue-600 bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300',
@@ -541,6 +581,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ selected, onClick, color, tit
   return (
     <button
       type="button"
+      data-testid={testId}
       onClick={onClick}
       className={`text-left p-4 rounded-xl border-2 transition-all ${
         selected
@@ -571,7 +612,7 @@ const Field: React.FC<FieldProps> = ({ label, hint, error, required, children })
     </label>
     {children}
     {hint && !error && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{hint}</p>}
-    {error && <p className="text-xs text-rose-500 mt-1">{error}</p>}
+    {error && <p data-testid="instructor-course-form-field-error" className="text-xs text-rose-500 mt-1">{error}</p>}
   </div>
 );
 
