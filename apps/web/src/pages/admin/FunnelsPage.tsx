@@ -13,11 +13,13 @@ const FunnelsPage: React.FC = () => {
 
   return (
     <AdminLayout title={t('admin.funnels.title')}>
-      <ComingSoon
-        title={t('admin.funnels.title')}
-        description={t('admin.noBackend.funnels.description')}
-        missing={t('admin.noBackend.funnels.missing', { returnObjects: true }) as string[]}
-      />
+      <div data-testid="admin-coming-funnels">
+        <ComingSoon
+          title={t('admin.funnels.title')}
+          description={t('admin.noBackend.funnels.description')}
+          missing={t('admin.noBackend.funnels.missing', { returnObjects: true }) as string[]}
+        />
+      </div>
     </AdminLayout>
   );
 };

@@ -1,0 +1,23 @@
+# ============================================
+# IOES - Notification Service Configuration
+# ============================================
+# Created to fix the same analytics-service bug: without a per-service
+# file here, Spring Cloud Config falls back to application.yml which
+# pins the datasource to AUTH_DB_NAME.
+
+spring:
+  application:
+    name: notification-service
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${NOTIFICATION_DB_NAME:ioes_notification}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+server:
+  port: 9003
+
+logging:
+  level:
+    com.ioes.notification: DEBUG

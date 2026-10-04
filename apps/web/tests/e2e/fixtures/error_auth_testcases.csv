@@ -1,0 +1,12 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+TC-ERRORAUTH-001,Error404,"At a non-existent route, the 404 NotFoundPage is rendered with the 404 heading",P1,"App server running","1. Visit /this-route-does-not-exist 2. Assert 404 heading visible","","404 heading visible; no crash",E2E
+TC-ERRORAUTH-002,Error404,"The 404 page has no console errors",P1,"App server running","1. Visit /this-route-does-not-exist 2. Collect console errors","","Zero console.error messages",E2E
+TC-ERRORAUTH-003,Error404,"Clicking 'Back to Home' on 404 page navigates to /",P1,"404 page loaded","1. Click 'Back to Home' link 2. Verify URL","","URL matches /",E2E
+TC-ERRORAUTH-004,Error500,"Visiting /500 directly renders the 500 ServerErrorPage with 500 heading",P1,"App server running","1. Visit /500 2. Assert 500 heading visible","","500 heading visible",E2E
+TC-ERRORAUTH-005,Error500,"The 500 page has no console errors",P1,"App server running","1. Visit /500 2. Collect console errors","","Zero console.error messages",E2E
+TC-ERRORAUTH-006,Error500,"The 'Try Again' button on 500 page calls window.location.reload",P1,"500 page loaded","1. Click 'Try Again' button 2. Verify button enabled before click","","Button enabled; window.location.reload invoked",E2E
+TC-ERRORAUTH-007,AuthLayout,"At /auth/login the AuthLayout shows login branding heading",P1,"App server running","1. Visit /auth/login 2. Assert login branding heading visible","","'Welcome Back' heading visible; email input visible",E2E
+TC-ERRORAUTH-008,AuthLayout,"At /auth/register the AuthLayout shows register branding heading",P1,"App server running","1. Visit /auth/register 2. Assert register branding heading visible","","'Create Account' heading visible; register form visible",E2E
+TC-ERRORAUTH-009,AuthLayout,"Clicking Register tab navigates to /auth/register and shows register branding",P1,"/auth/login loaded","1. Visit /auth/login 2. Click Register tab 3. Verify URL and branding","","URL matches /auth/register; register branding visible",E2E
+TC-ERRORAUTH-010,AuthLayout,"Clicking Login tab from /auth/register navigates to /auth/login and shows login branding",P1,"/auth/register loaded","1. Visit /auth/register 2. Click Login tab 3. Verify URL and branding","","URL matches /auth/login; login branding visible",E2E
+TC-ERRORAUTH-011,AuthLayout,"Both /auth/login and /auth/register pages have zero console errors",P1,"App server running","1. Visit /auth/login 2. Collect errors 3. Visit /auth/register 4. Collect errors","","Zero console.error messages on both pages",E2E

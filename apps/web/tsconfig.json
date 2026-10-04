@@ -15,10 +15,18 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Path aliases - handled by Vite, added here for IDE support */
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+
+      // pnpm resolves `@types/react-dom`'s `"@types/react": "*"` to 18.3.31,
+      // so the types inside @types/react-dom/*.d.ts come from a different React
+      // than the 19.0.0 this app links. Two different `ReactNode` declarations
+      // make e.g. `renderToString(createElement(...))` fail to type-check.
+      // Pin both specifiers to the single copy apps/web actually links.
+      // Only affects tsc: vite.config.ts uses explicit resolve.alias.
+      "react": ["./node_modules/@types/react"],
+      "react-dom": ["./node_modules/@types/react-dom"],
+      "react-dom/*": ["./node_modules/@types/react-dom/*"]
     },
 
     /* Linting */
@@ -27,6 +35,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
+  "include": ["src", "tests"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

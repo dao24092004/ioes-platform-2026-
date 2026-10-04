@@ -15,11 +15,13 @@ const WalletPage: React.FC = () => {
 
   return (
     <AdminLayout title={t('comingSoon.blockchain.title')}>
-      <ComingSoon
-        title={t('comingSoon.blockchain.title')}
-        description={t('comingSoon.blockchain.description')}
-        missing={t('comingSoon.blockchain.missing', { returnObjects: true }) as string[]}
-      />
+      <div data-testid="admin-coming-wallet">
+        <ComingSoon
+          title={t('comingSoon.blockchain.title')}
+          description={t('comingSoon.blockchain.description')}
+          missing={t('comingSoon.blockchain.missing', { returnObjects: true }) as string[]}
+        />
+      </div>
     </AdminLayout>
   );
 };

@@ -287,6 +287,8 @@ secrets.yml
 test-results/
 playwright-report/
 playwright/.cache/
+playwright/.auth/
+apps/web/playwright/.auth/
 k6-results/
 .load-test-results/
 coverage/lcov-report/

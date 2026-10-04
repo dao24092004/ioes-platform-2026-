@@ -37,7 +37,7 @@ const LineChart: React.FC<{
 
   return (
     <div className="relative" style={{ height }}>
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
+      <svg data-testid="admin-analytics-growth-line" viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
         {[0, 25, 50, 75, 100].map(y => (
           <line key={y} x1="0" y1={y} x2="100" y2={y} stroke="currentColor" strokeOpacity="0.08" strokeWidth="0.2" />
         ))}
@@ -93,7 +93,7 @@ const DonutChart: React.FC<{
   return (
     <div className="flex items-center gap-6">
       <div className="relative w-44 h-44">
-        <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+        <svg data-testid="admin-analytics-roles-donut" viewBox="0 0 100 100" className="w-full h-full -rotate-90">
           {segments.map((s, i) => (
             <path key={i} d={s.path} fill={s.color} className="transition-all hover:opacity-80" />
           ))}
@@ -121,7 +121,7 @@ const DonutChart: React.FC<{
 
 /** Khung biểu đồ khi chưa có endpoint hoặc chưa có điểm dữ liệu nào. */
 const EmptyChart: React.FC<{ label: string; height?: number }> = ({ label, height = CHART_SIZES.LINE_DEFAULT_PX }) => (
-  <div className="flex items-center justify-center text-sm text-slate-500 dark:text-slate-400 text-center px-4" style={{ height }}>
+  <div data-testid="admin-analytics-empty" className="flex items-center justify-center text-sm text-slate-500 dark:text-slate-400 text-center px-4" style={{ height }}>
     {label}
   </div>
 );
@@ -230,7 +230,7 @@ const AnalyticsPage: React.FC = () => {
       title={t('analytics.title')}
       subtitle={t('analytics.subtitle')}
       headerActions={
-        <div className="flex gap-2" role="radiogroup" aria-label={t('aria.selectRange')}>
+        <div data-testid="admin-analytics-range-group" className="flex gap-2" role="radiogroup" aria-label={t('aria.selectRange')}>
           {ranges.map(r => (
             <button
               key={r}
@@ -274,13 +274,13 @@ const AnalyticsPage: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
         {/* User growth (line) */}
         <div
-          data-testid={TEST_IDS.ANALYTICS_KPI}
+          data-testid="admin-analytics-growth"
           className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_1s_ease-out_forwards] hover:shadow-lg hover:shadow-blue-500/5 transition-all"
           style={{ animationDelay: `${2 * ANIMATION.STAGGER_DURATION_S}s` }}
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-semibold">{t('analytics.charts.usersGrowth')}</h2>
-            <span className="text-xs text-slate-500">{range.toUpperCase()}</span>
+            <span data-testid="admin-analytics-range-label" className="text-xs text-slate-500">{range.toUpperCase()}</span>
           </div>
           {userGrowth && userGrowth.length > 0 ? (
             <LineChart data={userGrowth} color={colorMap.blue.line} fill="rgba(59,130,246,0.15)" />
@@ -291,6 +291,7 @@ const AnalyticsPage: React.FC = () => {
 
         {/* Role distribution (donut) */}
         <div
+          data-testid="admin-analytics-roles"
           className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_1s_ease-out_forwards] hover:shadow-lg hover:shadow-blue-500/5 transition-all"
           style={{ animationDelay: `${2.5 * ANIMATION.STAGGER_DURATION_S}s` }}
         >
@@ -300,6 +301,7 @@ const AnalyticsPage: React.FC = () => {
 
         {/* Enrollments — chưa có chuỗi ghi danh theo ngày */}
         <div
+          data-testid="admin-analytics-enrollments"
           className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
           style={{ animationDelay: `${3 * ANIMATION.STAGGER_DURATION_S}s` }}
         >
@@ -311,6 +313,7 @@ const AnalyticsPage: React.FC = () => {
 
         {/* Exam completion — chưa có chuỗi hoàn thành bài thi */}
         <div
+          data-testid="admin-analytics-exam-completion"
           className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
           style={{ animationDelay: `${3.5 * ANIMATION.STAGGER_DURATION_S}s` }}
         >
@@ -322,6 +325,7 @@ const AnalyticsPage: React.FC = () => {
       {/* Pass rate + Top courses — chưa có endpoint */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         <div
+          data-testid="admin-analytics-pass-rate"
           className="xl:col-span-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
           style={{ animationDelay: `${4 * ANIMATION.STAGGER_DURATION_S}s` }}
         >
@@ -330,6 +334,7 @@ const AnalyticsPage: React.FC = () => {
         </div>
 
         <div
+          data-testid="admin-analytics-top-courses"
           className="xl:col-span-7 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards]"
           style={{ animationDelay: `${4.5 * ANIMATION.STAGGER_DURATION_S}s` }}
         >

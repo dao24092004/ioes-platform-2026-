@@ -28,11 +28,21 @@ const resources = {
   },
 };
 
+// Resolve initial language: tests can pin the language by writing
+// `localStorage.setItem('i18nextLng', 'en')` before the app boots.
+// Production users get the default `vi` (the platform's primary audience).
+const initialLng = (() => {
+  if (typeof window === 'undefined') return 'vi';
+  const stored = window.localStorage.getItem('i18nextLng');
+  if (stored === 'en' || stored === 'vi') return stored;
+  return 'vi';
+})();
+
 i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'vi',
+    lng: initialLng,
     fallbackLng: 'en',
     supportedLngs: ['en', 'vi'],
     ns: ['common', 'questionBank', 'recommendations', 'learningPath'],

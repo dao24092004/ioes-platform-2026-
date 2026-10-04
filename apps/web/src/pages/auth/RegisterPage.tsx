@@ -89,6 +89,7 @@ export default function RegisterPage() {
           onChange={(e) => setFullName(e.target.value)}
           placeholder={t('auth.fullNamePlaceholder')}
           required
+          data-testid="auth-fullname"
         />
 
         <Input
@@ -98,6 +99,7 @@ export default function RegisterPage() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="email@company.com"
           required
+          data-testid="auth-email"
         />
 
         <div>
@@ -108,6 +110,7 @@ export default function RegisterPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder={t('auth.minChars')}
             required
+            data-testid="auth-password"
           />
           {password && (
             <div className="mt-3">
@@ -121,7 +124,7 @@ export default function RegisterPage() {
                   />
                 ))}
               </div>
-              <span className={`text-xs font-medium ${
+              <span data-testid="auth-password-strength" className={`text-xs font-medium ${
                 strength <= 1 ? 'text-red-500 dark:text-red-400' : strength <= 2 ? 'text-amber-500 dark:text-amber-400' : 'text-emerald-500 dark:text-emerald-400'
               }`}>
                 {t(strengthLevels[strength - 1])}
@@ -137,6 +140,7 @@ export default function RegisterPage() {
           onChange={(e) => setConfirmPassword(e.target.value)}
           placeholder="Confirm password"
           required
+          data-testid="auth-confirm-password"
         />
 
         <div>
@@ -146,6 +150,7 @@ export default function RegisterPage() {
                 type="checkbox"
                 checked={agreeTerms}
                 onChange={(e) => setAgreeTerms(e.target.checked)}
+                data-testid="auth-agree-terms"
                 className={`w-5 h-5 rounded border-2 cursor-pointer appearance-none transition-all ${
                   agreeTerms 
                     ? 'bg-gradient-to-r from-blue-600 to-cyan-500 border-transparent' 
@@ -166,7 +171,7 @@ export default function RegisterPage() {
           </label>
         </div>
 
-        <Button type="submit" fullWidth size="lg" disabled={!agreeTerms || loading}>
+        <Button type="submit" fullWidth size="lg" disabled={!agreeTerms || loading} data-testid="auth-submit">
           {loading ? (
             <span className="inline-flex items-center gap-2">
               <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24" fill="none">

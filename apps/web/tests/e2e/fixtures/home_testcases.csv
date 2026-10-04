@@ -1,0 +1,18 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+TC-HOME-001,Home,"All 9 Home sections render with their headings",P1,"Home page reachable at /","1. Navigate to / 2. Inspect DOM for hero/features/courses/aiMentor/pricing/testimonials/faq/contact anchors","","Every section anchor present in the DOM; hero h1 visible",E2E
+TC-HOME-002,Home,"FAQ accordion expands/collapses on click",P1,"Home loaded at /","1. Scroll to #faq 2. Click second FAQ item 3. Verify aria-expanded on first/second","","First item aria-expanded=false; second item aria-expanded=true",E2E
+TC-HOME-003,Home,"Floating chat opens and closes via toggle",P2,"Home loaded at /","1. Click #floating-chat-toggle 2. Verify input visible 3. Click X to close 4. Verify toggle visible","","Chat input visible after open; toggle visible after close",E2E
+TC-NAV-001,Header,"Logo link navigates to /",P1,"Home loaded at /","1. Click logo in header 2. Verify URL","","URL ends with /",E2E
+TC-NAV-002,Header,"Header Courses link navigates to /courses",P1,"Home loaded at /","1. Click KhÃ³a há»c link 2. Verify URL 3. Go back 4. Verify Home still works","","URL matches /courses; Home still renders after back",E2E
+TC-NAV-003,Header,"Header About link navigates to /about",P1,"Home loaded at /","1. Click Giá»›i thiá»‡u link 2. Verify URL 3. Go back 4. Verify Home still works","","URL matches /about; Home still renders after back",E2E
+TC-NAV-004,Header,"Header Contact link navigates to /contact",P1,"Home loaded at /","1. Click LiÃªn há»‡ link 2. Verify URL 3. Go back 4. Verify Home still works","","URL matches /contact; Home still renders after back",E2E
+TC-NAV-005,Header,"Header Login button navigates to /auth/login",P1,"Home loaded at / logged out","1. Click ÄÄƒng nháº­p button 2. Verify URL","","URL matches /auth/login",E2E
+TC-NAV-006,Header,"Header Register button navigates to /auth/register",P1,"Home loaded at / logged out","1. Click ÄÄƒng kÃ½ button 2. Verify URL","","URL matches /auth/register",E2E
+TC-NAV-007,Header,"Language toggle cycles VI/EN",P2,"Home loaded at /","1. Click toggle language 2. Verify label flips 3. Click again 4. Verify returns","","VI -> EN -> VI",E2E
+TC-NAV-008,Footer,"Footer logo navigates to /",P1,"Home loaded at /","1. Scroll to footer 2. Click footer logo 3. Verify URL","","URL ends with /",E2E
+TC-NAV-009,Header,"Mobile menu toggle opens and closes menu",P1,"Viewport 375x812","1. Resize to 375 3. Click hamburger 5. Verify count(login)>=2 7. Verify hamburger hidden after second click",E2E
+TC-RESP-001,Layout,"No horizontal overflow at 375x812",P1,"Viewport 375x812","1. Visit / 2. Measure scrollWidth vs clientWidth","","scrollWidth - clientWidth <= 1",E2E
+TC-RESP-002,Layout,"No horizontal overflow at 768x1024",P1,"Viewport 768x1024","1. Visit / 2. Measure scrollWidth vs clientWidth","","scrollWidth - clientWidth <= 1",E2E
+TC-RESP-003,Layout,"No horizontal overflow at 1440x900",P1,"Viewport 1440x900","1. Visit / 2. Measure scrollWidth vs clientWidth","","scrollWidth - clientWidth <= 1",E2E
+TC-RESP-004,Layout,"No broken images",P2,"Home loaded at /","1. Visit / 2. Scroll to bottom 3. Inspect every <img>","","No <img> has naturalWidth === 0",E2E
+TC-RESP-005,Layout,"No console errors and no 404s when clicking header items",P1,"Home loaded at /","1. Visit / 2. Click each nav <a> 4. Go back 5. Collect console errors and network 404s","","console.errors and 404 URLs both empty",E2E

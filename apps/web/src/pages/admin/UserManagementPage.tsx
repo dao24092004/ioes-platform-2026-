@@ -27,15 +27,16 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({ user, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
+    <div data-testid="admin-users-detail-modal" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
       <div
         className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-[fadeInUp_.3s_ease-out]"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
-          <h2 className="text-xl font-bold">{t('admin.users.detailTitle')}</h2>
+          <h2 data-testid="admin-users-detail-title" className="text-xl font-bold">{t('admin.users.detailTitle')}</h2>
           <button
+            data-testid="admin-users-detail-close"
             onClick={onClose}
             className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors"
           >
@@ -46,20 +47,20 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({ user, onClose }) => {
         {/* Avatar & Name */}
         <div className="p-6 flex flex-col items-center border-b border-slate-200 dark:border-slate-800">
           {user.avatarUrl ? (
-            <img src={user.avatarUrl} alt={user.fullName} className="w-20 h-20 rounded-2xl object-cover mb-3" />
+            <img data-testid="admin-users-detail-avatar" src={user.avatarUrl} alt={user.fullName} className="w-20 h-20 rounded-2xl object-cover mb-3" />
           ) : (
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center font-bold text-2xl mb-3">
+            <div data-testid="admin-users-detail-initials" className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center font-bold text-2xl mb-3">
               {user.fullName.split(' ').filter(Boolean).map(s => s.charAt(0)).slice(0, 2).join('')}
             </div>
           )}
-          <h3 className="text-lg font-bold">{user.fullName}</h3>
-          <p className="text-sm text-slate-500">{user.email}</p>
+          <h3 data-testid="admin-users-detail-name" className="text-lg font-bold">{user.fullName}</h3>
+          <p data-testid="admin-users-detail-email" className="text-sm text-slate-500">{user.email}</p>
           <div className="flex items-center gap-2 mt-2">
             {user.emailVerified && (
-              <span className="px-2 py-1 text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg">{t('admin.users.emailVerified')}</span>
+              <span data-testid="admin-users-detail-verified" className="px-2 py-1 text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg">{t('admin.users.emailVerified')}</span>
             )}
             {user.mfaEnabled && (
-              <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg">2FA</span>
+              <span data-testid="admin-users-detail-mfa" className="px-2 py-1 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg">2FA</span>
             )}
           </div>
         </div>
@@ -69,46 +70,46 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({ user, onClose }) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.role')}</label>
-              <p className="font-semibold mt-1">{t(`admin.role.${user.role === 'super_admin' ? 'superAdmin' : user.role}`)}</p>
+              <p data-testid="admin-users-detail-role" className="font-semibold mt-1">{t(`admin.role.${user.role === 'super_admin' ? 'superAdmin' : user.role}`)}</p>
             </div>
             <div>
               <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.status')}</label>
-              <p className="font-semibold mt-1">{t(`admin.status.${user.status}`)}</p>
+              <p data-testid="admin-users-detail-status" className="font-semibold mt-1">{t(`admin.status.${user.status}`)}</p>
             </div>
             <div>
               <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.phone')}</label>
-              <p className="font-semibold mt-1">{user.phone ?? '—'}</p>
+              <p data-testid="admin-users-detail-phone" className="font-semibold mt-1">{user.phone ?? '—'}</p>
             </div>
             <div>
               <label className="text-xs text-slate-500 uppercase tracking-wider">ID</label>
-              <p className="font-mono text-xs mt-1 break-all">{user.id}</p>
+              <p data-testid="admin-users-detail-id" className="font-mono text-xs mt-1 break-all">{user.id}</p>
             </div>
           </div>
 
           <div>
             <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.bio')}</label>
-            <p className="mt-1 text-sm">{user.bio ?? '—'}</p>
+            <p data-testid="admin-users-detail-bio" className="mt-1 text-sm">{user.bio ?? '—'}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.lastLogin')}</label>
-              <p className="text-sm mt-1">{formatDate(user.lastLoginAt)}</p>
+              <p data-testid="admin-users-detail-last-login" className="text-sm mt-1">{formatDate(user.lastLoginAt)}</p>
             </div>
             <div>
               <label className="text-xs text-slate-500 uppercase tracking-wider">IP</label>
-              <p className="text-sm mt-1">{user.lastLoginIp ?? '—'}</p>
+              <p data-testid="admin-users-detail-ip" className="text-sm mt-1">{user.lastLoginIp ?? '—'}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.createdAt')}</label>
-              <p className="text-sm mt-1">{formatDate(user.createdAt)}</p>
+              <p data-testid="admin-users-detail-created" className="text-sm mt-1">{formatDate(user.createdAt)}</p>
             </div>
             <div>
               <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.updatedAt')}</label>
-              <p className="text-sm mt-1">{formatDate(user.updatedAt)}</p>
+              <p data-testid="admin-users-detail-updated" className="text-sm mt-1">{formatDate(user.updatedAt)}</p>
             </div>
           </div>
         </div>
@@ -116,6 +117,7 @@ const UserDetailModal: React.FC<UserDetailModalProps> = ({ user, onClose }) => {
         {/* Footer */}
         <div className="p-6 border-t border-slate-200 dark:border-slate-800 flex justify-end">
           <button
+            data-testid="admin-users-detail-close-footer"
             onClick={onClose}
             className="px-4 py-2 text-sm font-semibold bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
           >
@@ -156,15 +158,16 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ user, onClose }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
+    <div data-testid="admin-users-reset-modal" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
       <div
         className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md animate-[fadeInUp_.3s_ease-out]"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
-          <h2 className="text-xl font-bold">{t('admin.users.resetPassword')}</h2>
+          <h2 data-testid="admin-users-reset-title" className="text-xl font-bold">{t('admin.users.resetPassword')}</h2>
           <button
+            data-testid="admin-users-reset-close"
             onClick={onClose}
             className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors"
           >
@@ -176,13 +179,13 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ user, onClose }
         <div className="p-6">
           {!tempPassword ? (
             <>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              <p data-testid="admin-users-reset-confirm" className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                 {t('admin.users.resetPasswordConfirm', { name: user.fullName })}
               </p>
               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
                 <div className="flex items-start gap-3">
                   <svg className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                  <p data-testid="admin-users-reset-warning" className="text-sm text-amber-800 dark:text-amber-200">
                     {t('admin.users.resetPasswordWarning')}
                   </p>
                 </div>
@@ -194,13 +197,14 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ user, onClose }
                 <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-3">
                   <svg className="w-6 h-6 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
                 </div>
-                <p className="font-semibold text-emerald-600 dark:text-emerald-400">{t('admin.users.resetSuccess')}</p>
+                <p data-testid="admin-users-reset-success" className="font-semibold text-emerald-600 dark:text-emerald-400">{t('admin.users.resetSuccess')}</p>
               </div>
               <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4">
                 <label className="text-xs text-slate-500 uppercase tracking-wider">{t('admin.users.tempPassword')}</label>
                 <div className="flex items-center gap-2 mt-1">
-                  <code className="flex-1 font-mono text-lg font-bold break-all">{tempPassword}</code>
+                  <code data-testid="admin-users-reset-temp-password" className="flex-1 font-mono text-lg font-bold break-all">{tempPassword}</code>
                   <button
+                    data-testid="admin-users-reset-copy"
                     onClick={handleCopy}
                     className="px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
                   >
@@ -208,7 +212,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ user, onClose }
                   </button>
                 </div>
               </div>
-              <p className="text-xs text-slate-500 mt-3">{t('admin.users.tempPasswordNote')}</p>
+              <p data-testid="admin-users-reset-note" className="text-xs text-slate-500 mt-3">{t('admin.users.tempPasswordNote')}</p>
             </>
           )}
         </div>
@@ -216,6 +220,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ user, onClose }
         {/* Footer */}
         <div className="p-6 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
           <button
+            data-testid="admin-users-reset-cancel"
             onClick={onClose}
             className="px-4 py-2 text-sm font-semibold bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
           >
@@ -223,6 +228,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ user, onClose }
           </button>
           {!tempPassword && (
             <button
+              data-testid="admin-users-reset-submit"
               onClick={() => resetMutation.mutate()}
               disabled={resetMutation.isPending}
               className="px-4 py-2 text-sm font-semibold bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
@@ -370,7 +376,7 @@ const UserManagementPage: React.FC = () => {
       subtitle={t('admin.users.subtitle')}
     >
       {/* Stats grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+      <div data-testid="admin-users-stats" className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
         {statsCards.map((s, i) => {
           const map = {
             blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
@@ -387,6 +393,7 @@ const UserManagementPage: React.FC = () => {
           return (
             <button
               key={s.key}
+              data-testid={`admin-users-stat-${s.key}`}
               onClick={() => {
                 setPage(1);
                 if (s.key === 'all') { setRoleFilter('all'); setStatusFilter('all'); }
@@ -412,12 +419,13 @@ const UserManagementPage: React.FC = () => {
 
       {/* Bulk actions bar */}
       {selected.size > 0 && (
-        <div className="mb-4 px-5 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center gap-3 animate-[fadeInUp_.5s_ease-out]">
+        <div data-testid="admin-users-bulk-bar" className="mb-4 px-5 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center gap-3 animate-[fadeInUp_.5s_ease-out]">
           <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
             {selected.size} {t('admin.users.selected')}
           </span>
           <div className="ml-auto flex items-center gap-2">
             <button
+              data-testid="admin-users-bulk-role"
               onClick={() => {
                 selected.forEach(id => updateRole.mutate({ id, role: 'instructor' }));
                 setSelected(new Set());
@@ -427,6 +435,7 @@ const UserManagementPage: React.FC = () => {
               {t('admin.users.changeRole')}
             </button>
             <button
+              data-testid="admin-users-bulk-lock"
               onClick={() => {
                 selected.forEach(id => updateStatus.mutate({ id, status: 'suspended' }));
                 setSelected(new Set());
@@ -436,6 +445,7 @@ const UserManagementPage: React.FC = () => {
               {t('admin.users.lock')}
             </button>
             <button
+              data-testid="admin-users-bulk-delete"
               onClick={() => {
                 if (confirm('Delete selected users?')) {
                   selected.forEach(id => deleteUser.mutate(id));
@@ -455,6 +465,7 @@ const UserManagementPage: React.FC = () => {
         <div className="relative flex-1 md:max-w-xs">
           <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
           <input
+            data-testid="admin-users-search"
             type="text"
             placeholder={t('admin.users.searchPlaceholder')}
             value={search}
@@ -464,6 +475,7 @@ const UserManagementPage: React.FC = () => {
         </div>
         <div className="flex flex-wrap gap-2">
           <select
+            data-testid="admin-users-role-filter"
             value={roleFilter}
             onChange={e => { setRoleFilter(e.target.value as UserRole | 'all'); setPage(1); }}
             className="px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
@@ -476,6 +488,7 @@ const UserManagementPage: React.FC = () => {
             <option value="guest">{t('admin.role.guest')}</option>
           </select>
           <select
+            data-testid="admin-users-status-filter"
             value={statusFilter}
             onChange={e => { setStatusFilter(e.target.value as UserStatus | 'all'); setPage(1); }}
             className="px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
@@ -487,6 +500,7 @@ const UserManagementPage: React.FC = () => {
             <option value="deleted">{t('admin.status.deleted')}</option>
           </select>
           <select
+            data-testid="admin-users-sort"
             value={sortBy}
             onChange={e => setSortBy(e.target.value as 'newest' | 'name_asc')}
             className="px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
@@ -498,13 +512,14 @@ const UserManagementPage: React.FC = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.2s]">
+      <div data-testid="admin-users-table" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden opacity-0 animate-[fadeInUp_1s_ease-out_forwards] [animation-delay:.2s]">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase tracking-wider text-slate-500">
                 <th className="w-12 px-4 py-4">
                   <button
+                    data-testid="admin-users-select-all"
                     onClick={toggleAll}
                     disabled={users.length === 0}
                     className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center ${
@@ -525,22 +540,23 @@ const UserManagementPage: React.FC = () => {
                 <th className="text-left px-4 py-4 font-semibold">{t('admin.table.actions')}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody data-testid="admin-users-tbody">
               {isLoading && (
-                <tr><td colSpan={6} className="text-center py-12 text-slate-500">
+                <tr data-testid="admin-users-loading"><td colSpan={6} className="text-center py-12 text-slate-500">
                   <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                 </td></tr>
               )}
               {isError && (
-                <tr><td colSpan={6} className="text-center py-12 text-red-600 dark:text-red-400">{t('admin.users.noResults')}</td></tr>
+                <tr data-testid="admin-users-error"><td colSpan={6} className="text-center py-12 text-red-600 dark:text-red-400">{t('admin.users.noResults')}</td></tr>
               )}
               {!isLoading && !isError && users.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-12 text-slate-500">{t('admin.users.noResults')}</td></tr>
+                <tr data-testid="admin-users-empty"><td colSpan={6} className="text-center py-12 text-slate-500">{t('admin.users.noResults')}</td></tr>
               )}
               {users.map((u: AdminUser) => (
-                <tr key={u.id} className="border-t border-slate-100 dark:border-slate-800 transition-all hover:bg-blue-50/50 dark:hover:bg-blue-900/10 group">
+                <tr key={u.id} data-testid="admin-users-row" className="border-t border-slate-100 dark:border-slate-800 transition-all hover:bg-blue-50/50 dark:hover:bg-blue-900/10 group">
                   <td className="px-4 py-4">
                     <button
+                      data-testid={`admin-users-row-check-${u.id}`}
                       onClick={() => toggleRow(u.id)}
                       className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center ${
                         selected.has(u.id) ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-slate-600 hover:border-blue-500'
@@ -552,13 +568,13 @@ const UserManagementPage: React.FC = () => {
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
                       {u.avatarUrl ? (
-                        <img src={u.avatarUrl} alt={u.fullName} className="w-10 h-10 rounded-xl object-cover transition-all group-hover:scale-110 group-hover:rotate-[5deg] group-hover:shadow-lg group-hover:shadow-blue-500/30" />
+                        <img data-testid={`admin-users-avatar-${u.id}`} src={u.avatarUrl} alt={u.fullName} className="w-10 h-10 rounded-xl object-cover transition-all group-hover:scale-110 group-hover:rotate-[5deg] group-hover:shadow-lg group-hover:shadow-blue-500/30" />
                       ) : (
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center font-semibold text-sm transition-all group-hover:scale-110 group-hover:rotate-[5deg] group-hover:shadow-lg group-hover:shadow-blue-500/30">
+                        <div data-testid={`admin-users-initials-${u.id}`} className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center font-semibold text-sm transition-all group-hover:scale-110 group-hover:rotate-[5deg] group-hover:shadow-lg group-hover:shadow-blue-500/30">
                           {getInitials(u.fullName)}
                         </div>
                       )}
-                      <div className="min-w-0">
+                      <div data-testid={`admin-users-identity-${u.id}`} className="min-w-0">
                         <div className="font-semibold text-sm flex items-center gap-1.5">
                           {u.fullName}
                           {u.emailVerified && (
@@ -573,12 +589,13 @@ const UserManagementPage: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-4 py-4">{roleBadge(u.role)}</td>
-                  <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-400">{formatDate(u.createdAt)}</td>
+                  <td data-testid={`admin-users-joined-${u.id}`} className="px-4 py-4 text-sm text-slate-500 dark:text-slate-400">{formatDate(u.createdAt)}</td>
                   <td className="px-4 py-4">{statusBadge(u.status)}</td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-1.5">
                       {/* Xem chi tiết */}
                       <button
+                        data-testid={`admin-users-view-${u.id}`}
                         onClick={() => setDetailUser(u)}
                         className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center"
                         title={t('admin.users.viewDetail')}
@@ -588,6 +605,7 @@ const UserManagementPage: React.FC = () => {
 
                       {/* Đặt lại mật khẩu */}
                       <button
+                        data-testid={`admin-users-reset-${u.id}`}
                         onClick={() => setResetPasswordUser(u)}
                         className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-amber-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all flex items-center justify-center"
                         title={t('admin.users.resetPassword')}
@@ -598,6 +616,7 @@ const UserManagementPage: React.FC = () => {
                       {/* Pending → Duyệt tài khoản */}
                       {u.status === 'pending' && (
                         <button
+                          data-testid={`admin-users-approve-${u.id}`}
                           onClick={() => updateStatus.mutate({ id: u.id, status: 'active' })}
                           className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all flex items-center justify-center"
                           title={t('admin.users.approve')}
@@ -609,6 +628,7 @@ const UserManagementPage: React.FC = () => {
                       {/* Suspended → Mở khóa (về active) */}
                       {u.status === 'suspended' && (
                         <button
+                          data-testid={`admin-users-unlock-${u.id}`}
                           onClick={() => updateStatus.mutate({ id: u.id, status: 'active' })}
                           className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all flex items-center justify-center"
                           title={t('admin.users.unlock')}
@@ -620,6 +640,7 @@ const UserManagementPage: React.FC = () => {
                       {/* Active → Khóa */}
                       {u.status === 'active' && (
                         <button
+                          data-testid={`admin-users-lock-${u.id}`}
                           onClick={() => updateStatus.mutate({ id: u.id, status: 'suspended' })}
                           className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center justify-center"
                           title={t('admin.users.lock')}
@@ -630,6 +651,7 @@ const UserManagementPage: React.FC = () => {
 
                       {/* Xoá người dùng */}
                       <button
+                        data-testid={`admin-users-delete-${u.id}`}
                         onClick={() => {
                           if (confirm(t('admin.users.deleteConfirm', { name: u.fullName }))) {
                             deleteUser.mutate(u.id);
@@ -649,13 +671,14 @@ const UserManagementPage: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 border-t border-slate-100 dark:border-slate-800">
-          <div className="text-sm text-slate-500 dark:text-slate-400">
+        <div data-testid="admin-users-pagination" className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 border-t border-slate-100 dark:border-slate-800">
+          <div data-testid="admin-users-page-info" className="text-sm text-slate-500 dark:text-slate-400">
             {t('admin.users.showing')} {users.length === 0 ? 0 : (page - 1) * perPage + 1}-{Math.min(page * perPage, total)} {t('admin.users.of')} {total} {t('admin.users.users')}
-            {isFetching && !isLoading && <span className="ml-2 inline-block w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin align-middle" />}
+            {isFetching && !isLoading && <span data-testid="admin-users-fetching-spinner" className="ml-2 inline-block w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin align-middle" />}
           </div>
           <div className="flex items-center gap-1">
             <button
+              data-testid="admin-users-page-prev"
               disabled={page === 1}
               onClick={() => setPage(p => Math.max(1, p - 1))}
               className="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:border-blue-500 hover:text-blue-600 transition-all"
@@ -665,6 +688,7 @@ const UserManagementPage: React.FC = () => {
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
               <button
                 key={n}
+                data-testid={`admin-users-page-${n}`}
                 onClick={() => setPage(n)}
                 className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
                   page === n ? 'bg-blue-600 text-white border border-blue-600' : 'border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:text-blue-600'
@@ -674,6 +698,7 @@ const UserManagementPage: React.FC = () => {
               </button>
             ))}
             <button
+              data-testid="admin-users-page-next"
               disabled={page === totalPages}
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               className="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:border-blue-500 hover:text-blue-600 transition-all"

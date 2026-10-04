@@ -2,8 +2,13 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 export interface ComingSoonProps {
-  /** Tên tính năng, đã dịch sẵn bởi phía gọi. */
-  title: string;
+  /**
+   * Tên tính năng, đã dịch sẵn bởi phía gọi.
+   *
+   * Nới sang `ReactNode` vì chữ trong `<h1>` có thể cần `<br>` để ngắt dòng;
+   * chuỗi thuần vẫn hợp lệ nên không phải sửa chỗ gọi nào.
+   */
+  title: React.ReactNode;
   /** Một câu mô tả tính năng sẽ làm gì khi có backend. */
   description: string;
   /** Những gì còn thiếu để tính năng chạy được. Bỏ trống thì không hiện danh sách. */
@@ -30,7 +35,10 @@ const ComingSoon: React.FC<ComingSoonProps> = ({ title, description, missing }) 
           {t('comingSoon.badge')}
         </span>
 
-        <h1 className="mt-5 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+        <h1
+          className="mt-5 text-2xl font-semibold text-slate-900 dark:text-slate-100"
+          data-testid="coming-soon-title"
+        >
           {title}
         </h1>
 
@@ -45,10 +53,7 @@ const ComingSoon: React.FC<ComingSoonProps> = ({ title, description, missing }) 
             </p>
             <ul className="mt-2 space-y-1.5">
               {missing.map((item) => (
-                <li
-                  key={item}
-                  className="flex gap-2 text-sm text-slate-600 dark:text-slate-300"
-                >
+                <li key={item} className="flex gap-2 text-sm text-slate-600 dark:text-slate-300">
                   <span aria-hidden="true" className="text-slate-400">
                     •
                   </span>

@@ -201,6 +201,7 @@ const Catalog: React.FC = () => {
               </svg>
               <input
                 type="text"
+                data-testid="courses-search-input"
                 placeholder={t('common.search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -227,7 +228,7 @@ const Catalog: React.FC = () => {
       <section className="py-12 px-6">
         <div className="max-w-7xl mx-auto">
           {/* Category pills */}
-          <div className="flex flex-wrap gap-2 mb-10">
+          <div data-testid="courses-category-pills" className="flex flex-wrap gap-2 mb-10">
             {[{ id: 'all', name: t('courses.all') }, ...categories].map((cat) => (
               <button
                 key={cat.id}
@@ -397,6 +398,7 @@ const Catalog: React.FC = () => {
                 );
               })}
               <button
+                data-testid="courses-pagination-next"
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
                 className="p-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"

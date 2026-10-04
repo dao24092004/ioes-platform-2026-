@@ -1,0 +1,28 @@
+# ============================================
+# IOES - Analytics Service Configuration
+# ============================================
+# Shared by Spring Cloud Config Server (config-server/config-repo).
+# When analytics-service starts, Config Client fetches this file. The
+# datasource URL here MUST use ANALYTICS_DB_NAME (not AUTH_DB_NAME),
+# otherwise Hibernate validates against ioes_auth and fails on tables
+# like leaderboard_entries that only exist in ioes_analytics.
+
+spring:
+  application:
+    name: analytics-service
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${ANALYTICS_DB_NAME:ioes_analytics}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 9004
+
+logging:
+  level:
+    com.ioes.analytics: DEBUG
