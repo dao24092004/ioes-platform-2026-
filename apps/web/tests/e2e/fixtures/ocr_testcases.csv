@@ -1,0 +1,7 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-OCR-001,ocr,uploadImage throws until backend exists,P3,No OCR backend,Call uploadImage(file),"",rejects with NotImplementedError,Unit
+UT-OCR-002,ocr,extractTextFromImage POST /api/ai/ocr/extract with FormData,P3,Backend up,Call extractTextFromImage(file,vi),"",URL=/api/ai/ocr/extract; multipart body,Unit
+UT-OCR-003,ocr,extractTextFromImage returns the unwrapped {text,confidence,bbox[]},P3,Backend up,Call extractTextFromImage(file),"payload",result equals payload,Unit
+UT-OCR-004,ocr,extractTextFromImage accepts language hints (vi|en),P3,Backend up,Call extractTextFromImage(file,'en'),"",body.language==='en',Unit
+IT-OCR-001,OCR,ComingSoon placeholder renders with the documented copy,P1,Student auth,Mount OCRPage,"","Coming soon" + missing list visible,Integration
+TC-OCR-001,OCR,OCR page renders without console errors and no camera access,P1,Student auth; permissions cleared,Visit /student/ocr,"","Coming soon" copy visible; no console errors,Unit

@@ -102,8 +102,9 @@ const BecomeInstructorPage: React.FC = () => {
       title={t('student.becomeInstructor.title')}
       subtitle={t('student.becomeInstructor.subtitle')}
     >
+      <div data-testid="becomeinstructor-page">
       {application.status === 'pending' && (
-        <div className="mb-6 p-4 rounded-2xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-900/50 flex items-start gap-3">
+        <div data-testid="becomeinstructor-pending-banner" className="mb-6 p-4 rounded-2xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-900/50 flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center flex-shrink-0">
             <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
           </div>
@@ -135,6 +136,7 @@ const BecomeInstructorPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field label={t('student.becomeInstructor.field.fullName')} required>
                 <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required
+                data-testid="becomeinstructor-fullname"
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-blue-500"
                 />
               </Field>
@@ -211,6 +213,7 @@ const BecomeInstructorPage: React.FC = () => {
             <Field label={t('student.becomeInstructor.field.bio')} hint={t('student.becomeInstructor.field.bioHint')}>
               <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4}
                 placeholder={t('student.becomeInstructor.field.bioPlaceholder')}
+                data-testid="becomeinstructor-bio"
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-blue-500 resize-none"
               />
             </Field>
@@ -257,6 +260,7 @@ const BecomeInstructorPage: React.FC = () => {
             <Field label={t('student.becomeInstructor.field.portfolio')}>
               <input type="url" value={portfolio} onChange={(e) => setPortfolio(e.target.value)}
                 placeholder={t('student.becomeInstructor.field.portfolioPlaceholder')}
+                data-testid="becomeinstructor-portfolio"
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-blue-500"
               />
             </Field>
@@ -264,6 +268,7 @@ const BecomeInstructorPage: React.FC = () => {
             <Field label={t('student.becomeInstructor.field.motivation')} hint={t('student.becomeInstructor.field.motivationHint')}>
               <textarea value={motivation} onChange={(e) => setMotivation(e.target.value)} rows={4}
                 placeholder={t('student.becomeInstructor.field.motivationPlaceholder')}
+                data-testid="becomeinstructor-motivation"
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-blue-500 resize-none"
               />
             </Field>
@@ -276,6 +281,7 @@ const BecomeInstructorPage: React.FC = () => {
               {t('student.becomeInstructor.saveDraft')}
             </button>
             <button type="submit" disabled={submitting}
+              data-testid="becomeinstructor-submit"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-semibold transition-colors shadow-sm"
             >
               {submitting && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
@@ -365,6 +371,7 @@ const BecomeInstructorPage: React.FC = () => {
           </div>
         </div>
       )}
+      </div>
     </StudentLayout>
   );
 };

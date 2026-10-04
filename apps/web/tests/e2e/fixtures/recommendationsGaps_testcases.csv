@@ -1,0 +1,14 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-RECS-001,recommendations,DEFAULT_RECOMMENDATION_LIMIT equals 6 per contract,P1,const declared,Inspect,"",value === 6,Unit
+UT-RECS-002,recommendations,DEFAULT_RECOMMENDATION_LIMIT is a positive integer,P1,const declared,Inspect,"",Number.isInteger && > 0,Unit
+UT-RECS-003,recommendations,getCourseRecommendations GET /api/ai/recommendations/courses with limit=6,P1,Backend up,Call getCourseRecommendations(),"","URL=/api/ai/recommendations/courses; params.limit===6",Unit
+UT-RECS-004,recommendations,getCourseRecommendations forwards caller-supplied limit,P1,Backend up,Call getCourseRecommendations(12),"","params.limit===12",Unit
+UT-RECS-005,recommendations,getCourseRecommendations uses fast-read timeout (15s) not default (120s),P1,Backend up,Call getCourseRecommendations(),"","config.timeout===15_000; !== 120_000",Unit
+UT-RECS-006,recommendations,getCourseRecommendations returns the unwrapped {items,strategy,generatedAt},P1,Backend up,Call getCourseRecommendations(),"payload","result equals payload; score 0..1",Unit
+UT-RECS-007,recommendations,RecommendationReasonCode union accepts documented codes,P1,Type-level check,Inspect union,"",all 5 codes (SAME_CATEGORY/SIMILAR_CONTENT/NEXT_LEVEL/POPULAR/NEW) accepted,Unit
+IT-RECS-001,Recommendations,Loading spinner renders while request pending,P1,Mock pending,Mount RecommendationsPage,"",spinner element,Integration
+IT-RECS-002,Recommendations,Cards render with title, reason, and match percent,P1,"Mock returns 1 course + 1 category",Mount,"","Algebra Crash Course" + "Match: 92%" + "Top match" visible,Integration
+IT-RECS-003,Recommendations,Error view shows the documented copy + Retry button,P1,Mock rejects,Mount,error,"Could not load recommendations" + Retry button,Integration
+IT-RECS-004,Recommendations,Refresh button triggers refetch,P1,"Mock returns []",Mount then click Refresh,"","getCourseRecommendations called twice",Integration
+IT-RECS-005,Recommendations,View-detail link navigates to /student/courses/:id,P1,"Mock returns 1 course",Mount then click View detail,"courseId='c-99'","URL=/student/courses/c-99",Integration
+TC-RECS-001,Recommendations,Recommendations gap: empty state renders end-to-end,P1,"Student auth; mocked GET /api/ai/recommendations/courses (items=[]) + /api/v1/categories","Visit /student/recommendations","","No recommendations yet" copy visible", E2E

@@ -104,6 +104,7 @@ const CourseLearnPage: React.FC = () => {
       headerActions={
         <Link
           to={`/student/courses/${courseId}`}
+          data-testid="learn-back-to-course"
           className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-500 text-sm font-semibold transition-colors"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
@@ -181,6 +182,7 @@ const CourseLearnPage: React.FC = () => {
                         return (
                           <button
                             key={lesson.id}
+                            data-testid={`learn-lesson-${lesson.id}`}
                             onClick={() => selectLesson(lesson.id)}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${
                               isActive
@@ -244,6 +246,7 @@ const CourseLearnPage: React.FC = () => {
                     <button
                       onClick={() => enrollMut.mutate()}
                       disabled={enrollMut.isPending}
+                      data-testid="learn-locked-enroll-button"
                       className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold disabled:opacity-50"
                     >
                       {enrollMut.isPending ? t('enrollmentApi.enrolling') : t('enrollmentApi.enroll')}
@@ -272,6 +275,7 @@ const CourseLearnPage: React.FC = () => {
                       <button
                         onClick={() => progressMut.mutate({ lessonId: currentLesson.id, completed: !currentDone })}
                         disabled={progressMut.isPending}
+                        data-testid="learn-mark-complete-button"
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 ${
                           currentDone
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
@@ -285,6 +289,7 @@ const CourseLearnPage: React.FC = () => {
                     {nextLesson && (
                       <button
                         onClick={() => selectLesson(nextLesson.id)}
+                        data-testid="learn-next-lesson-button"
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm"
                       >
                         {t('student.learn.actions.nextLesson')}

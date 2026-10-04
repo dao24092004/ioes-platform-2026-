@@ -44,7 +44,7 @@ const SettingsPage: React.FC = () => {
 
   return (
     <StudentLayout title={t('student.settings.title')} subtitle={t('student.settings.subtitle')}>
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div data-testid="settings-page" className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <aside className="lg:col-span-1">
           <nav className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-2 space-y-1">
             {tabs.map(tb => (

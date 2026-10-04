@@ -1,0 +1,13 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-PROFILE-001,authApi,me GET /api/auth/me and returns the unwrapped profile,P1,Backend up,Call me(),"payload",URL=/api/auth/me; result equals payload,Unit
+UT-PROFILE-002,authApi,changePassword POST /api/auth/change-password with old+new,P1,Backend up,Call changePassword('old','new'),"","URL=/api/auth/change-password; body {oldPassword,newPassword}",Unit
+UT-PROFILE-003,authApi,signOut POST /api/auth/logout and clears tokens,P1,Backend up,Call signOut(),"","URL=/api/auth/logout; tokens cleared",Unit
+UT-PROFILE-004,authApi,signOut swallows 401 and still clears local state,P1,Mock rejects 401,Call signOut(),"",state cleared; no throw,Unit
+IT-PROFILE-001,Profile,Loading state shows spinner while me() pending,P1,Mock pending,Mount ProfilePage,"","spinner element",Integration
+IT-PROFILE-002,Profile,Error state when me() rejects,P1,Mock rejects,Mount,error,error message visible,Integration
+IT-PROFILE-003,Profile,Heading + email render after me() resolves,P1,Mock resolves,Mount,"fullName='Student One'","Student One + email visible",Integration
+IT-PROFILE-004,Profile,Switch to Security tab reveals change-password form,P1,Mock resolves,Mount and click Security,"",change-password heading visible,Integration
+IT-PROFILE-005,Profile,Password mismatch shows inline error and skips mutation,P1,Mock resolves,Fill mismatch then click Submit,"",inline error visible; POST not fired,Integration
+IT-PROFILE-006,Profile,Short new password blocks submission,P1,Mock resolves,Fill short then click Submit,"",inline error visible; POST not fired,Integration
+IT-PROFILE-007,Profile,Valid change triggers POST /api/auth/change-password,P1,"Mock resolves; mock POST resolves",Fill valid + click Submit,"","POST /api/auth/change-password fired",Integration
+TC-PROFILE-001,Profile,Profile end-to-end: switch to Security + change password,P1,"Student auth; mocked GET /api/auth/me + POST /api/auth/change-password","Visit /student/profile; switch to Security; fill passwords; click Update","valid 8+ chars","POST /api/auth/change-password fired",E2E

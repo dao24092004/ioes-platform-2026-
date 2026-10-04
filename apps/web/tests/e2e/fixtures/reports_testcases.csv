@@ -1,0 +1,8 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-REPORTS-001,Reports,formatDate returns the ISO date when the input is non-null,P1,locale en,"Call formatDate('2026-10-02T00:00:00Z')","input='2026-10-02T00:00:00Z'","result is a non-empty string that contains '2026'",Unit
+UT-REPORTS-002,Reports,formatDate returns em-dash placeholder when the input is null,P1,locale en,"Call formatDate(null)","input=null","result === '—'",Unit
+UT-REPORTS-003,Reports,RECENT_EXAMS is 10 so the bar chart caps at the ten most recent scored attempts,P1,module-level constant,"Read RECENT_EXAMS","-","REPORT-RECENT-EXAMS constant equals 10",Unit
+UT-REPORTS-004,Reports,Spinner renders without crashing for an empty fallback className,P1,React render,"Render <Spinner />","-","a single animate-spin div renders",Unit
+IT-REPORTS-001,Reports,ReportsPage renders the four stat cards from mocked enrollments + analytics,P1,"Student auth, three APIs all mocked","Render ReportsPage at /student/reports","enrolled=1, completed=1, avgScore=80, passRate=100","stat-enrolled=1, stat-completed=1, stat-avg=80/100, stat-pass=100%",Integration
+IT-REPORTS-002,Reports,ReportsPage renders empty state when there are zero enrollments,P1,"Student auth, enrollment returns []","Render ReportsPage at /student/reports","enrollments=[]","empty course message + 'Browse courses' link visible",Integration
+TC-REPORTS-001,Reports,/student/reports renders four stat cards, the recent-course card with the latest enrollment title, and zero console errors,P1,"web-student storageState, mocks for enrollments + analytics + attempts","1. Visit /student/reports 2. Wait for stat cards 3. Collect console errors","stat cards visible, 1 course row, recent-course card visible, console errors=0",E2E

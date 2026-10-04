@@ -16,11 +16,13 @@ const SpeechToTextPage: React.FC = () => {
 
   return (
     <StudentLayout title={t('examApi.comingSoon.speechToText.title')}>
+      <div data-testid="speechtotext-page">
       <ComingSoon
         title={t('examApi.comingSoon.speechToText.title')}
         description={t('examApi.comingSoon.speechToText.description')}
         missing={t('examApi.comingSoon.speechToText.missing', { returnObjects: true }) as string[]}
       />
+      </div>
     </StudentLayout>
   );
 };

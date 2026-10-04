@@ -1,0 +1,10 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-NOTIF-001,notificationApi,getUserInbox GET /api/v1/notifications/user/:userId,P1,Backend up,Call getUserInbox('u-1'),"",URL=/api/v1/notifications/user/u-1,Unit
+UT-NOTIF-002,notificationApi,getUserInbox returns the unwrapped notification array,P1,Backend up,Call getUserInbox('u-1'),"payload",result equals payload,Unit
+UT-NOTIF-003,notificationApi,markRead throws until backend exists,P3,No backend,Call markRead('n-1'),"",rejects with NotImplementedError,Unit
+UT-NOTIF-004,notificationApi,markAllRead throws until backend exists,P3,No backend,Call markAllRead('u-1'),"",rejects with NotImplementedError,Unit
+IT-NOTIF-001,Notifications,Inbox renders the subject + status pill from the API response,P1,"Student auth, mock returns 1 sent email",Mount NotificationsPage,"subject=Welcome to IOES","subject visible; status pill ""sent""",Integration
+IT-NOTIF-002,Notifications,Loading state while request pending,P1,Pending promise,Mount,none,spinner rendered,Integration
+IT-NOTIF-003,Notifications,Error state when request rejects,P1,Mock rejects,Mount,none,error message visible,Integration
+IT-NOTIF-004,Notifications,Empty state when user has no notifications,P1,Mock returns [],Mount,none,empty copy visible,Integration
+TC-NOTIF-001,Notifications,Inbox end-to-end renders one sent notification,P1,"Student auth; mocked GET /api/v1/notifications/user/:id","Visit /student/notifications","1 sent notification","subject visible",E2E

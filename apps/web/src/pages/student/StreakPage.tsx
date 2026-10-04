@@ -127,22 +127,25 @@ const StreakPage: React.FC = () => {
       title={t('student.streak.title')}
       subtitle={t('student.streak.subtitle')}
       headerActions={
-        <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">
+        <button
+          data-testid="streak-freeze-button"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm"
+        >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" /></svg>
           {t('student.streak.actions.useFreeze')}
         </button>
       }
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="md:col-span-1 bg-gradient-to-br from-orange-500 via-rose-500 to-red-600 rounded-2xl p-6 text-white shadow-lg">
+        <div data-testid="streak-hero" className="md:col-span-1 bg-gradient-to-br from-orange-500 via-rose-500 to-red-600 rounded-2xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between mb-2">
             <div className="text-xs uppercase tracking-wider opacity-90">{t('student.streak.currentStreak')}</div>
             <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z" /></svg>
           </div>
-          <div className="text-6xl font-black mb-1">{stats.currentStreak}</div>
+          <div data-testid="streak-current-value" className="text-6xl font-black mb-1">{stats.currentStreak}</div>
           <div className="text-sm opacity-90">{t('student.streak.daysInRow')}</div>
         </div>
-        <div className="bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
+        <div data-testid="streak-best" className="bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
           <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">{t('student.streak.bestStreak')}</div>
           <div className="text-5xl font-black text-slate-900 dark:text-white mb-1">{stats.bestStreak}</div>
           <div className="text-sm text-slate-500 dark:text-slate-400">{t('student.streak.daysInRow')}</div>
@@ -151,7 +154,7 @@ const StreakPage: React.FC = () => {
             {t('student.streak.personalRecord')}
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
+        <div data-testid="streak-next-milestone" className="bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
           <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">{t('student.streak.toNextMilestone')}</div>
           {nextMilestone ? (
             <>
@@ -310,7 +313,7 @@ const StreakPage: React.FC = () => {
           {milestones.map((m) => {
             const pct = Math.min(100, Math.round((m.current / m.target) * 100));
             return (
-              <div key={m.id} className={`p-5 rounded-2xl border ${m.achieved ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800/50' : 'border-slate-200 dark:border-slate-700'}`}>
+              <div key={m.id} data-testid="streak-milestone" className={`p-5 rounded-2xl border ${m.achieved ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800/50' : 'border-slate-200 dark:border-slate-700'}`}>
                 <div className="flex items-center justify-between mb-3">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${m.achieved ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z" /></svg>

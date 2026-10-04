@@ -1,0 +1,14 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-SEARCH-001,contentApi,listCourses GET /api/v1/courses with status filter,P1,Backend up,Call listCourses({status:'published',perPage:50}),"",URL=/api/v1/courses; params.status==='published'; per_page===50,Unit
+UT-SEARCH-002,contentApi,listCourses returns the CoursePage shape {data,meta},P1,Backend up,Call listCourses(),"payload",result equals payload,Unit
+UT-SEARCH-003,contentApi,findCourseBySlug returns null when no match,P1,Backend returns empty,Call findCourseBySlug('no-such-slug'),"",result===null,Unit
+UT-SEARCH-004,contentApi,findCourseBySlug returns first matching slug,P1,Backend returns 1 match,Call findCourseBySlug('react-fundamentals'),"",result.slug==='react-fundamentals',Unit
+UT-SEARCH-005,contentApi,listCategories GET /api/v1/categories,P1,Backend up,Call listCategories(),"",URL=/api/v1/categories,Unit
+UT-SEARCH-006,contentApi,formatCoursePrice returns 'Free' when price==0,P1,Course.price=0,Call formatCoursePrice(course,'Free'),"",result==='Free',Unit
+IT-SEARCH-001,Search,Empty / hint state when no query typed,P1,Student auth,Mount SearchPage,none,hint copy visible,Integration
+IT-SEARCH-002,Search,Typing dispatches listCourses with status=published after 300ms debounce,P1,Mock listCourses,Type 'react',"",URL includes /api/v1/courses; params.status==='published',Integration
+IT-SEARCH-003,Search,Search results render as links to /student/courses/:id,P1,Mock returns 1 course,Type 'react',"course title","link href=/student/courses/c-1",Integration
+IT-SEARCH-004,Search,Empty results show "No results found",P1,Mock returns [],Type 'xyz-not-found',"","No results found" visible,Integration
+IT-SEARCH-005,Search,Error state renders common.loadError,P1,Mock rejects,Type 'react',error,"Failed to load" visible,Integration
+IT-SEARCH-006,Search,Category names resolved via listCategories,P1,"Mock returns 1 course + 1 category",Type 'react',"category name","category text visible",Integration
+TC-SEARCH-001,Search,Search end-to-end flow with status=published filter,P1,"Student auth; mocked GET /api/v1/courses + /api/v1/categories","Visit /student/search; fill input","search='react'","URL params: search=react,status=published; 1 result link visible",E2E

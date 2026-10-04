@@ -135,7 +135,7 @@ const PracticeQuizPage: React.FC = () => {
   if (questions.length === 0) {
     return (
       <StudentLayout title={t('student.practice.title')} subtitle={t('student.practice.subtitle')}>
-        <div className="max-w-xl mx-auto bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 sm:p-8">
+        <div data-testid="practicequiz-setup" className="max-w-xl mx-auto bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 sm:p-8">
           <h2 className="text-lg font-semibold mb-1">{t('student.practice.setup.title')}</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
             {t('student.practice.setup.desc')}
@@ -152,6 +152,7 @@ const PracticeQuizPage: React.FC = () => {
               if (e.key === 'Enter') void startPractice();
             }}
             placeholder={t('student.practice.setup.topicPlaceholder')}
+            data-testid="practicequiz-topic-input"
             className="w-full px-3 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:border-blue-500 mb-4"
           />
 
@@ -206,6 +207,7 @@ const PracticeQuizPage: React.FC = () => {
           <button
             onClick={() => void startPractice()}
             disabled={!topic.trim() || generating}
+            data-testid="practicequiz-start"
             className="w-full px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold transition-colors"
           >
             {generating ? t('student.practice.setup.generating') : t('student.practice.setup.start')}
@@ -266,8 +268,7 @@ const PracticeQuizPage: React.FC = () => {
 
   return (
     <StudentLayout title={t('student.practice.title')} subtitle={t('student.practice.subtitle')}>
-      {/* Sticky header */}
-      <div className="sticky top-0 z-30 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl mb-4 px-4 sm:px-6 py-3 flex items-center justify-between gap-3 -mx-2">
+      <div data-testid="practicequiz-quiz" className="sticky top-0 z-30 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl mb-4 px-4 sm:px-6 py-3 flex items-center justify-between gap-3 -mx-2">
         <div className="flex items-center gap-3 min-w-0">
           <Link
             to="/student"
@@ -418,7 +419,10 @@ const PracticeQuizPage: React.FC = () => {
                     disabled={s.showResult}
                     className={`w-full flex items-start gap-4 px-5 py-4 rounded-2xl border-2 text-left transition-all ${itemCls}`}
                   >
-                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors ${letterCls}`}>
+                    <span
+                      data-testid={`practicequiz-option-${letter}`}
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors ${letterCls}`}
+                    >
                       {letter}
                     </span>
                     <span className="flex-1 text-sm leading-relaxed text-slate-700 dark:text-slate-200">{opt}</span>

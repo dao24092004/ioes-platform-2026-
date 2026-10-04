@@ -57,10 +57,11 @@ const NotificationsPage: React.FC = () => {
 
   return (
     <StudentLayout title={t('student.notifications.title')} subtitle={t('student.notifications.subtitle')}>
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div data-testid="notifications-page">
         {FILTERS.map(f => (
           <button
             key={f}
+            data-testid={`notifications-filter-${f}`}
             onClick={() => setFilter(f)}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
               filter === f

@@ -1,0 +1,16 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-PRACTICE-001,questionBank,searchQuestions GET /api/v1/question-bank/questions/search with all filters as query params,P1,"topicBank up",Call searchQuestions({query,topicId,difficulty,questionType,skillIds,limit,offset}),"filters as object",URL = /api/v1/question-bank/questions/search; params mirror input,Unit
+UT-PRACTICE-002,questionBank,searchQuestions returns the unwrapped payload {questions,total,hasMore},P1,Backend returns envelope,Call searchQuestions({query:'x'}),"payload {questions:[{uid:'q-1'}],total:1,hasMore:false}",result equals payload,Unit
+UT-PRACTICE-003,questionBank,getPracticePath GET /api/v1/question-bank/topics/:topicId/practice,P1,Backend up,Call getPracticePath('topic-42'),"",URL = /api/v1/question-bank/topics/topic-42/practice,Unit
+UT-PRACTICE-004,questionBank,getPracticePath returns the practice-path node structure,P1,Backend up,Call getPracticePath('t-1'),"node {question,prerequisites,nextQuestions}",result equals node,Unit
+UT-PRACTICE-005,questionBank,listTopics GET /api/v1/question-bank/topics with no params,P1,Backend up,Call listTopics(),"",URL = /api/v1/question-bank/topics,Unit
+UT-PRACTICE-006,questionBank,listTopics returns an empty array when envelope is empty,P1,Backend returns empty list,Call listTopics(),"",result=[]; result is an array,Unit
+IT-PRACTICE-001,Practice,Loading state shows "Loading practice session…" while getPracticePath pending,P1,Student auth,Mount PracticePage with pending promise,none,spinner + "Loading practice session…" text visible,Integration
+IT-PRACTICE-002,Practice,Error state when getPracticePath rejects,P1,Student auth; mock rejects,Mount PracticePage,error,error message rendered,Integration
+IT-PRACTICE-003,Practice,Empty/no-more-questions state shows celebration copy,P1,Mock returns question:null,Mount PracticePage,null,"""No more questions!"" text rendered",Integration
+IT-PRACTICE-004,Practice,Renders question text + 4 options when loaded,P1,Mock returns question,Mount PracticePage,question + 4 options,question text and 4 options visible,Integration
+IT-PRACTICE-005,Practice,Selecting an option keeps it visible,P1,Mock returns question,Click option O(log n),"",option remains in DOM,Integration
+IT-PRACTICE-006,Practice,Submit Answer reveals explanation + Next button,P1,Mock returns question,Click option then Submit,explanation text,explanation visible + Next button enabled,Integration
+IT-PRACTICE-007,Practice,Next triggers a second getPracticePath call,P1,Mock returns 1 nextQuestion,Click Submit then Next,next question loaded,2nd GET fired,Integration
+IT-PRACTICE-008,Practice,Authenticated render does not throw,P1,Student auth,Mount PracticePage,none,no exception,Integration
+TC-PRACTICE-001,Practice,Practice page end-to-end flow: load → pick option → submit → next,P1,"Student auth; mocked GET /api/v1/question-bank/topics/topic-42/practice","Visit /student/practice/topic-42; click an option; click Submit; click Next","question=time complexity binary search","Question text visible; explanation visible; 2nd GET fired",E2E

@@ -60,7 +60,7 @@ const CoursesPage: React.FC = () => {
       title={t('student.courses.title')}
       subtitle={t('student.courses.browseAll')}
       headerActions={
-        <Link to="/student/search" className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition-colors">
+        <Link to="/student/search" data-testid="courses-search-link" className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition-colors">
           {t('student.search.title')}
         </Link>
       }
@@ -78,6 +78,7 @@ const CoursesPage: React.FC = () => {
           <div className="relative">
             <input
               type="search"
+              data-testid="courses-search-input"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={t('student.courses.searchPlaceholder')}
@@ -171,6 +172,7 @@ const CourseCard: React.FC<{ course: Course; category: string; enrolled: boolean
         </div>
         <Link
           to={`/student/courses/${course.id}`}
+          data-testid="courses-card-link"
           className="block w-full text-center py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors"
         >
           {t('courses.viewDetail')}

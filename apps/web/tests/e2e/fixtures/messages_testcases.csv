@@ -1,0 +1,10 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-MSG-001,messages,sendMessage throws until backend exists,P3,No messages backend,Call sendMessage('c-1','hello'),"",rejects with NotImplementedError,Unit
+UT-MSG-002,messages,listConversations returns an empty array when no threads exist,P3,Backend up,Call listConversations(),"",result=[],Unit
+UT-MSG-003,messages,listConversations unwraps the threads array,P3,Backend returns envelope,Call listConversations(),"payload",result equals payload,Unit
+UT-MSG-004,messages,markAsRead disabled=true until backend exists,P3,No backend,Call markAsRead('c-1'),"",returns true at unit,Unit
+IT-MSG-001,Messages,Title renders when mounted,P1,Student auth,Mount MessagesPage,"","Direct messages" visible,Integration
+IT-MSG-002,Messages,Description renders when mounted,P1,Student auth,Mount MessagesPage,"","Chat with teachers" visible,Integration
+IT-MSG-003,Messages,Missing items render from the i18n list,P1,Student auth,Mount MessagesPage,"","What is missing" + missing items visible,Integration
+IT-MSG-004,Messages,Coming soon badge + no-fake-data copy render,P1,Student auth,Mount MessagesPage,"","Coming soon" + "No sample data" visible,Integration
+TC-MSG-001,Messages,Messages page placeholder renders end-to-end with no console errors,P1,Student auth,Visit /student/messages,"","Coming soon" copy visible",E2E

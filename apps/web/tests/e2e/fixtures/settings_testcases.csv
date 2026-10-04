@@ -1,0 +1,9 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-SETTINGS-001,settings,Theme preference is read from localStorage on mount,P3,"localStorage has theme='dark'",Render SettingsPage,"theme=dark","Theme switch defaults to 'Dark'",Unit
+UT-SETTINGS-002,settings,Notification preferences are read from localStorage on mount,P3,localStorage has notifications={...},Render SettingsPage,"","switches reflect stored values",Unit
+UT-SETTINGS-003,settings,Privacy preferences are read from localStorage on mount,P3,localStorage has privacy={...},Render SettingsPage,"","switches reflect stored values",Unit
+IT-SETTINGS-001,Settings,Default tab is general (theme picker visible),P1,Student auth,Mount SettingsPage,"","Theme" + Light/Dark/Auto buttons visible,Integration
+IT-SETTINGS-002,Settings,Switching to notifications reveals the switches,P1,Student auth,Mount then click Notifications,"","6 notification switches visible",Integration
+IT-SETTINGS-003,Settings,Toggling a switch flips aria-checked,P1,Student auth,Mount then click Notifications + toggle promotions,"promotions=true",promotions switch aria-checked=true,Integration
+IT-SETTINGS-004,Settings,Switching to language reveals VI / EN buttons,P1,Student auth,Mount then click Language,"","Tiếng Việt" + "English" visible,Integration
+IT-SETTINGS-005,Settings,Switching to privacy reveals the privacy switches,P1,Student auth,Mount then click Privacy,"","3 privacy switches visible",Integration

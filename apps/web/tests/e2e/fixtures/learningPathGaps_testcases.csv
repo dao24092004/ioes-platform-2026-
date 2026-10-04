@@ -1,0 +1,15 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-LEARNPATH-001,learningPath,LEARNING_PATH_GENERATE_TIMEOUT_MS equals 200_000 ms,P1,"const declared in api",Inspect constant,"",value === 200_000; !== 120_000,Unit
+UT-LEARNPATH-002,learningPath,LEARNING_PATH_GENERATE_TIMEOUT_MS is a positive finite integer,P1,const declared,Inspect,"",Number.isInteger && > 0 && Number.isFinite,Unit
+UT-LEARNPATH-003,learningPath,normalizeSavedPath returns null for null/undefined/garbage input,P1,API edge,Call normalizeSavedPath(null|undefined|garbage),"",result===null,Unit
+UT-LEARNPATH-004,learningPath,normalizeSavedPath maps missing courseId to null on each step,P1,Input has 3 steps with empty courseIds,Call normalizeSavedPath(input),"",step.courseId === null for each,Unit
+UT-LEARNPATH-005,learningPath,normalizeSavedPath forwards non-empty courseId through unchanged,P1,Input step.courseId='c-99',Call normalizeSavedPath(input),"",step.courseId==='c-99',Unit
+UT-LEARNPATH-006,learningPath,normalizeSavedPath sorts steps by order ascending,P1,"Input has steps with order 3,1,2",Call normalizeSavedPath(input),"",titles=['first','second','third'],Unit
+UT-LEARNPATH-007,learningPath,normalizeSavedPath falls back to payload.goal when record.goal empty,P1,"record.goal='',payload.goal='Backend Goal'",Call normalizeSavedPath(input),"",result.goal==='Backend Goal',Unit
+UT-LEARNPATH-008,learningPath,normalizeSavedPath coerces non-array steps to empty array,P1,steps='not-an-array',Call normalizeSavedPath(input),"",result.payload.steps===[],Unit
+IT-LEARNPATH-001,LearningPath,Backend returns null opens the form directly,P1,"Mock getMine resolves null","Mount LearningPathPage","","Create learning path" heading visible,Integration
+IT-LEARNPATH-002,LearningPath,Submit with empty goal triggers goal-required error,P1,Mock getMine=null,Mount + click Generate,"","Goal is required" alert visible,Integration
+IT-LEARNPATH-003,LearningPath,Submit with empty goal keeps goal-required error,P1,Mock getMine=null,Mount + click Generate empty,"","Goal is required" alert visible,Integration
+IT-LEARNPATH-004,LearningPath,Generation pending shows all 5 agent stages + elapsed counter,P1,"Mock getMine=null; generate never resolves",Mount + submit a goal,"","Generating your path" + 5 agent labels visible,Integration
+IT-LEARNPATH-005,LearningPath,Generation success renders path summary + steps,P1,"Mock returns a path",Mount + submit a goal,"summary='A short summary.'","summary + first step title visible",Integration
+TC-LEARNPATH-001,LearningPath,Learning Path gap: form renders when no path exists,P1,"Student auth; mocked GET /api/ai/learning-path/me (null) + history ([])","Visit /student/learning-path","","Create learning path" heading visible, E2E

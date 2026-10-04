@@ -61,7 +61,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <StudentLayout title={t('student.profile.title')} subtitle={t('student.profile.subtitle')}>
-      <Card padding="md" className="mb-6">
+      <div data-testid="profile-page">
         <div className="flex items-center gap-6 flex-wrap">
           <div className="relative">
             <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center text-2xl font-bold shadow-lg">
@@ -76,7 +76,7 @@ const ProfilePage: React.FC = () => {
             <p className="text-sm text-slate-500 dark:text-slate-400">{profile?.email ?? '—'}</p>
           </div>
         </div>
-      </Card>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard color="blue" icon={<BookIcon />} value={8} label={t('student.profile.stats.courses')} />
@@ -90,6 +90,7 @@ const ProfilePage: React.FC = () => {
           {tabs.map(tb => (
             <button
               key={tb.id}
+              data-testid={`profile-tab-${tb.id}`}
               onClick={() => setTab(tb.id)}
               className={`px-5 py-3.5 text-sm font-semibold whitespace-nowrap transition-colors ${
                 tab === tb.id
@@ -174,12 +175,12 @@ const ProfilePage: React.FC = () => {
                     changePassword.mutate({ oldPassword, newPassword });
                   }}
                 >
-                  <input type="password" placeholder="Mật khẩu hiện tại" value={oldPassword} onChange={e => setOldPassword(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
-                  <input type="password" placeholder="Mật khẩu mới" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
-                  <input type="password" placeholder="Xác nhận mật khẩu mới" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
+                  <input type="password" placeholder="Mật khẩu hiện tại" data-testid="profile-old-password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
+                  <input type="password" placeholder="Mật khẩu mới" data-testid="profile-new-password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
+                  <input type="password" placeholder="Xác nhận mật khẩu mới" data-testid="profile-confirm-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
                   {pwError && <p className="text-sm text-red-600 dark:text-red-400">{pwError}</p>}
                   {changePassword.isSuccess && <p className="text-sm text-emerald-600 dark:text-emerald-400">Đã đổi mật khẩu.</p>}
-                  <button type="submit" disabled={changePassword.isPending} className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold transition-colors">
+                  <button type="submit" disabled={changePassword.isPending} data-testid="profile-change-password-submit" className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold transition-colors">
                     {changePassword.isPending ? 'Đang cập nhật…' : 'Cập nhật mật khẩu'}
                   </button>
                 </form>

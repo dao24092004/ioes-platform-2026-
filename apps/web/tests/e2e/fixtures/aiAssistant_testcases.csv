@@ -1,0 +1,14 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-AIASSIST-001,ai,ask POST /api/ai/chat with the user's question,P1,Backend up,Call ask({question:'x',sessionId:undefined}),"",URL=/api/ai/chat; body.question='x',Unit
+UT-AIASSIST-002,ai,ask returns the unwrapped ChatTurn response,P1,Backend up,Call ask({question:'x'}),"payload {sessionId,messageId,answer,grounded,sources,model,latencyMs}",result equals payload,Unit
+UT-AIASSIST-003,ai,listSessions returns the unwrapped session array,P1,Backend up,Call listSessions(),"[{id,title,lastMessageAt,updatedAt}]",result equals array,Unit
+UT-AIASSIST-004,ai,getHistory returns the unwrapped message array,P1,Backend up,Call getHistory('s-1'),"",result is array of messages,Unit
+UT-AIASSIST-005,ai,ask forwards the sessionId through unchanged,P1,Backend up,Call ask({question:'x',sessionId:'s-2'}),"",body.sessionId==='s-2',Unit
+IT-AIASSIST-001,AIAssistant,Title + subtitle render when mounted,P1,Student auth,Mount AIAssistantPage,none,subtitle visible,Integration
+IT-AIASSIST-002,AIAssistant,Loading state visible while sessions pending,P1,Pending sessions,Mount,none,"""Loading..."" text visible",Integration
+IT-AIASSIST-003,AIAssistant,Chat usable even when sessions request fails,P1,Mock rejects,Mount,none,greeting still renders,Integration
+IT-AIASSIST-004,AIAssistant,No-sessions state shows greeting + New chat button,P1,Mock resolves [],Mount,none,greeting visible; New chat button visible,Integration
+IT-AIASSIST-005,AIAssistant,Sending a question triggers POST /api/ai/chat,P1,"Mock resolves [] sessions, ask resolves",Type 'What are hooks?' + send,question,POST /api/ai/chat fired with question text,Integration
+IT-AIASSIST-006,AIAssistant,Empty question does not call ask,P1,"Mock resolves [] sessions",Click send without typing,none,POST /api/ai/chat NOT called,Integration
+IT-AIASSIST-007,AIAssistant,Sending from new chat session calls ask once,P1,"Mock resolves [], ask resolves",Click New chat + send a question,question,POST /api/ai/chat fired once with question text,Integration
+TC-AIASSIST-001,AIAssistant,AI Assistant end-to-end: send a user message and see assistant reply,P1,"Student auth; mocked GET sessions + POST /api/ai/chat","Visit /student/ai-assistant; type a question; click Send","question=""How do I use React state?""","assistant reply text visible",E2E

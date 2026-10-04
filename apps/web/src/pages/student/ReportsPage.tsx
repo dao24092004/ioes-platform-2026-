@@ -115,30 +115,38 @@ const ReportsPage: React.FC = () => {
   return (
     <StudentLayout title={t('student.reports.title')} subtitle={t('student.reports.subtitle')}>
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard
-          color="blue"
-          icon={<BookIcon />}
-          value={coursesReady ? courses.list.length : '—'}
-          label={t('student.reports.stats.enrolled')}
-        />
-        <StatCard
-          color="emerald"
-          icon={<CheckIcon />}
-          value={coursesReady ? courses.completed : '—'}
-          label={t('student.reports.stats.completed')}
-        />
-        <StatCard
-          color="amber"
-          icon={<ExamIcon />}
-          value={examsReady ? outOf100(exams.avgScore) : '—'}
-          label={t('student.reports.stats.avgScore')}
-        />
-        <StatCard
-          color="purple"
-          icon={<TrophyIcon />}
-          value={examsReady ? pct(exams.passRate) : '—'}
-          label={t('student.reports.stats.passRate')}
-        />
+        <div data-testid="reports-stat-enrolled">
+          <StatCard
+            color="blue"
+            icon={<BookIcon />}
+            value={coursesReady ? courses.list.length : '—'}
+            label={t('student.reports.stats.enrolled')}
+          />
+        </div>
+        <div data-testid="reports-stat-completed">
+          <StatCard
+            color="emerald"
+            icon={<CheckIcon />}
+            value={coursesReady ? courses.completed : '—'}
+            label={t('student.reports.stats.completed')}
+          />
+        </div>
+        <div data-testid="reports-stat-avg-score">
+          <StatCard
+            color="amber"
+            icon={<ExamIcon />}
+            value={examsReady ? outOf100(exams.avgScore) : '—'}
+            label={t('student.reports.stats.avgScore')}
+          />
+        </div>
+        <div data-testid="reports-stat-pass-rate">
+          <StatCard
+            color="purple"
+            icon={<TrophyIcon />}
+            value={examsReady ? pct(exams.passRate) : '—'}
+            label={t('student.reports.stats.passRate')}
+          />
+        </div>
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -166,7 +174,7 @@ const ReportsPage: React.FC = () => {
           ) : (
             <ul className="space-y-4 max-h-96 overflow-y-auto pr-1">
               {courses.list.map(({ enrollment, course }) => (
-                <li key={enrollment.id}>
+                <li key={enrollment.id} data-testid="reports-course-row">
                   <div className="flex items-center justify-between gap-3 mb-1.5">
                     <Link
                       to={`/student/courses/${course.id}`}
@@ -269,28 +277,30 @@ const ReportsPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-        <Card padding="md">
-          <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-2">{t('student.reports.recentCourse.title')}</h3>
-          {enrollmentsQuery.isLoading ? (
-            <div className="text-2xl font-bold text-slate-400">—</div>
-          ) : enrollmentsQuery.isError ? (
-            <div className="text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</div>
-          ) : latestCourse ? (
-            <>
-              <Link
-                to={`/student/courses/${latestCourse.course.id}`}
-                className="block text-xl font-bold text-blue-600 dark:text-blue-400 truncate hover:underline"
-              >
-                {latestCourse.course.title}
-              </Link>
-              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {t('student.reports.recentCourse.progress', { value: latestCourse.enrollment.progressPercent })}
-              </div>
-            </>
-          ) : (
-            <div className="text-sm text-slate-500 dark:text-slate-400">{t('student.reports.recentCourse.empty')}</div>
-          )}
-        </Card>
+        <div data-testid="reports-recent-course-card">
+          <Card padding="md">
+            <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-2">{t('student.reports.recentCourse.title')}</h3>
+            {enrollmentsQuery.isLoading ? (
+              <div className="text-2xl font-bold text-slate-400">—</div>
+            ) : enrollmentsQuery.isError ? (
+              <div className="text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</div>
+            ) : latestCourse ? (
+              <>
+                <Link
+                  to={`/student/courses/${latestCourse.course.id}`}
+                  className="block text-xl font-bold text-blue-600 dark:text-blue-400 truncate hover:underline"
+                >
+                  {latestCourse.course.title}
+                </Link>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  {t('student.reports.recentCourse.progress', { value: latestCourse.enrollment.progressPercent })}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-slate-500 dark:text-slate-400">{t('student.reports.recentCourse.empty')}</div>
+            )}
+          </Card>
+        </div>
 
         <Card padding="md">
           <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-2">{t('student.reports.recentExam.title')}</h3>

@@ -93,6 +93,7 @@ const CourseDetailPage: React.FC = () => {
             )}
             <Link
               to={`/student/learn/${course.id}`}
+              data-testid="coursedetail-learn-button"
               className="relative w-20 h-20 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-2xl hover:scale-105 transition-transform"
             >
               <svg className="w-8 h-8 text-blue-600 ml-1" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3" /></svg>
@@ -128,6 +129,7 @@ const CourseDetailPage: React.FC = () => {
               {tabs.map(tb => (
                 <button
                   key={tb.id}
+                  data-testid={`coursedetail-tab-${tb.id}`}
                   onClick={() => setTab(tb.id)}
                   className={`px-5 py-3.5 text-sm font-semibold whitespace-nowrap transition-colors ${
                     tab === tb.id
@@ -256,17 +258,19 @@ const EnrollCard: React.FC<{ course: Course; totalLessons: number; state?: Enrol
           </div>
           <Link
             to={`/student/learn/${course.id}`}
+            data-testid="coursedetail-enroll-continue"
             className="block w-full text-center py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors"
           >
             {state.completedLessonIds.length > 0 ? t('enrollmentApi.continue') : t('enrollmentApi.start')}
           </Link>
           {confirmCancel ? (
-            <div className="mt-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-xs text-red-700 dark:text-red-300">
+            <div data-testid="coursedetail-cancel-confirm-block" className="mt-3 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-xs text-red-700 dark:text-red-300">
               <p className="mb-2">{t('enrollmentApi.cancelConfirm')}</p>
               <div className="flex gap-2">
                 <button
                   onClick={() => cancelMut.mutate()}
                   disabled={cancelMut.isPending}
+                  data-testid="coursedetail-cancel-confirm-button"
                   className="flex-1 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold disabled:opacity-50"
                 >
                   {t('enrollmentApi.cancel')}
@@ -297,6 +301,7 @@ const EnrollCard: React.FC<{ course: Course; totalLessons: number; state?: Enrol
         <button
           onClick={() => enrollMut.mutate()}
           disabled={enrollMut.isPending}
+          data-testid="coursedetail-enroll-button"
           className="block w-full text-center py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors disabled:opacity-50"
         >
           {enrollMut.isPending ? t('enrollmentApi.enrolling') : t('enrollmentApi.enroll')}

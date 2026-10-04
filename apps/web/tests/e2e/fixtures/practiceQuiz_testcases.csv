@@ -1,0 +1,14 @@
+ID,Module,Title,Priority,PreConditions,Steps,TestData,Expected,Level
+UT-PRACTICEQUIZ-001,questions,generate POST /api/ai/questions/generate with full body,P1,Backend up,Call generate({topic,questionType,difficulty,count,language,instructions,topK}),"",URL = /api/ai/questions/generate; body keys match input,Unit
+UT-PRACTICEQUIZ-002,questions,generate returns GeneratedQuestionSet fields intact,P1,Backend up,Call generate({topic:'any'}),"",result has questions, requested, returned, grounded, model, latencyMs,Unit
+UT-PRACTICEQUIZ-003,questions,generate surfaces grounded=false from backend,P1,Backend returns grounded=false,Call generate({topic:'obscure',count:5}),"",result.grounded===false; returned=0; droppedUnverified=5,Unit
+UT-PRACTICEQUIZ-004,questions,generate respects boundary value count=20 without coercion,P1,Backend up,Call generate({topic:'t',count:20}),"",body.count === 20,Unit
+UT-PRACTICEQUIZ-005,questions,generate omits undefined optional fields,P1,Backend up,Call generate({topic:'t'}),"",body === { topic: 't' },Unit
+IT-PRACTICEQUIZ-001,PracticeQuiz,Setup form renders all 3 difficulties + start disabled,P1,Student auth,Mount PracticeQuizPage,none,setup heading visible; start button disabled,Integration
+IT-PRACTICEQUIZ-002,PracticeQuiz,Start stays disabled when topic empty,P1,Student auth,Mount PracticeQuizPage,none,start button disabled,Integration
+IT-PRACTICEQUIZ-003,PracticeQuiz,Typing topic + start triggers generate POST,P1,Mock generate resolves,Type 'recursion' then click Start,"","POST /api/ai/questions/generate; body.topic='recursion'",Integration
+IT-PRACTICEQUIZ-004,PracticeQuiz,Generate error renders role=alert,P1,Mock rejects,Submit the form,error,role="alert" element rendered,Integration
+IT-PRACTICEQUIZ-005,PracticeQuiz,After successful generate the question renders,P1,Mock resolve with 1Q,Submit the form,question text,question card visible,Integration
+IT-PRACTICEQUIZ-006,PracticeQuiz,Selecting an option shows the explanation block,P1,Mock resolve with 1Q,Submit then click correct B option,explanation,"explanation text visible",Integration
+IT-PRACTICEQUIZ-007,PracticeQuiz,Back link navigates to /student,P1,Student auth,Click back link (href /student),navigate,/student route renders,Integration
+TC-PRACTICEQUIZ-001,PracticeQuiz,Practice quiz end-to-end flow: setup → generate → option → explanation,P1,"Student auth; mocked POST /api/ai/questions/generate","Visit /student/practice; fill topic; click Start; click option B","question=""Why is the sky blue""","setup visible; quiz visible; explanation visible",E2E
